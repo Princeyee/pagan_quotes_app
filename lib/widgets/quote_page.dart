@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/quote.dart';
 import '../services/favorites_service.dart';
+import '../services/cache_manager.dart';
+
 
 class QuotePage extends StatefulWidget {
   const QuotePage({super.key});
@@ -57,6 +59,8 @@ class _QuotePageState extends State<QuotePage>
     await _pickTextColor();
     _isLiked = _favSvc.isFavorite(_today.id);
     setState(() => _loading = false);
+    await _precacheTomorrow();
+
     
   }
 
@@ -66,7 +70,10 @@ class _QuotePageState extends State<QuotePage>
   }
 
   Future<void> _pickTextColor() async {
-    final provider = CachedNetworkImageProvider(_today.image);
+    final provider = CachedNetworkImageProvider(
+  _today.image,
+  cacheManager: CustomCache.instance,
+);
     final palette = await PaletteGenerator.fromImageProvider(
       provider,
       size: const Size(64, 64),
@@ -78,6 +85,16 @@ class _QuotePageState extends State<QuotePage>
     }
   }
 
+Future<void> _precacheTomorrow() async {
+  final tomorrowIdx = (DateTime.now().day + 1) % _all.length;
+  final Quote tomorrow = _all[tomorrowIdx];
+  final provider = CachedNetworkImageProvider(
+  tomorrow.image,
+  cacheManager: CustomCache.instance,
+);
+  await provider.obtainKey(const ImageConfiguration()); // безопасно получаем ключ
+  await precacheImage(provider, context);               // кешируем картинку
+}
   @override
   void dispose() {
     _ctrl.dispose();
@@ -99,13 +116,12 @@ class _QuotePageState extends State<QuotePage>
       body: Stack(fit: StackFit.expand, children: [
         // фон из сети + кэш*
         CachedNetworkImage(
-          imageUrl: _today.image,
-          placeholder: (_, __) =>
-              Container(color: Colors.black12),
-          errorWidget: (_, __, ___) =>
-              const Center(child: Icon(Icons.error)),
-          fit: BoxFit.cover,
-        ),
+  imageUrl: _today.image,
+  cacheManager: CustomCache.instance,
+  placeholder: (_, __) => Container(color: Colors.black12),
+  errorWidget: (_, __, ___) => const Center(child: Icon(Icons.error)),
+  fit: BoxFit.cover,
+),
         // затемнение*
         Container(color: Colors.black.withAlpha(77)),
 
