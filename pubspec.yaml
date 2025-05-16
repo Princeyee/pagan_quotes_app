@@ -1,0 +1,33 @@
+name: flutter_application
+description: Ежедневные цитаты — красиво и легко
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cached_network_image: ^3.2.3
+  share_plus: ^7.0.0
+  shared_preferences: ^2.1.1
+  palette_generator: ^0.3.2
+  google_fonts: ^5.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+ 
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/quotes.json
+    - assets/icon/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"  # путь к твоей PNG-иконке
