@@ -1,0 +1,3810 @@
+‘âàãªâãà  ¯ ¯®ª
+‘¥à¨©­ë© ­®¬¥à â®¬ : 46FC-860A
+C:.
+ÃÄÄÄ.dart_tool
+³   ÃÄÄÄdartpad
+³   ÃÄÄÄextension_discovery
+³   ÀÄÄÄflutter_build
+³       ÀÄÄÄab87003f2cc63d4cde04b8d9307e4d77
+³           ÃÄÄÄarm64-v8a
+³           ÃÄÄÄarmeabi-v7a
+³           ÀÄÄÄx86_64
+ÃÄÄÄ.idea
+³   ÃÄÄÄlibraries
+³   ÀÄÄÄrunConfigurations
+ÃÄÄÄandroid
+³   ÃÄÄÄ.gradle
+³   ³   ÃÄÄÄ8.10.2
+³   ³   ³   ÃÄÄÄchecksums
+³   ³   ³   ÃÄÄÄdependencies-accessors
+³   ³   ³   ÃÄÄÄexecutionHistory
+³   ³   ³   ÃÄÄÄexpanded
+³   ³   ³   ÃÄÄÄfileChanges
+³   ³   ³   ÃÄÄÄfileHashes
+³   ³   ³   ÀÄÄÄvcsMetadata
+³   ³   ÃÄÄÄbuildOutputCleanup
+³   ³   ÃÄÄÄkotlin
+³   ³   ³   ÃÄÄÄerrors
+³   ³   ³   ÀÄÄÄsessions
+³   ³   ÃÄÄÄnoVersion
+³   ³   ÀÄÄÄvcs-1
+³   ÃÄÄÄapp
+³   ³   ÃÄÄÄ.cxx
+³   ³   ³   ÃÄÄÄDebug
+³   ³   ³   ³   ÃÄÄÄ1o171m6u
+³   ³   ³   ³   ³   ÃÄÄÄarm64-v8a
+³   ³   ³   ³   ³   ³   ÃÄÄÄ.cmake
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄapi
+³   ³   ³   ³   ³   ³   ³       ÀÄÄÄv1
+³   ³   ³   ³   ³   ³   ³           ÃÄÄÄquery
+³   ³   ³   ³   ³   ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³   ³   ³   ³           ÀÄÄÄreply
+³   ³   ³   ³   ³   ³   ÀÄÄÄCMakeFiles
+³   ³   ³   ³   ³   ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³   ³   ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³   ³   ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³   ³   ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³   ³   ³       ³       ÀÄÄÄtmp
+³   ³   ³   ³   ³   ³       ÀÄÄÄCMakeTmp
+³   ³   ³   ³   ³   ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³   ³   ³   ÃÄÄÄ.cmake
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄapi
+³   ³   ³   ³   ³   ³   ³       ÀÄÄÄv1
+³   ³   ³   ³   ³   ³   ³           ÃÄÄÄquery
+³   ³   ³   ³   ³   ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³   ³   ³   ³           ÀÄÄÄreply
+³   ³   ³   ³   ³   ³   ÀÄÄÄCMakeFiles
+³   ³   ³   ³   ³   ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³   ³   ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³   ³   ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³   ³   ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³   ³   ³       ³       ÀÄÄÄtmp
+³   ³   ³   ³   ³   ³       ÀÄÄÄCMakeTmp
+³   ³   ³   ³   ³   ÃÄÄÄx86
+³   ³   ³   ³   ³   ³   ÃÄÄÄ.cmake
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄapi
+³   ³   ³   ³   ³   ³   ³       ÀÄÄÄv1
+³   ³   ³   ³   ³   ³   ³           ÃÄÄÄquery
+³   ³   ³   ³   ³   ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³   ³   ³   ³           ÀÄÄÄreply
+³   ³   ³   ³   ³   ³   ÀÄÄÄCMakeFiles
+³   ³   ³   ³   ³   ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³   ³   ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³   ³   ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³   ³   ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³   ³   ³       ³       ÀÄÄÄtmp
+³   ³   ³   ³   ³   ³       ÀÄÄÄCMakeTmp
+³   ³   ³   ³   ³   ÀÄÄÄx86_64
+³   ³   ³   ³   ³       ÃÄÄÄ.cmake
+³   ³   ³   ³   ³       ³   ÀÄÄÄapi
+³   ³   ³   ³   ³       ³       ÀÄÄÄv1
+³   ³   ³   ³   ³       ³           ÃÄÄÄquery
+³   ³   ³   ³   ³       ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³   ³       ³           ÀÄÄÄreply
+³   ³   ³   ³   ³       ÀÄÄÄCMakeFiles
+³   ³   ³   ³   ³           ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³   ³           ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³   ³           ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³   ³           ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³   ³           ³       ÀÄÄÄtmp
+³   ³   ³   ³   ³           ÀÄÄÄCMakeTmp
+³   ³   ³   ³   ÀÄÄÄ28539716
+³   ³   ³   ³       ÃÄÄÄarm64-v8a
+³   ³   ³   ³       ³   ÃÄÄÄ.cmake
+³   ³   ³   ³       ³   ³   ÀÄÄÄapi
+³   ³   ³   ³       ³   ³       ÀÄÄÄv1
+³   ³   ³   ³       ³   ³           ÃÄÄÄquery
+³   ³   ³   ³       ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³       ³   ³           ÀÄÄÄreply
+³   ³   ³   ³       ³   ÀÄÄÄCMakeFiles
+³   ³   ³   ³       ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³       ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³       ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³       ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³       ³       ³       ÀÄÄÄtmp
+³   ³   ³   ³       ³       ÀÄÄÄCMakeTmp
+³   ³   ³   ³       ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³       ³   ÃÄÄÄ.cmake
+³   ³   ³   ³       ³   ³   ÀÄÄÄapi
+³   ³   ³   ³       ³   ³       ÀÄÄÄv1
+³   ³   ³   ³       ³   ³           ÃÄÄÄquery
+³   ³   ³   ³       ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³       ³   ³           ÀÄÄÄreply
+³   ³   ³   ³       ³   ÀÄÄÄCMakeFiles
+³   ³   ³   ³       ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³       ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³       ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³       ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³       ³       ³       ÀÄÄÄtmp
+³   ³   ³   ³       ³       ÀÄÄÄCMakeTmp
+³   ³   ³   ³       ÃÄÄÄx86
+³   ³   ³   ³       ³   ÃÄÄÄ.cmake
+³   ³   ³   ³       ³   ³   ÀÄÄÄapi
+³   ³   ³   ³       ³   ³       ÀÄÄÄv1
+³   ³   ³   ³       ³   ³           ÃÄÄÄquery
+³   ³   ³   ³       ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³       ³   ³           ÀÄÄÄreply
+³   ³   ³   ³       ³   ÀÄÄÄCMakeFiles
+³   ³   ³   ³       ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³       ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³       ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³       ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³       ³       ³       ÀÄÄÄtmp
+³   ³   ³   ³       ³       ÀÄÄÄCMakeTmp
+³   ³   ³   ³       ÀÄÄÄx86_64
+³   ³   ³   ³           ÃÄÄÄ.cmake
+³   ³   ³   ³           ³   ÀÄÄÄapi
+³   ³   ³   ³           ³       ÀÄÄÄv1
+³   ³   ³   ³           ³           ÃÄÄÄquery
+³   ³   ³   ³           ³           ³   ÀÄÄÄclient-agp
+³   ³   ³   ³           ³           ÀÄÄÄreply
+³   ³   ³   ³           ÀÄÄÄCMakeFiles
+³   ³   ³   ³               ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³   ³               ³   ÃÄÄÄCompilerIdC
+³   ³   ³   ³               ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³               ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³   ³               ³       ÀÄÄÄtmp
+³   ³   ³   ³               ÀÄÄÄCMakeTmp
+³   ³   ³   ÀÄÄÄRelWithDebInfo
+³   ³   ³       ÃÄÄÄ2v2c1m72
+³   ³   ³       ³   ÃÄÄÄarm64-v8a
+³   ³   ³       ³   ³   ÃÄÄÄ.cmake
+³   ³   ³       ³   ³   ³   ÀÄÄÄapi
+³   ³   ³       ³   ³   ³       ÀÄÄÄv1
+³   ³   ³       ³   ³   ³           ÃÄÄÄquery
+³   ³   ³       ³   ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³       ³   ³   ³           ÀÄÄÄreply
+³   ³   ³       ³   ³   ÀÄÄÄCMakeFiles
+³   ³   ³       ³   ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³       ³   ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³       ³   ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³       ³   ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³       ³   ³       ³       ÀÄÄÄtmp
+³   ³   ³       ³   ³       ÀÄÄÄCMakeTmp
+³   ³   ³       ³   ÃÄÄÄarmeabi-v7a
+³   ³   ³       ³   ³   ÃÄÄÄ.cmake
+³   ³   ³       ³   ³   ³   ÀÄÄÄapi
+³   ³   ³       ³   ³   ³       ÀÄÄÄv1
+³   ³   ³       ³   ³   ³           ÃÄÄÄquery
+³   ³   ³       ³   ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³       ³   ³   ³           ÀÄÄÄreply
+³   ³   ³       ³   ³   ÀÄÄÄCMakeFiles
+³   ³   ³       ³   ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³       ³   ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³       ³   ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³       ³   ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³       ³   ³       ³       ÀÄÄÄtmp
+³   ³   ³       ³   ³       ÀÄÄÄCMakeTmp
+³   ³   ³       ³   ÃÄÄÄx86
+³   ³   ³       ³   ³   ÃÄÄÄ.cmake
+³   ³   ³       ³   ³   ³   ÀÄÄÄapi
+³   ³   ³       ³   ³   ³       ÀÄÄÄv1
+³   ³   ³       ³   ³   ³           ÃÄÄÄquery
+³   ³   ³       ³   ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³       ³   ³   ³           ÀÄÄÄreply
+³   ³   ³       ³   ³   ÀÄÄÄCMakeFiles
+³   ³   ³       ³   ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³       ³   ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³       ³   ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³       ³   ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³       ³   ³       ³       ÀÄÄÄtmp
+³   ³   ³       ³   ³       ÀÄÄÄCMakeTmp
+³   ³   ³       ³   ÀÄÄÄx86_64
+³   ³   ³       ³       ÃÄÄÄ.cmake
+³   ³   ³       ³       ³   ÀÄÄÄapi
+³   ³   ³       ³       ³       ÀÄÄÄv1
+³   ³   ³       ³       ³           ÃÄÄÄquery
+³   ³   ³       ³       ³           ³   ÀÄÄÄclient-agp
+³   ³   ³       ³       ³           ÀÄÄÄreply
+³   ³   ³       ³       ÀÄÄÄCMakeFiles
+³   ³   ³       ³           ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³       ³           ³   ÃÄÄÄCompilerIdC
+³   ³   ³       ³           ³   ³   ÀÄÄÄtmp
+³   ³   ³       ³           ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³       ³           ³       ÀÄÄÄtmp
+³   ³   ³       ³           ÀÄÄÄCMakeTmp
+³   ³   ³       ÀÄÄÄ456o446z
+³   ³   ³           ÃÄÄÄarm64-v8a
+³   ³   ³           ³   ÃÄÄÄ.cmake
+³   ³   ³           ³   ³   ÀÄÄÄapi
+³   ³   ³           ³   ³       ÀÄÄÄv1
+³   ³   ³           ³   ³           ÃÄÄÄquery
+³   ³   ³           ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³           ³   ³           ÀÄÄÄreply
+³   ³   ³           ³   ÀÄÄÄCMakeFiles
+³   ³   ³           ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³           ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³           ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³           ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³           ³       ³       ÀÄÄÄtmp
+³   ³   ³           ³       ÀÄÄÄCMakeTmp
+³   ³   ³           ÃÄÄÄarmeabi-v7a
+³   ³   ³           ³   ÃÄÄÄ.cmake
+³   ³   ³           ³   ³   ÀÄÄÄapi
+³   ³   ³           ³   ³       ÀÄÄÄv1
+³   ³   ³           ³   ³           ÃÄÄÄquery
+³   ³   ³           ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³           ³   ³           ÀÄÄÄreply
+³   ³   ³           ³   ÀÄÄÄCMakeFiles
+³   ³   ³           ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³           ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³           ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³           ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³           ³       ³       ÀÄÄÄtmp
+³   ³   ³           ³       ÀÄÄÄCMakeTmp
+³   ³   ³           ÃÄÄÄx86
+³   ³   ³           ³   ÃÄÄÄ.cmake
+³   ³   ³           ³   ³   ÀÄÄÄapi
+³   ³   ³           ³   ³       ÀÄÄÄv1
+³   ³   ³           ³   ³           ÃÄÄÄquery
+³   ³   ³           ³   ³           ³   ÀÄÄÄclient-agp
+³   ³   ³           ³   ³           ÀÄÄÄreply
+³   ³   ³           ³   ÀÄÄÄCMakeFiles
+³   ³   ³           ³       ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³           ³       ³   ÃÄÄÄCompilerIdC
+³   ³   ³           ³       ³   ³   ÀÄÄÄtmp
+³   ³   ³           ³       ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³           ³       ³       ÀÄÄÄtmp
+³   ³   ³           ³       ÀÄÄÄCMakeTmp
+³   ³   ³           ÀÄÄÄx86_64
+³   ³   ³               ÃÄÄÄ.cmake
+³   ³   ³               ³   ÀÄÄÄapi
+³   ³   ³               ³       ÀÄÄÄv1
+³   ³   ³               ³           ÃÄÄÄquery
+³   ³   ³               ³           ³   ÀÄÄÄclient-agp
+³   ³   ³               ³           ÀÄÄÄreply
+³   ³   ³               ÀÄÄÄCMakeFiles
+³   ³   ³                   ÃÄÄÄ3.22.1-g37088a8-dirty
+³   ³   ³                   ³   ÃÄÄÄCompilerIdC
+³   ³   ³                   ³   ³   ÀÄÄÄtmp
+³   ³   ³                   ³   ÀÄÄÄCompilerIdCXX
+³   ³   ³                   ³       ÀÄÄÄtmp
+³   ³   ³                   ÀÄÄÄCMakeTmp
+³   ³   ÀÄÄÄsrc
+³   ³       ÃÄÄÄdebug
+³   ³       ÃÄÄÄmain
+³   ³       ³   ÃÄÄÄjava
+³   ³       ³   ³   ÀÄÄÄio
+³   ³       ³   ³       ÀÄÄÄflutter
+³   ³       ³   ³           ÀÄÄÄplugins
+³   ³       ³   ÃÄÄÄkotlin
+³   ³       ³   ³   ÀÄÄÄcom
+³   ³       ³   ³       ÀÄÄÄexample
+³   ³       ³   ³           ÀÄÄÄflutter_application
+³   ³       ³   ÀÄÄÄres
+³   ³       ³       ÃÄÄÄdrawable
+³   ³       ³       ÃÄÄÄdrawable-v21
+³   ³       ³       ÃÄÄÄmipmap-hdpi
+³   ³       ³       ÃÄÄÄmipmap-mdpi
+³   ³       ³       ÃÄÄÄmipmap-xhdpi
+³   ³       ³       ÃÄÄÄmipmap-xxhdpi
+³   ³       ³       ÃÄÄÄmipmap-xxxhdpi
+³   ³       ³       ÃÄÄÄvalues
+³   ³       ³       ÀÄÄÄvalues-night
+³   ³       ÀÄÄÄprofile
+³   ÀÄÄÄgradle
+³       ÀÄÄÄwrapper
+ÃÄÄÄassets
+³   ÃÄÄÄanimations
+³   ÃÄÄÄicon
+³   ÃÄÄÄimages
+³   ÀÄÄÄsounds
+ÃÄÄÄbuild
+³   ÃÄÄÄapp
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÃÄÄÄap_generated_sources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄout
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_proguard_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseResources
+³   ³   ³   ÃÄÄÄaar_metadata_check
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcheckReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄapk_ide_redirect_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateReleaseApkListingFileRedirect
+³   ³   ³   ÃÄÄÄapp_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAppMetadata
+³   ³   ³   ÃÄÄÄassets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseAssets
+³   ³   ³   ³           ÀÄÄÄflutter_assets
+³   ³   ³   ³               ÃÄÄÄassets
+³   ³   ³   ³               ³   ÃÄÄÄanimations
+³   ³   ³   ³               ³   ÃÄÄÄicon
+³   ³   ³   ³               ³   ÃÄÄÄimages
+³   ³   ³   ³               ³   ÀÄÄÄsounds
+³   ³   ³   ³               ÃÄÄÄfonts
+³   ³   ³   ³               ÀÄÄÄshaders
+³   ³   ³   ÃÄÄÄbinary_art_profile
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseArtProfile
+³   ³   ³   ÃÄÄÄbinary_art_profile_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseArtProfile
+³   ³   ³   ÃÄÄÄcombined_art_profile
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseArtProfile
+³   ³   ³   ÃÄÄÄcompatible_screen_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateReleaseCompatibleScreenManifests
+³   ³   ³   ÃÄÄÄcompile_and_runtime_not_namespaced_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseResources
+³   ³   ³   ÃÄÄÄcompressed_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompressReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÀÄÄÄassets
+³   ³   ³   ³                   ÀÄÄÄflutter_assets
+³   ³   ³   ³                       ÃÄÄÄassets
+³   ³   ³   ³                       ³   ÃÄÄÄanimations
+³   ³   ³   ³                       ³   ÃÄÄÄicon
+³   ³   ³   ³                       ³   ÃÄÄÄimages
+³   ³   ³   ³                       ³   ÀÄÄÄsounds
+³   ³   ³   ³                       ÃÄÄÄfonts
+³   ³   ³   ³                       ÀÄÄÄshaders
+³   ³   ³   ÃÄÄÄcxx
+³   ³   ³   ³   ÀÄÄÄRelWithDebInfo
+³   ³   ³   ³       ÀÄÄÄ456o446z
+³   ³   ³   ³           ÃÄÄÄlogs
+³   ³   ³   ³           ³   ÃÄÄÄarm64-v8a
+³   ³   ³   ³           ³   ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³           ³   ÃÄÄÄx86
+³   ³   ³   ³           ³   ÀÄÄÄx86_64
+³   ³   ³   ³           ÀÄÄÄobj
+³   ³   ³   ³               ÃÄÄÄarm64-v8a
+³   ³   ³   ³               ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³               ÃÄÄÄx86
+³   ³   ³   ³               ÀÄÄÄx86_64
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄdex
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄminifyReleaseWithR8
+³   ³   ³   ÃÄÄÄdex_metadata_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseArtProfile
+³   ³   ³   ³           ÃÄÄÄ0
+³   ³   ³   ³           ÀÄÄÄ1
+³   ³   ³   ÃÄÄÄduplicate_classes_check
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcheckReleaseDuplicateClasses
+³   ³   ³   ÃÄÄÄflutter
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÃÄÄÄarm64-v8a
+³   ³   ³   ³       ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³       ÃÄÄÄflutter_assets
+³   ³   ³   ³       ³   ÃÄÄÄassets
+³   ³   ³   ³       ³   ³   ÃÄÄÄanimations
+³   ³   ³   ³       ³   ³   ÃÄÄÄicon
+³   ³   ³   ³       ³   ³   ÃÄÄÄimages
+³   ³   ³   ³       ³   ³   ÀÄÄÄsounds
+³   ³   ³   ³       ³   ÃÄÄÄfonts
+³   ³   ³   ³       ³   ÀÄÄÄshaders
+³   ³   ³   ³       ÀÄÄÄx86_64
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseAssets
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageRelease
+³   ³   ³   ³   ³   ÀÄÄÄtmp
+³   ³   ³   ³   ³       ÀÄÄÄrelease
+³   ³   ³   ³   ³           ÀÄÄÄzip-cache
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-h720dp-v13
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hdpi-v4
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-land
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-large-v4
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ldltr-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-night-v8
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-port
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw360dp-v13
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw600dp-v13
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v16
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v17
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v18
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v22
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v23
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v24
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v25
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v26
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v28
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-watch-v20
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-watch-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-xlarge-v4
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³       ³   ÀÄÄÄvalues-night-v8
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjavac
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ³   ³   ³           ÀÄÄÄclasses
+³   ³   ³   ³               ÀÄÄÄio
+³   ³   ³   ³                   ÀÄÄÄflutter
+³   ³   ³   ³                       ÀÄÄÄplugins
+³   ³   ³   ÃÄÄÄjava_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseJavaRes
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄcom
+³   ³   ³   ³               ³   ÀÄÄÄexample
+³   ³   ³   ³               ³       ÀÄÄÄflutter_application
+³   ³   ³   ³               ÀÄÄÄMETA-INF
+³   ³   ³   ÃÄÄÄlinked_resources_binary_format
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseResources
+³   ³   ³   ÃÄÄÄlinked_resources_proto_format
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄconvertLinkedResourcesToProtoRelease
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÀÄÄÄlintVitalReportRelease
+³   ³   ³   ÃÄÄÄlint_vital_intermediate_text_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalReportRelease
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlint_vital_report_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalReportModel
+³   ³   ³   ÃÄÄÄlint_vital_return_value
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalReportRelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseMainManifest
+³   ³   ³   ÃÄÄÄmerged-not-compiled-resources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÃÄÄÄanim
+³   ³   ³   ³       ÃÄÄÄanim-v21
+³   ³   ³   ³       ÃÄÄÄanimator
+³   ³   ³   ³       ÃÄÄÄcolor
+³   ³   ³   ³       ÃÄÄÄcolor-v21
+³   ³   ³   ³       ÃÄÄÄcolor-v23
+³   ³   ³   ³       ÃÄÄÄdrawable
+³   ³   ³   ³       ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³       ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³       ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³       ÃÄÄÄdrawable-ldrtl-hdpi-v17
+³   ³   ³   ³       ÃÄÄÄdrawable-ldrtl-mdpi-v17
+³   ³   ³   ³       ÃÄÄÄdrawable-ldrtl-xhdpi-v17
+³   ³   ³   ³       ÃÄÄÄdrawable-ldrtl-xxhdpi-v17
+³   ³   ³   ³       ÃÄÄÄdrawable-ldrtl-xxxhdpi-v17
+³   ³   ³   ³       ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³       ÃÄÄÄdrawable-v21
+³   ³   ³   ³       ÃÄÄÄdrawable-v23
+³   ³   ³   ³       ÃÄÄÄdrawable-watch-v20
+³   ³   ³   ³       ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³       ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³       ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³       ÃÄÄÄinterpolator
+³   ³   ³   ³       ÃÄÄÄlayout
+³   ³   ³   ³       ÃÄÄÄlayout-v21
+³   ³   ³   ³       ÃÄÄÄlayout-v26
+³   ³   ³   ³       ÃÄÄÄlayout-watch-v20
+³   ³   ³   ³       ÃÄÄÄmipmap-hdpi-v4
+³   ³   ³   ³       ÃÄÄÄmipmap-mdpi-v4
+³   ³   ³   ³       ÃÄÄÄmipmap-xhdpi-v4
+³   ³   ³   ³       ÃÄÄÄmipmap-xxhdpi-v4
+³   ³   ³   ³       ÃÄÄÄmipmap-xxxhdpi-v4
+³   ³   ³   ³       ÃÄÄÄvalues
+³   ³   ³   ³       ÃÄÄÄvalues-af
+³   ³   ³   ³       ÃÄÄÄvalues-am
+³   ³   ³   ³       ÃÄÄÄvalues-ar
+³   ³   ³   ³       ÃÄÄÄvalues-as
+³   ³   ³   ³       ÃÄÄÄvalues-az
+³   ³   ³   ³       ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³       ÃÄÄÄvalues-be
+³   ³   ³   ³       ÃÄÄÄvalues-bg
+³   ³   ³   ³       ÃÄÄÄvalues-bn
+³   ³   ³   ³       ÃÄÄÄvalues-bs
+³   ³   ³   ³       ÃÄÄÄvalues-ca
+³   ³   ³   ³       ÃÄÄÄvalues-cs
+³   ³   ³   ³       ÃÄÄÄvalues-da
+³   ³   ³   ³       ÃÄÄÄvalues-de
+³   ³   ³   ³       ÃÄÄÄvalues-el
+³   ³   ³   ³       ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³       ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³       ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³       ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³       ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³       ÃÄÄÄvalues-es
+³   ³   ³   ³       ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³       ÃÄÄÄvalues-et
+³   ³   ³   ³       ÃÄÄÄvalues-eu
+³   ³   ³   ³       ÃÄÄÄvalues-fa
+³   ³   ³   ³       ÃÄÄÄvalues-fi
+³   ³   ³   ³       ÃÄÄÄvalues-fr
+³   ³   ³   ³       ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³       ÃÄÄÄvalues-gl
+³   ³   ³   ³       ÃÄÄÄvalues-gu
+³   ³   ³   ³       ÃÄÄÄvalues-h720dp-v13
+³   ³   ³   ³       ÃÄÄÄvalues-hdpi-v4
+³   ³   ³   ³       ÃÄÄÄvalues-hi
+³   ³   ³   ³       ÃÄÄÄvalues-hr
+³   ³   ³   ³       ÃÄÄÄvalues-hu
+³   ³   ³   ³       ÃÄÄÄvalues-hy
+³   ³   ³   ³       ÃÄÄÄvalues-in
+³   ³   ³   ³       ÃÄÄÄvalues-is
+³   ³   ³   ³       ÃÄÄÄvalues-it
+³   ³   ³   ³       ÃÄÄÄvalues-iw
+³   ³   ³   ³       ÃÄÄÄvalues-ja
+³   ³   ³   ³       ÃÄÄÄvalues-ka
+³   ³   ³   ³       ÃÄÄÄvalues-kk
+³   ³   ³   ³       ÃÄÄÄvalues-km
+³   ³   ³   ³       ÃÄÄÄvalues-kn
+³   ³   ³   ³       ÃÄÄÄvalues-ko
+³   ³   ³   ³       ÃÄÄÄvalues-ky
+³   ³   ³   ³       ÃÄÄÄvalues-land
+³   ³   ³   ³       ÃÄÄÄvalues-large-v4
+³   ³   ³   ³       ÃÄÄÄvalues-ldltr-v21
+³   ³   ³   ³       ÃÄÄÄvalues-lo
+³   ³   ³   ³       ÃÄÄÄvalues-lt
+³   ³   ³   ³       ÃÄÄÄvalues-lv
+³   ³   ³   ³       ÃÄÄÄvalues-mk
+³   ³   ³   ³       ÃÄÄÄvalues-ml
+³   ³   ³   ³       ÃÄÄÄvalues-mn
+³   ³   ³   ³       ÃÄÄÄvalues-mr
+³   ³   ³   ³       ÃÄÄÄvalues-ms
+³   ³   ³   ³       ÃÄÄÄvalues-my
+³   ³   ³   ³       ÃÄÄÄvalues-nb
+³   ³   ³   ³       ÃÄÄÄvalues-ne
+³   ³   ³   ³       ÃÄÄÄvalues-night-v8
+³   ³   ³   ³       ÃÄÄÄvalues-nl
+³   ³   ³   ³       ÃÄÄÄvalues-or
+³   ³   ³   ³       ÃÄÄÄvalues-pa
+³   ³   ³   ³       ÃÄÄÄvalues-pl
+³   ³   ³   ³       ÃÄÄÄvalues-port
+³   ³   ³   ³       ÃÄÄÄvalues-pt
+³   ³   ³   ³       ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³       ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³       ÃÄÄÄvalues-ro
+³   ³   ³   ³       ÃÄÄÄvalues-ru
+³   ³   ³   ³       ÃÄÄÄvalues-si
+³   ³   ³   ³       ÃÄÄÄvalues-sk
+³   ³   ³   ³       ÃÄÄÄvalues-sl
+³   ³   ³   ³       ÃÄÄÄvalues-sq
+³   ³   ³   ³       ÃÄÄÄvalues-sr
+³   ³   ³   ³       ÃÄÄÄvalues-sv
+³   ³   ³   ³       ÃÄÄÄvalues-sw
+³   ³   ³   ³       ÃÄÄÄvalues-sw360dp-v13
+³   ³   ³   ³       ÃÄÄÄvalues-sw600dp-v13
+³   ³   ³   ³       ÃÄÄÄvalues-ta
+³   ³   ³   ³       ÃÄÄÄvalues-te
+³   ³   ³   ³       ÃÄÄÄvalues-th
+³   ³   ³   ³       ÃÄÄÄvalues-tl
+³   ³   ³   ³       ÃÄÄÄvalues-tr
+³   ³   ³   ³       ÃÄÄÄvalues-uk
+³   ³   ³   ³       ÃÄÄÄvalues-ur
+³   ³   ³   ³       ÃÄÄÄvalues-uz
+³   ³   ³   ³       ÃÄÄÄvalues-v16
+³   ³   ³   ³       ÃÄÄÄvalues-v17
+³   ³   ³   ³       ÃÄÄÄvalues-v18
+³   ³   ³   ³       ÃÄÄÄvalues-v21
+³   ³   ³   ³       ÃÄÄÄvalues-v22
+³   ³   ³   ³       ÃÄÄÄvalues-v23
+³   ³   ³   ³       ÃÄÄÄvalues-v24
+³   ³   ³   ³       ÃÄÄÄvalues-v25
+³   ³   ³   ³       ÃÄÄÄvalues-v26
+³   ³   ³   ³       ÃÄÄÄvalues-v28
+³   ³   ³   ³       ÃÄÄÄvalues-vi
+³   ³   ³   ³       ÃÄÄÄvalues-watch-v20
+³   ³   ³   ³       ÃÄÄÄvalues-watch-v21
+³   ³   ³   ³       ÃÄÄÄvalues-xlarge-v4
+³   ³   ³   ³       ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³       ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³       ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³       ÃÄÄÄvalues-zu
+³   ³   ³   ³       ÀÄÄÄxml
+³   ³   ³   ÃÄÄÄmerged_art_profile
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseArtProfile
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÃÄÄÄmergeReleaseJavaResource
+³   ³   ³   ³       ÀÄÄÄminifyReleaseWithR8
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseMainManifest
+³   ³   ³   ÃÄÄÄmerged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_native_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseNativeLibs
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÀÄÄÄlib
+³   ³   ³   ³                   ÃÄÄÄarm64-v8a
+³   ³   ³   ³                   ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³                   ÃÄÄÄx86
+³   ³   ³   ³                   ÀÄÄÄx86_64
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_test_only_native_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseNativeLibs
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmetadata_library_dependencies_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcollectReleaseDependencies
+³   ³   ³   ÃÄÄÄnative_symbol_tables
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseNativeSymbolTables
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄoptimized_processed_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄoptimizeReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifestForPackage
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄmipmap-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄmipmap-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄmipmap-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄmipmap-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄmipmap-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÀÄÄÄvalues-night-v8
+³   ³   ³   ÃÄÄÄr8_art_profile
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÃÄÄÄexpandReleaseArtProfileWildcards
+³   ³   ³   ³       ÀÄÄÄminifyReleaseWithR8
+³   ³   ³   ÃÄÄÄr8_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄminifyReleaseWithR8
+³   ³   ³   ÃÄÄÄruntime_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseResources
+³   ³   ³   ÃÄÄÄsdk_dependency_data
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsdkReleaseDependencyData
+³   ³   ³   ÃÄÄÄshrunk_resources_binary_format
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄconvertShrunkResourcesToBinaryRelease
+³   ³   ³   ÃÄÄÄshrunk_resources_proto_format
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄshrinkReleaseRes
+³   ³   ³   ÃÄÄÄsigning_config_versions
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseSigningConfigVersions
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄstable_resource_ids_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseResources
+³   ³   ³   ÃÄÄÄstripped_native_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄstripReleaseDebugSymbols
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÀÄÄÄlib
+³   ³   ³   ³                   ÃÄÄÄarm64-v8a
+³   ³   ³   ³                   ÃÄÄÄarmeabi-v7a
+³   ³   ³   ³                   ÃÄÄÄx86
+³   ³   ³   ³                   ÀÄÄÄx86_64
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseResources
+³   ³   ³   ÃÄÄÄvalidate_signing_config
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄvalidateSigningRelease
+³   ³   ³   ÀÄÄÄversion_control_info_file
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄextractReleaseVersionControlInfo
+³   ³   ÃÄÄÄkotlin
+³   ³   ³   ÀÄÄÄcompileReleaseKotlin
+³   ³   ³       ÃÄÄÄcacheable
+³   ³   ³       ³   ÀÄÄÄcaches-jvm
+³   ³   ³       ³       ÃÄÄÄinputs
+³   ³   ³       ³       ÃÄÄÄjvm
+³   ³   ³       ³       ³   ÀÄÄÄkotlin
+³   ³   ³       ³       ÀÄÄÄlookups
+³   ³   ³       ÃÄÄÄclasspath-snapshot
+³   ³   ³       ÀÄÄÄlocal-state
+³   ³   ÃÄÄÄkotlinToolingMetadata
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄapk
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbaselineProfiles
+³   ³   ³   ³           ÃÄÄÄ0
+³   ³   ³   ³           ÀÄÄÄ1
+³   ³   ³   ÃÄÄÄflutter-apk
+³   ³   ³   ÃÄÄÄlogs
+³   ³   ³   ÃÄÄÄmapping
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÀÄÄÄsdk-dependencies
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ÀÄÄÄtmp
+³   ³       ÃÄÄÄcompileReleaseJavaWithJavac
+³   ³       ÃÄÄÄkotlin-classes
+³   ³       ³   ÀÄÄÄrelease
+³   ³       ³       ÃÄÄÄcom
+³   ³       ³       ³   ÀÄÄÄexample
+³   ³       ³       ³       ÀÄÄÄflutter_application
+³   ³       ³       ÀÄÄÄMETA-INF
+³   ³       ÀÄÄÄpackJniLibsflutterBuildRelease
+³   ÃÄÄÄaudio_session
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÃÄÄÄap_generated_sources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄout
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_friendly_merged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ³           ÀÄÄÄaapt
+³   ³   ³   ÃÄÄÄaar_libs_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ³           ÀÄÄÄlibs
+³   ³   ³   ÃÄÄÄaar_main_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ÃÄÄÄaar_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotations_typedef_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotations_zip
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄcompiled_local_resources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseLibraryResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄcompile_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³   ³   ³   ÃÄÄÄcompile_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄcompile_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄfull_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateFullJarRelease
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageReleaseAssets
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v24
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjavac
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ³   ³   ³           ÀÄÄÄclasses
+³   ³   ³   ³               ÀÄÄÄcom
+³   ³   ³   ³                   ÀÄÄÄryanheise
+³   ³   ³   ³                       ÀÄÄÄaudio_session
+³   ³   ³   ÃÄÄÄlibrary_and_local_jars_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlibrary_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlibrary_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³       ÃÄÄÄmaven.google
+³   ³   ³   ³       ³   ÃÄÄÄandroidx
+³   ³   ³   ³       ³   ³   ÀÄÄÄmedia
+³   ³   ³   ³       ³   ÀÄÄÄcom
+³   ³   ³   ³       ³       ÀÄÄÄandroid
+³   ³   ³   ³       ³           ÀÄÄÄtools
+³   ³   ³   ³       ³               ÀÄÄÄbuild
+³   ³   ³   ³       ÀÄÄÄsdk_index
+³   ³   ³   ÃÄÄÄlint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³   ³   ³   ÃÄÄÄlint_model_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³   ³   ³   ÃÄÄÄlint_vital_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlocal_aar_for_lint
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÃÄÄÄanim
+³   ³   ³   ³           ÃÄÄÄanim-v21
+³   ³   ³   ³           ÃÄÄÄanimator
+³   ³   ³   ³           ÃÄÄÄdrawable
+³   ³   ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄlayout
+³   ³   ³   ³           ÃÄÄÄlayout-v21
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÃÄÄÄvalues-af
+³   ³   ³   ³           ÃÄÄÄvalues-am
+³   ³   ³   ³           ÃÄÄÄvalues-ar
+³   ³   ³   ³           ÃÄÄÄvalues-as
+³   ³   ³   ³           ÃÄÄÄvalues-az
+³   ³   ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³           ÃÄÄÄvalues-be
+³   ³   ³   ³           ÃÄÄÄvalues-bg
+³   ³   ³   ³           ÃÄÄÄvalues-bn
+³   ³   ³   ³           ÃÄÄÄvalues-bs
+³   ³   ³   ³           ÃÄÄÄvalues-ca
+³   ³   ³   ³           ÃÄÄÄvalues-cs
+³   ³   ³   ³           ÃÄÄÄvalues-da
+³   ³   ³   ³           ÃÄÄÄvalues-de
+³   ³   ³   ³           ÃÄÄÄvalues-el
+³   ³   ³   ³           ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³           ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³           ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³           ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³           ÃÄÄÄvalues-es
+³   ³   ³   ³           ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³           ÃÄÄÄvalues-et
+³   ³   ³   ³           ÃÄÄÄvalues-eu
+³   ³   ³   ³           ÃÄÄÄvalues-fa
+³   ³   ³   ³           ÃÄÄÄvalues-fi
+³   ³   ³   ³           ÃÄÄÄvalues-fr
+³   ³   ³   ³           ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-gl
+³   ³   ³   ³           ÃÄÄÄvalues-gu
+³   ³   ³   ³           ÃÄÄÄvalues-hi
+³   ³   ³   ³           ÃÄÄÄvalues-hr
+³   ³   ³   ³           ÃÄÄÄvalues-hu
+³   ³   ³   ³           ÃÄÄÄvalues-hy
+³   ³   ³   ³           ÃÄÄÄvalues-in
+³   ³   ³   ³           ÃÄÄÄvalues-is
+³   ³   ³   ³           ÃÄÄÄvalues-it
+³   ³   ³   ³           ÃÄÄÄvalues-iw
+³   ³   ³   ³           ÃÄÄÄvalues-ja
+³   ³   ³   ³           ÃÄÄÄvalues-ka
+³   ³   ³   ³           ÃÄÄÄvalues-kk
+³   ³   ³   ³           ÃÄÄÄvalues-km
+³   ³   ³   ³           ÃÄÄÄvalues-kn
+³   ³   ³   ³           ÃÄÄÄvalues-ko
+³   ³   ³   ³           ÃÄÄÄvalues-ky
+³   ³   ³   ³           ÃÄÄÄvalues-lo
+³   ³   ³   ³           ÃÄÄÄvalues-lt
+³   ³   ³   ³           ÃÄÄÄvalues-lv
+³   ³   ³   ³           ÃÄÄÄvalues-mk
+³   ³   ³   ³           ÃÄÄÄvalues-ml
+³   ³   ³   ³           ÃÄÄÄvalues-mn
+³   ³   ³   ³           ÃÄÄÄvalues-mr
+³   ³   ³   ³           ÃÄÄÄvalues-ms
+³   ³   ³   ³           ÃÄÄÄvalues-my
+³   ³   ³   ³           ÃÄÄÄvalues-nb
+³   ³   ³   ³           ÃÄÄÄvalues-ne
+³   ³   ³   ³           ÃÄÄÄvalues-nl
+³   ³   ³   ³           ÃÄÄÄvalues-or
+³   ³   ³   ³           ÃÄÄÄvalues-pa
+³   ³   ³   ³           ÃÄÄÄvalues-pl
+³   ³   ³   ³           ÃÄÄÄvalues-pt
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³           ÃÄÄÄvalues-ro
+³   ³   ³   ³           ÃÄÄÄvalues-ru
+³   ³   ³   ³           ÃÄÄÄvalues-si
+³   ³   ³   ³           ÃÄÄÄvalues-sk
+³   ³   ³   ³           ÃÄÄÄvalues-sl
+³   ³   ³   ³           ÃÄÄÄvalues-sq
+³   ³   ³   ³           ÃÄÄÄvalues-sr
+³   ³   ³   ³           ÃÄÄÄvalues-sv
+³   ³   ³   ³           ÃÄÄÄvalues-sw
+³   ³   ³   ³           ÃÄÄÄvalues-ta
+³   ³   ³   ³           ÃÄÄÄvalues-te
+³   ³   ³   ³           ÃÄÄÄvalues-th
+³   ³   ³   ³           ÃÄÄÄvalues-tl
+³   ³   ³   ³           ÃÄÄÄvalues-tr
+³   ³   ³   ³           ÃÄÄÄvalues-uk
+³   ³   ³   ³           ÃÄÄÄvalues-ur
+³   ³   ³   ³           ÃÄÄÄvalues-uz
+³   ³   ³   ³           ÃÄÄÄvalues-v21
+³   ³   ³   ³           ÃÄÄÄvalues-v24
+³   ³   ³   ³           ÃÄÄÄvalues-vi
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³           ÀÄÄÄvalues-zu
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄpublic_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄruntime_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÀÄÄÄverified_library_resources
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄverifyReleaseResources
+³   ³   ³               ÀÄÄÄcompiled
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄaar
+³   ³   ³   ÀÄÄÄlogs
+³   ³   ÀÄÄÄtmp
+³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ÃÄÄÄjust_audio
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÃÄÄÄap_generated_sources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄout
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_friendly_merged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ³           ÀÄÄÄaapt
+³   ³   ³   ÃÄÄÄaar_libs_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ³           ÀÄÄÄlibs
+³   ³   ³   ÃÄÄÄaar_main_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ÃÄÄÄaar_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotations_typedef_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotations_zip
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄcompile_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³   ³   ³   ÃÄÄÄcompile_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄcompile_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄfull_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateFullJarRelease
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageReleaseAssets
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v24
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjavac
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ³   ³   ³           ÀÄÄÄclasses
+³   ³   ³   ³               ÀÄÄÄcom
+³   ³   ³   ³                   ÀÄÄÄryanheise
+³   ³   ³   ³                       ÀÄÄÄjust_audio
+³   ³   ³   ÃÄÄÄlibrary_and_local_jars_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlibrary_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlibrary_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³       ÃÄÄÄmaven.google
+³   ³   ³   ³       ³   ÃÄÄÄandroidx
+³   ³   ³   ³       ³   ³   ÀÄÄÄmedia3
+³   ³   ³   ³       ³   ÀÄÄÄcom
+³   ³   ³   ³       ³       ÀÄÄÄandroid
+³   ³   ³   ³       ³           ÀÄÄÄtools
+³   ³   ³   ³       ³               ÀÄÄÄbuild
+³   ³   ³   ³       ÀÄÄÄsdk_index
+³   ³   ³   ÃÄÄÄlint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³   ³   ³   ÃÄÄÄlint_model_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³   ³   ³   ÃÄÄÄlint_vital_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlocal_aar_for_lint
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÃÄÄÄanim
+³   ³   ³   ³           ÃÄÄÄanim-v21
+³   ³   ³   ³           ÃÄÄÄanimator
+³   ³   ³   ³           ÃÄÄÄdrawable
+³   ³   ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄlayout
+³   ³   ³   ³           ÃÄÄÄlayout-v21
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÃÄÄÄvalues-af
+³   ³   ³   ³           ÃÄÄÄvalues-am
+³   ³   ³   ³           ÃÄÄÄvalues-ar
+³   ³   ³   ³           ÃÄÄÄvalues-as
+³   ³   ³   ³           ÃÄÄÄvalues-az
+³   ³   ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³           ÃÄÄÄvalues-be
+³   ³   ³   ³           ÃÄÄÄvalues-bg
+³   ³   ³   ³           ÃÄÄÄvalues-bn
+³   ³   ³   ³           ÃÄÄÄvalues-bs
+³   ³   ³   ³           ÃÄÄÄvalues-ca
+³   ³   ³   ³           ÃÄÄÄvalues-cs
+³   ³   ³   ³           ÃÄÄÄvalues-da
+³   ³   ³   ³           ÃÄÄÄvalues-de
+³   ³   ³   ³           ÃÄÄÄvalues-el
+³   ³   ³   ³           ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³           ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³           ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³           ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³           ÃÄÄÄvalues-es
+³   ³   ³   ³           ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³           ÃÄÄÄvalues-et
+³   ³   ³   ³           ÃÄÄÄvalues-eu
+³   ³   ³   ³           ÃÄÄÄvalues-fa
+³   ³   ³   ³           ÃÄÄÄvalues-fi
+³   ³   ³   ³           ÃÄÄÄvalues-fr
+³   ³   ³   ³           ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-gl
+³   ³   ³   ³           ÃÄÄÄvalues-gu
+³   ³   ³   ³           ÃÄÄÄvalues-hi
+³   ³   ³   ³           ÃÄÄÄvalues-hr
+³   ³   ³   ³           ÃÄÄÄvalues-hu
+³   ³   ³   ³           ÃÄÄÄvalues-hy
+³   ³   ³   ³           ÃÄÄÄvalues-in
+³   ³   ³   ³           ÃÄÄÄvalues-is
+³   ³   ³   ³           ÃÄÄÄvalues-it
+³   ³   ³   ³           ÃÄÄÄvalues-iw
+³   ³   ³   ³           ÃÄÄÄvalues-ja
+³   ³   ³   ³           ÃÄÄÄvalues-ka
+³   ³   ³   ³           ÃÄÄÄvalues-kk
+³   ³   ³   ³           ÃÄÄÄvalues-km
+³   ³   ³   ³           ÃÄÄÄvalues-kn
+³   ³   ³   ³           ÃÄÄÄvalues-ko
+³   ³   ³   ³           ÃÄÄÄvalues-ky
+³   ³   ³   ³           ÃÄÄÄvalues-lo
+³   ³   ³   ³           ÃÄÄÄvalues-lt
+³   ³   ³   ³           ÃÄÄÄvalues-lv
+³   ³   ³   ³           ÃÄÄÄvalues-mk
+³   ³   ³   ³           ÃÄÄÄvalues-ml
+³   ³   ³   ³           ÃÄÄÄvalues-mn
+³   ³   ³   ³           ÃÄÄÄvalues-mr
+³   ³   ³   ³           ÃÄÄÄvalues-ms
+³   ³   ³   ³           ÃÄÄÄvalues-my
+³   ³   ³   ³           ÃÄÄÄvalues-nb
+³   ³   ³   ³           ÃÄÄÄvalues-ne
+³   ³   ³   ³           ÃÄÄÄvalues-nl
+³   ³   ³   ³           ÃÄÄÄvalues-or
+³   ³   ³   ³           ÃÄÄÄvalues-pa
+³   ³   ³   ³           ÃÄÄÄvalues-pl
+³   ³   ³   ³           ÃÄÄÄvalues-pt
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³           ÃÄÄÄvalues-ro
+³   ³   ³   ³           ÃÄÄÄvalues-ru
+³   ³   ³   ³           ÃÄÄÄvalues-si
+³   ³   ³   ³           ÃÄÄÄvalues-sk
+³   ³   ³   ³           ÃÄÄÄvalues-sl
+³   ³   ³   ³           ÃÄÄÄvalues-sq
+³   ³   ³   ³           ÃÄÄÄvalues-sr
+³   ³   ³   ³           ÃÄÄÄvalues-sv
+³   ³   ³   ³           ÃÄÄÄvalues-sw
+³   ³   ³   ³           ÃÄÄÄvalues-ta
+³   ³   ³   ³           ÃÄÄÄvalues-te
+³   ³   ³   ³           ÃÄÄÄvalues-th
+³   ³   ³   ³           ÃÄÄÄvalues-tl
+³   ³   ³   ³           ÃÄÄÄvalues-tr
+³   ³   ³   ³           ÃÄÄÄvalues-uk
+³   ³   ³   ³           ÃÄÄÄvalues-ur
+³   ³   ³   ³           ÃÄÄÄvalues-uz
+³   ³   ³   ³           ÃÄÄÄvalues-v21
+³   ³   ³   ³           ÃÄÄÄvalues-v24
+³   ³   ³   ³           ÃÄÄÄvalues-vi
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³           ÀÄÄÄvalues-zu
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄpublic_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄruntime_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÀÄÄÄverified_library_resources
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄverifyReleaseResources
+³   ³   ³               ÀÄÄÄcompiled
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄaar
+³   ³   ³   ÀÄÄÄlogs
+³   ³   ÀÄÄÄtmp
+³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ÃÄÄÄnative_assets
+³   ³   ÀÄÄÄandroid
+³   ÃÄÄÄpath_provider_android
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÃÄÄÄap_generated_sources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄout
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_friendly_merged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ³           ÀÄÄÄaapt
+³   ³   ³   ÃÄÄÄaar_libs_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ³           ÀÄÄÄlibs
+³   ³   ³   ÃÄÄÄaar_main_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ÃÄÄÄaar_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotations_typedef_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotations_zip
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄcompile_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³   ³   ³   ÃÄÄÄcompile_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄcompile_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄfull_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateFullJarRelease
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageReleaseAssets
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjavac
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ³   ³   ³           ÀÄÄÄclasses
+³   ³   ³   ³               ÀÄÄÄio
+³   ³   ³   ³                   ÀÄÄÄflutter
+³   ³   ³   ³                       ÀÄÄÄplugins
+³   ³   ³   ³                           ÀÄÄÄpathprovider
+³   ³   ³   ÃÄÄÄlibrary_and_local_jars_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlibrary_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlibrary_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³       ÃÄÄÄmaven.google
+³   ³   ³   ³       ³   ÃÄÄÄandroidx
+³   ³   ³   ³       ³   ³   ÀÄÄÄannotation
+³   ³   ³   ³       ³   ÀÄÄÄcom
+³   ³   ³   ³       ³       ÀÄÄÄandroid
+³   ³   ³   ³       ³           ÀÄÄÄtools
+³   ³   ³   ³       ³               ÀÄÄÄbuild
+³   ³   ³   ³       ÀÄÄÄsdk_index
+³   ³   ³   ÃÄÄÄlint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³   ³   ³   ÃÄÄÄlint_model_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³   ³   ³   ÃÄÄÄlint_vital_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlocal_aar_for_lint
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÃÄÄÄanim-v21
+³   ³   ³   ³           ÃÄÄÄanimator
+³   ³   ³   ³           ÃÄÄÄdrawable
+³   ³   ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄlayout
+³   ³   ³   ³           ÃÄÄÄlayout-v21
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÃÄÄÄvalues-af
+³   ³   ³   ³           ÃÄÄÄvalues-am
+³   ³   ³   ³           ÃÄÄÄvalues-ar
+³   ³   ³   ³           ÃÄÄÄvalues-as
+³   ³   ³   ³           ÃÄÄÄvalues-az
+³   ³   ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³           ÃÄÄÄvalues-be
+³   ³   ³   ³           ÃÄÄÄvalues-bg
+³   ³   ³   ³           ÃÄÄÄvalues-bn
+³   ³   ³   ³           ÃÄÄÄvalues-bs
+³   ³   ³   ³           ÃÄÄÄvalues-ca
+³   ³   ³   ³           ÃÄÄÄvalues-cs
+³   ³   ³   ³           ÃÄÄÄvalues-da
+³   ³   ³   ³           ÃÄÄÄvalues-de
+³   ³   ³   ³           ÃÄÄÄvalues-el
+³   ³   ³   ³           ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³           ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³           ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³           ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³           ÃÄÄÄvalues-es
+³   ³   ³   ³           ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³           ÃÄÄÄvalues-et
+³   ³   ³   ³           ÃÄÄÄvalues-eu
+³   ³   ³   ³           ÃÄÄÄvalues-fa
+³   ³   ³   ³           ÃÄÄÄvalues-fi
+³   ³   ³   ³           ÃÄÄÄvalues-fr
+³   ³   ³   ³           ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-gl
+³   ³   ³   ³           ÃÄÄÄvalues-gu
+³   ³   ³   ³           ÃÄÄÄvalues-hi
+³   ³   ³   ³           ÃÄÄÄvalues-hr
+³   ³   ³   ³           ÃÄÄÄvalues-hu
+³   ³   ³   ³           ÃÄÄÄvalues-hy
+³   ³   ³   ³           ÃÄÄÄvalues-in
+³   ³   ³   ³           ÃÄÄÄvalues-is
+³   ³   ³   ³           ÃÄÄÄvalues-it
+³   ³   ³   ³           ÃÄÄÄvalues-iw
+³   ³   ³   ³           ÃÄÄÄvalues-ja
+³   ³   ³   ³           ÃÄÄÄvalues-ka
+³   ³   ³   ³           ÃÄÄÄvalues-kk
+³   ³   ³   ³           ÃÄÄÄvalues-km
+³   ³   ³   ³           ÃÄÄÄvalues-kn
+³   ³   ³   ³           ÃÄÄÄvalues-ko
+³   ³   ³   ³           ÃÄÄÄvalues-ky
+³   ³   ³   ³           ÃÄÄÄvalues-lo
+³   ³   ³   ³           ÃÄÄÄvalues-lt
+³   ³   ³   ³           ÃÄÄÄvalues-lv
+³   ³   ³   ³           ÃÄÄÄvalues-mk
+³   ³   ³   ³           ÃÄÄÄvalues-ml
+³   ³   ³   ³           ÃÄÄÄvalues-mn
+³   ³   ³   ³           ÃÄÄÄvalues-mr
+³   ³   ³   ³           ÃÄÄÄvalues-ms
+³   ³   ³   ³           ÃÄÄÄvalues-my
+³   ³   ³   ³           ÃÄÄÄvalues-nb
+³   ³   ³   ³           ÃÄÄÄvalues-ne
+³   ³   ³   ³           ÃÄÄÄvalues-nl
+³   ³   ³   ³           ÃÄÄÄvalues-or
+³   ³   ³   ³           ÃÄÄÄvalues-pa
+³   ³   ³   ³           ÃÄÄÄvalues-pl
+³   ³   ³   ³           ÃÄÄÄvalues-pt
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³           ÃÄÄÄvalues-ro
+³   ³   ³   ³           ÃÄÄÄvalues-ru
+³   ³   ³   ³           ÃÄÄÄvalues-si
+³   ³   ³   ³           ÃÄÄÄvalues-sk
+³   ³   ³   ³           ÃÄÄÄvalues-sl
+³   ³   ³   ³           ÃÄÄÄvalues-sq
+³   ³   ³   ³           ÃÄÄÄvalues-sr
+³   ³   ³   ³           ÃÄÄÄvalues-sv
+³   ³   ³   ³           ÃÄÄÄvalues-sw
+³   ³   ³   ³           ÃÄÄÄvalues-ta
+³   ³   ³   ³           ÃÄÄÄvalues-te
+³   ³   ³   ³           ÃÄÄÄvalues-th
+³   ³   ³   ³           ÃÄÄÄvalues-tl
+³   ³   ³   ³           ÃÄÄÄvalues-tr
+³   ³   ³   ³           ÃÄÄÄvalues-uk
+³   ³   ³   ³           ÃÄÄÄvalues-ur
+³   ³   ³   ³           ÃÄÄÄvalues-uz
+³   ³   ³   ³           ÃÄÄÄvalues-v21
+³   ³   ³   ³           ÃÄÄÄvalues-vi
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³           ÀÄÄÄvalues-zu
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄpublic_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄruntime_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÀÄÄÄverified_library_resources
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄverifyReleaseResources
+³   ³   ³               ÀÄÄÄcompiled
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄaar
+³   ³   ³   ÀÄÄÄlogs
+³   ³   ÀÄÄÄtmp
+³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ÃÄÄÄshared_preferences_android
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÃÄÄÄap_generated_sources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄout
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_friendly_merged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ³           ÀÄÄÄaapt
+³   ³   ³   ÃÄÄÄaar_libs_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ³           ÀÄÄÄlibs
+³   ³   ³   ÃÄÄÄaar_main_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ÃÄÄÄaar_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotations_typedef_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotations_zip
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄcompile_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³   ³   ³   ÃÄÄÄcompile_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄcompile_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄfull_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateFullJarRelease
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageReleaseAssets
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-h720dp-v13
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hdpi-v4
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-land
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-large-v4
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ldltr-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-night-v8
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-port
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw360dp-v13
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw600dp-v13
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v16
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v17
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v18
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v22
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v23
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v24
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v25
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v26
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v28
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-watch-v20
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-watch-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-xlarge-v4
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjavac
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ³   ³   ³           ÀÄÄÄclasses
+³   ³   ³   ³               ÀÄÄÄio
+³   ³   ³   ³                   ÀÄÄÄflutter
+³   ³   ³   ³                       ÀÄÄÄplugins
+³   ³   ³   ³                           ÀÄÄÄsharedpreferences
+³   ³   ³   ÃÄÄÄjava_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseJavaRes
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄio
+³   ³   ³   ³               ³   ÀÄÄÄflutter
+³   ³   ³   ³               ³       ÀÄÄÄplugins
+³   ³   ³   ³               ³           ÀÄÄÄsharedpreferences
+³   ³   ³   ³               ÀÄÄÄMETA-INF
+³   ³   ³   ÃÄÄÄlibrary_and_local_jars_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlibrary_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlibrary_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³       ÃÄÄÄmaven.google
+³   ³   ³   ³       ³   ÃÄÄÄandroidx
+³   ³   ³   ³       ³   ³   ÃÄÄÄdatastore
+³   ³   ³   ³       ³   ³   ÃÄÄÄpreference
+³   ³   ³   ³       ³   ³   ÀÄÄÄtest
+³   ³   ³   ³       ³   ³       ÀÄÄÄext
+³   ³   ³   ³       ³   ÀÄÄÄcom
+³   ³   ³   ³       ³       ÀÄÄÄandroid
+³   ³   ³   ³       ³           ÀÄÄÄtools
+³   ³   ³   ³       ³               ÀÄÄÄbuild
+³   ³   ³   ³       ÀÄÄÄsdk_index
+³   ³   ³   ÃÄÄÄlint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³   ³   ³   ÃÄÄÄlint_model_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³   ³   ³   ÃÄÄÄlint_vital_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlocal_aar_for_lint
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÃÄÄÄanim
+³   ³   ³   ³           ÃÄÄÄanim-v21
+³   ³   ³   ³           ÃÄÄÄanimator
+³   ³   ³   ³           ÃÄÄÄcolor
+³   ³   ³   ³           ÃÄÄÄcolor-v21
+³   ³   ³   ³           ÃÄÄÄcolor-v23
+³   ³   ³   ³           ÃÄÄÄdrawable
+³   ³   ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldrtl-hdpi-v17
+³   ³   ³   ³           ÃÄÄÄdrawable-ldrtl-mdpi-v17
+³   ³   ³   ³           ÃÄÄÄdrawable-ldrtl-xhdpi-v17
+³   ³   ³   ³           ÃÄÄÄdrawable-ldrtl-xxhdpi-v17
+³   ³   ³   ³           ÃÄÄÄdrawable-ldrtl-xxxhdpi-v17
+³   ³   ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-v23
+³   ³   ³   ³           ÃÄÄÄdrawable-watch-v20
+³   ³   ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄinterpolator
+³   ³   ³   ³           ÃÄÄÄlayout
+³   ³   ³   ³           ÃÄÄÄlayout-v21
+³   ³   ³   ³           ÃÄÄÄlayout-v26
+³   ³   ³   ³           ÃÄÄÄlayout-watch-v20
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÃÄÄÄvalues-af
+³   ³   ³   ³           ÃÄÄÄvalues-am
+³   ³   ³   ³           ÃÄÄÄvalues-ar
+³   ³   ³   ³           ÃÄÄÄvalues-as
+³   ³   ³   ³           ÃÄÄÄvalues-az
+³   ³   ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³           ÃÄÄÄvalues-be
+³   ³   ³   ³           ÃÄÄÄvalues-bg
+³   ³   ³   ³           ÃÄÄÄvalues-bn
+³   ³   ³   ³           ÃÄÄÄvalues-bs
+³   ³   ³   ³           ÃÄÄÄvalues-ca
+³   ³   ³   ³           ÃÄÄÄvalues-cs
+³   ³   ³   ³           ÃÄÄÄvalues-da
+³   ³   ³   ³           ÃÄÄÄvalues-de
+³   ³   ³   ³           ÃÄÄÄvalues-el
+³   ³   ³   ³           ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³           ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³           ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³           ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³           ÃÄÄÄvalues-es
+³   ³   ³   ³           ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³           ÃÄÄÄvalues-et
+³   ³   ³   ³           ÃÄÄÄvalues-eu
+³   ³   ³   ³           ÃÄÄÄvalues-fa
+³   ³   ³   ³           ÃÄÄÄvalues-fi
+³   ³   ³   ³           ÃÄÄÄvalues-fr
+³   ³   ³   ³           ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-gl
+³   ³   ³   ³           ÃÄÄÄvalues-gu
+³   ³   ³   ³           ÃÄÄÄvalues-h720dp-v13
+³   ³   ³   ³           ÃÄÄÄvalues-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄvalues-hi
+³   ³   ³   ³           ÃÄÄÄvalues-hr
+³   ³   ³   ³           ÃÄÄÄvalues-hu
+³   ³   ³   ³           ÃÄÄÄvalues-hy
+³   ³   ³   ³           ÃÄÄÄvalues-in
+³   ³   ³   ³           ÃÄÄÄvalues-is
+³   ³   ³   ³           ÃÄÄÄvalues-it
+³   ³   ³   ³           ÃÄÄÄvalues-iw
+³   ³   ³   ³           ÃÄÄÄvalues-ja
+³   ³   ³   ³           ÃÄÄÄvalues-ka
+³   ³   ³   ³           ÃÄÄÄvalues-kk
+³   ³   ³   ³           ÃÄÄÄvalues-km
+³   ³   ³   ³           ÃÄÄÄvalues-kn
+³   ³   ³   ³           ÃÄÄÄvalues-ko
+³   ³   ³   ³           ÃÄÄÄvalues-ky
+³   ³   ³   ³           ÃÄÄÄvalues-land
+³   ³   ³   ³           ÃÄÄÄvalues-large-v4
+³   ³   ³   ³           ÃÄÄÄvalues-ldltr-v21
+³   ³   ³   ³           ÃÄÄÄvalues-lo
+³   ³   ³   ³           ÃÄÄÄvalues-lt
+³   ³   ³   ³           ÃÄÄÄvalues-lv
+³   ³   ³   ³           ÃÄÄÄvalues-mk
+³   ³   ³   ³           ÃÄÄÄvalues-ml
+³   ³   ³   ³           ÃÄÄÄvalues-mn
+³   ³   ³   ³           ÃÄÄÄvalues-mr
+³   ³   ³   ³           ÃÄÄÄvalues-ms
+³   ³   ³   ³           ÃÄÄÄvalues-my
+³   ³   ³   ³           ÃÄÄÄvalues-nb
+³   ³   ³   ³           ÃÄÄÄvalues-ne
+³   ³   ³   ³           ÃÄÄÄvalues-night-v8
+³   ³   ³   ³           ÃÄÄÄvalues-nl
+³   ³   ³   ³           ÃÄÄÄvalues-or
+³   ³   ³   ³           ÃÄÄÄvalues-pa
+³   ³   ³   ³           ÃÄÄÄvalues-pl
+³   ³   ³   ³           ÃÄÄÄvalues-port
+³   ³   ³   ³           ÃÄÄÄvalues-pt
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³           ÃÄÄÄvalues-ro
+³   ³   ³   ³           ÃÄÄÄvalues-ru
+³   ³   ³   ³           ÃÄÄÄvalues-si
+³   ³   ³   ³           ÃÄÄÄvalues-sk
+³   ³   ³   ³           ÃÄÄÄvalues-sl
+³   ³   ³   ³           ÃÄÄÄvalues-sq
+³   ³   ³   ³           ÃÄÄÄvalues-sr
+³   ³   ³   ³           ÃÄÄÄvalues-sv
+³   ³   ³   ³           ÃÄÄÄvalues-sw
+³   ³   ³   ³           ÃÄÄÄvalues-sw360dp-v13
+³   ³   ³   ³           ÃÄÄÄvalues-sw600dp-v13
+³   ³   ³   ³           ÃÄÄÄvalues-ta
+³   ³   ³   ³           ÃÄÄÄvalues-te
+³   ³   ³   ³           ÃÄÄÄvalues-th
+³   ³   ³   ³           ÃÄÄÄvalues-tl
+³   ³   ³   ³           ÃÄÄÄvalues-tr
+³   ³   ³   ³           ÃÄÄÄvalues-uk
+³   ³   ³   ³           ÃÄÄÄvalues-ur
+³   ³   ³   ³           ÃÄÄÄvalues-uz
+³   ³   ³   ³           ÃÄÄÄvalues-v16
+³   ³   ³   ³           ÃÄÄÄvalues-v17
+³   ³   ³   ³           ÃÄÄÄvalues-v18
+³   ³   ³   ³           ÃÄÄÄvalues-v21
+³   ³   ³   ³           ÃÄÄÄvalues-v22
+³   ³   ³   ³           ÃÄÄÄvalues-v23
+³   ³   ³   ³           ÃÄÄÄvalues-v24
+³   ³   ³   ³           ÃÄÄÄvalues-v25
+³   ³   ³   ³           ÃÄÄÄvalues-v26
+³   ³   ³   ³           ÃÄÄÄvalues-v28
+³   ³   ³   ³           ÃÄÄÄvalues-vi
+³   ³   ³   ³           ÃÄÄÄvalues-watch-v20
+³   ³   ³   ³           ÃÄÄÄvalues-watch-v21
+³   ³   ³   ³           ÃÄÄÄvalues-xlarge-v4
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³           ÀÄÄÄvalues-zu
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄpublic_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄruntime_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÀÄÄÄverified_library_resources
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄverifyReleaseResources
+³   ³   ³               ÀÄÄÄcompiled
+³   ³   ÃÄÄÄkotlin
+³   ³   ³   ÀÄÄÄcompileReleaseKotlin
+³   ³   ³       ÃÄÄÄcacheable
+³   ³   ³       ³   ÀÄÄÄcaches-jvm
+³   ³   ³       ³       ÃÄÄÄinputs
+³   ³   ³       ³       ÃÄÄÄjvm
+³   ³   ³       ³       ³   ÀÄÄÄkotlin
+³   ³   ³       ³       ÀÄÄÄlookups
+³   ³   ³       ÃÄÄÄclasspath-snapshot
+³   ³   ³       ÀÄÄÄlocal-state
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄaar
+³   ³   ³   ÀÄÄÄlogs
+³   ³   ÀÄÄÄtmp
+³   ³       ÃÄÄÄcompileReleaseJavaWithJavac
+³   ³       ÀÄÄÄkotlin-classes
+³   ³           ÀÄÄÄrelease
+³   ³               ÃÄÄÄio
+³   ³               ³   ÀÄÄÄflutter
+³   ³               ³       ÀÄÄÄplugins
+³   ³               ³           ÀÄÄÄsharedpreferences
+³   ³               ÀÄÄÄMETA-INF
+³   ÃÄÄÄshare_plus
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_friendly_merged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ³           ÀÄÄÄaapt
+³   ³   ³   ÃÄÄÄaar_libs_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ³           ÀÄÄÄlibs
+³   ³   ³   ÃÄÄÄaar_main_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ÃÄÄÄaar_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotations_typedef_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotations_zip
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄcompile_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³   ³   ³   ÃÄÄÄcompile_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄcompile_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄfull_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateFullJarRelease
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageReleaseAssets
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjava_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseJavaRes
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄdev
+³   ³   ³   ³               ³   ÀÄÄÄfluttercommunity
+³   ³   ³   ³               ³       ÀÄÄÄplus
+³   ³   ³   ³               ³           ÀÄÄÄshare
+³   ³   ³   ³               ÀÄÄÄMETA-INF
+³   ³   ³   ÃÄÄÄlibrary_and_local_jars_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlibrary_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlibrary_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³       ÃÄÄÄmaven.google
+³   ³   ³   ³       ³   ÃÄÄÄandroidx
+³   ³   ³   ³       ³   ³   ÃÄÄÄannotation
+³   ³   ³   ³       ³   ³   ÀÄÄÄcore
+³   ³   ³   ³       ³   ÃÄÄÄcom
+³   ³   ³   ³       ³   ³   ÀÄÄÄandroid
+³   ³   ³   ³       ³   ³       ÀÄÄÄtools
+³   ³   ³   ³       ³   ³           ÀÄÄÄbuild
+³   ³   ³   ³       ³   ÀÄÄÄorg
+³   ³   ³   ³       ³       ÀÄÄÄjetbrains
+³   ³   ³   ³       ³           ÀÄÄÄkotlin
+³   ³   ³   ³       ÀÄÄÄsdk_index
+³   ³   ³   ÃÄÄÄlint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³   ³   ³   ÃÄÄÄlint_model_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³   ³   ³   ÃÄÄÄlint_vital_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlocal_aar_for_lint
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÃÄÄÄanim
+³   ³   ³   ³           ÃÄÄÄanim-v21
+³   ³   ³   ³           ÃÄÄÄanimator
+³   ³   ³   ³           ÃÄÄÄdrawable
+³   ³   ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄlayout
+³   ³   ³   ³           ÃÄÄÄlayout-v21
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÃÄÄÄvalues-af
+³   ³   ³   ³           ÃÄÄÄvalues-am
+³   ³   ³   ³           ÃÄÄÄvalues-ar
+³   ³   ³   ³           ÃÄÄÄvalues-as
+³   ³   ³   ³           ÃÄÄÄvalues-az
+³   ³   ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³           ÃÄÄÄvalues-be
+³   ³   ³   ³           ÃÄÄÄvalues-bg
+³   ³   ³   ³           ÃÄÄÄvalues-bn
+³   ³   ³   ³           ÃÄÄÄvalues-bs
+³   ³   ³   ³           ÃÄÄÄvalues-ca
+³   ³   ³   ³           ÃÄÄÄvalues-cs
+³   ³   ³   ³           ÃÄÄÄvalues-da
+³   ³   ³   ³           ÃÄÄÄvalues-de
+³   ³   ³   ³           ÃÄÄÄvalues-el
+³   ³   ³   ³           ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³           ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³           ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³           ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³           ÃÄÄÄvalues-es
+³   ³   ³   ³           ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³           ÃÄÄÄvalues-et
+³   ³   ³   ³           ÃÄÄÄvalues-eu
+³   ³   ³   ³           ÃÄÄÄvalues-fa
+³   ³   ³   ³           ÃÄÄÄvalues-fi
+³   ³   ³   ³           ÃÄÄÄvalues-fr
+³   ³   ³   ³           ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-gl
+³   ³   ³   ³           ÃÄÄÄvalues-gu
+³   ³   ³   ³           ÃÄÄÄvalues-hi
+³   ³   ³   ³           ÃÄÄÄvalues-hr
+³   ³   ³   ³           ÃÄÄÄvalues-hu
+³   ³   ³   ³           ÃÄÄÄvalues-hy
+³   ³   ³   ³           ÃÄÄÄvalues-in
+³   ³   ³   ³           ÃÄÄÄvalues-is
+³   ³   ³   ³           ÃÄÄÄvalues-it
+³   ³   ³   ³           ÃÄÄÄvalues-iw
+³   ³   ³   ³           ÃÄÄÄvalues-ja
+³   ³   ³   ³           ÃÄÄÄvalues-ka
+³   ³   ³   ³           ÃÄÄÄvalues-kk
+³   ³   ³   ³           ÃÄÄÄvalues-km
+³   ³   ³   ³           ÃÄÄÄvalues-kn
+³   ³   ³   ³           ÃÄÄÄvalues-ko
+³   ³   ³   ³           ÃÄÄÄvalues-ky
+³   ³   ³   ³           ÃÄÄÄvalues-lo
+³   ³   ³   ³           ÃÄÄÄvalues-lt
+³   ³   ³   ³           ÃÄÄÄvalues-lv
+³   ³   ³   ³           ÃÄÄÄvalues-mk
+³   ³   ³   ³           ÃÄÄÄvalues-ml
+³   ³   ³   ³           ÃÄÄÄvalues-mn
+³   ³   ³   ³           ÃÄÄÄvalues-mr
+³   ³   ³   ³           ÃÄÄÄvalues-ms
+³   ³   ³   ³           ÃÄÄÄvalues-my
+³   ³   ³   ³           ÃÄÄÄvalues-nb
+³   ³   ³   ³           ÃÄÄÄvalues-ne
+³   ³   ³   ³           ÃÄÄÄvalues-nl
+³   ³   ³   ³           ÃÄÄÄvalues-or
+³   ³   ³   ³           ÃÄÄÄvalues-pa
+³   ³   ³   ³           ÃÄÄÄvalues-pl
+³   ³   ³   ³           ÃÄÄÄvalues-pt
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³           ÃÄÄÄvalues-ro
+³   ³   ³   ³           ÃÄÄÄvalues-ru
+³   ³   ³   ³           ÃÄÄÄvalues-si
+³   ³   ³   ³           ÃÄÄÄvalues-sk
+³   ³   ³   ³           ÃÄÄÄvalues-sl
+³   ³   ³   ³           ÃÄÄÄvalues-sq
+³   ³   ³   ³           ÃÄÄÄvalues-sr
+³   ³   ³   ³           ÃÄÄÄvalues-sv
+³   ³   ³   ³           ÃÄÄÄvalues-sw
+³   ³   ³   ³           ÃÄÄÄvalues-ta
+³   ³   ³   ³           ÃÄÄÄvalues-te
+³   ³   ³   ³           ÃÄÄÄvalues-th
+³   ³   ³   ³           ÃÄÄÄvalues-tl
+³   ³   ³   ³           ÃÄÄÄvalues-tr
+³   ³   ³   ³           ÃÄÄÄvalues-uk
+³   ³   ³   ³           ÃÄÄÄvalues-ur
+³   ³   ³   ³           ÃÄÄÄvalues-uz
+³   ³   ³   ³           ÃÄÄÄvalues-v21
+³   ³   ³   ³           ÃÄÄÄvalues-vi
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³           ÃÄÄÄvalues-zu
+³   ³   ³   ³           ÀÄÄÄxml
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄxml
+³   ³   ³   ÃÄÄÄpublic_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄruntime_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÀÄÄÄverified_library_resources
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄverifyReleaseResources
+³   ³   ³               ÀÄÄÄcompiled
+³   ³   ÃÄÄÄkotlin
+³   ³   ³   ÀÄÄÄcompileReleaseKotlin
+³   ³   ³       ÃÄÄÄcacheable
+³   ³   ³       ³   ÀÄÄÄcaches-jvm
+³   ³   ³       ³       ÃÄÄÄinputs
+³   ³   ³       ³       ÃÄÄÄjvm
+³   ³   ³       ³       ³   ÀÄÄÄkotlin
+³   ³   ³       ³       ÀÄÄÄlookups
+³   ³   ³       ÃÄÄÄclasspath-snapshot
+³   ³   ³       ÀÄÄÄlocal-state
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄaar
+³   ³   ³   ÀÄÄÄlogs
+³   ³   ÀÄÄÄtmp
+³   ³       ÀÄÄÄkotlin-classes
+³   ³           ÀÄÄÄrelease
+³   ³               ÃÄÄÄdev
+³   ³               ³   ÀÄÄÄfluttercommunity
+³   ³               ³       ÀÄÄÄplus
+³   ³               ³           ÀÄÄÄshare
+³   ³               ÀÄÄÄMETA-INF
+³   ÃÄÄÄsqflite_android
+³   ³   ÃÄÄÄgenerated
+³   ³   ³   ÃÄÄÄap_generated_sources
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄout
+³   ³   ³   ÀÄÄÄres
+³   ³   ³       ÃÄÄÄpngs
+³   ³   ³       ³   ÀÄÄÄrelease
+³   ³   ³       ÀÄÄÄresValues
+³   ³   ³           ÀÄÄÄrelease
+³   ³   ÃÄÄÄintermediates
+³   ³   ³   ÃÄÄÄaapt_friendly_merged_manifests
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ³           ÀÄÄÄaapt
+³   ³   ³   ÃÄÄÄaar_libs_directory
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ³           ÀÄÄÄlibs
+³   ³   ³   ÃÄÄÄaar_main_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄsyncReleaseLibJars
+³   ³   ³   ÃÄÄÄaar_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³   ³   ³   ÃÄÄÄannotations_typedef_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotations_zip
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractReleaseAnnotations
+³   ³   ³   ÃÄÄÄannotation_processor_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄjavaPreCompileRelease
+³   ³   ³   ÃÄÄÄcompile_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³   ³   ³   ÃÄÄÄcompile_r_class_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄcompile_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdata_binding_layout_info_type_package
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄdefault_proguard_files
+³   ³   ³   ³   ÀÄÄÄglobal
+³   ³   ³   ÃÄÄÄfull_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcreateFullJarRelease
+³   ³   ³   ÃÄÄÄincremental
+³   ³   ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³   ÃÄÄÄmergeReleaseShaders
+³   ³   ³   ³   ÃÄÄÄpackageReleaseAssets
+³   ³   ³   ³   ÃÄÄÄrelease
+³   ³   ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³   ³   ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³   ³   ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³   ³   ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³   ³   ³   ³   ³       ÃÄÄÄmerged.dir
+³   ³   ³   ³   ³       ÀÄÄÄstripped.dir
+³   ³   ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³   ³   ³   ³       ÀÄÄÄzip-cache
+³   ³   ³   ÃÄÄÄjavac
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ³   ³   ³           ÀÄÄÄclasses
+³   ³   ³   ³               ÀÄÄÄcom
+³   ³   ³   ³                   ÀÄÄÄtekartik
+³   ³   ³   ³                       ÀÄÄÄsqflite
+³   ³   ³   ³                           ÃÄÄÄdev
+³   ³   ³   ³                           ÀÄÄÄoperation
+³   ³   ³   ÃÄÄÄlibrary_and_local_jars_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlibrary_assets
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseAssets
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlibrary_jni
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³   ³   ³   ³           ÀÄÄÄjni
+³   ³   ³   ÃÄÄÄlint-cache
+³   ³   ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³       ÃÄÄÄmaven.google
+³   ³   ³   ³       ³   ÀÄÄÄcom
+³   ³   ³   ³       ³       ÀÄÄÄandroid
+³   ³   ³   ³       ³           ÀÄÄÄtools
+³   ³   ³   ³       ³               ÀÄÄÄbuild
+³   ³   ³   ³       ÀÄÄÄsdk_index
+³   ³   ³   ÃÄÄÄlint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³   ³   ³   ÃÄÄÄlint_model_metadata
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³   ³   ³   ÃÄÄÄlint_vital_lint_model
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³   ³   ³   ÃÄÄÄlint_vital_partial_results
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄlocal_aar_for_lint
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ÃÄÄÄlocal_only_symbol_list
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄparseReleaseLocalResources
+³   ³   ³   ÃÄÄÄmanifest_merge_blame_file
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_java_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³   ³   ³   ÃÄÄÄmerged_jni_libs
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄmerged_manifest
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄprocessReleaseManifest
+³   ³   ³   ÃÄÄÄmerged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÃÄÄÄanim
+³   ³   ³   ³           ÃÄÄÄanim-v21
+³   ³   ³   ³           ÃÄÄÄanimator
+³   ³   ³   ³           ÃÄÄÄdrawable
+³   ³   ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-v21
+³   ³   ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³   ³   ³   ³           ÃÄÄÄlayout
+³   ³   ³   ³           ÃÄÄÄlayout-v21
+³   ³   ³   ³           ÃÄÄÄvalues
+³   ³   ³   ³           ÃÄÄÄvalues-af
+³   ³   ³   ³           ÃÄÄÄvalues-am
+³   ³   ³   ³           ÃÄÄÄvalues-ar
+³   ³   ³   ³           ÃÄÄÄvalues-as
+³   ³   ³   ³           ÃÄÄÄvalues-az
+³   ³   ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³   ³   ³   ³           ÃÄÄÄvalues-be
+³   ³   ³   ³           ÃÄÄÄvalues-bg
+³   ³   ³   ³           ÃÄÄÄvalues-bn
+³   ³   ³   ³           ÃÄÄÄvalues-bs
+³   ³   ³   ³           ÃÄÄÄvalues-ca
+³   ³   ³   ³           ÃÄÄÄvalues-cs
+³   ³   ³   ³           ÃÄÄÄvalues-da
+³   ³   ³   ³           ÃÄÄÄvalues-de
+³   ³   ³   ³           ÃÄÄÄvalues-el
+³   ³   ³   ³           ÃÄÄÄvalues-en-rAU
+³   ³   ³   ³           ÃÄÄÄvalues-en-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-en-rGB
+³   ³   ³   ³           ÃÄÄÄvalues-en-rIN
+³   ³   ³   ³           ÃÄÄÄvalues-en-rXC
+³   ³   ³   ³           ÃÄÄÄvalues-es
+³   ³   ³   ³           ÃÄÄÄvalues-es-rUS
+³   ³   ³   ³           ÃÄÄÄvalues-et
+³   ³   ³   ³           ÃÄÄÄvalues-eu
+³   ³   ³   ³           ÃÄÄÄvalues-fa
+³   ³   ³   ³           ÃÄÄÄvalues-fi
+³   ³   ³   ³           ÃÄÄÄvalues-fr
+³   ³   ³   ³           ÃÄÄÄvalues-fr-rCA
+³   ³   ³   ³           ÃÄÄÄvalues-gl
+³   ³   ³   ³           ÃÄÄÄvalues-gu
+³   ³   ³   ³           ÃÄÄÄvalues-hi
+³   ³   ³   ³           ÃÄÄÄvalues-hr
+³   ³   ³   ³           ÃÄÄÄvalues-hu
+³   ³   ³   ³           ÃÄÄÄvalues-hy
+³   ³   ³   ³           ÃÄÄÄvalues-in
+³   ³   ³   ³           ÃÄÄÄvalues-is
+³   ³   ³   ³           ÃÄÄÄvalues-it
+³   ³   ³   ³           ÃÄÄÄvalues-iw
+³   ³   ³   ³           ÃÄÄÄvalues-ja
+³   ³   ³   ³           ÃÄÄÄvalues-ka
+³   ³   ³   ³           ÃÄÄÄvalues-kk
+³   ³   ³   ³           ÃÄÄÄvalues-km
+³   ³   ³   ³           ÃÄÄÄvalues-kn
+³   ³   ³   ³           ÃÄÄÄvalues-ko
+³   ³   ³   ³           ÃÄÄÄvalues-ky
+³   ³   ³   ³           ÃÄÄÄvalues-lo
+³   ³   ³   ³           ÃÄÄÄvalues-lt
+³   ³   ³   ³           ÃÄÄÄvalues-lv
+³   ³   ³   ³           ÃÄÄÄvalues-mk
+³   ³   ³   ³           ÃÄÄÄvalues-ml
+³   ³   ³   ³           ÃÄÄÄvalues-mn
+³   ³   ³   ³           ÃÄÄÄvalues-mr
+³   ³   ³   ³           ÃÄÄÄvalues-ms
+³   ³   ³   ³           ÃÄÄÄvalues-my
+³   ³   ³   ³           ÃÄÄÄvalues-nb
+³   ³   ³   ³           ÃÄÄÄvalues-ne
+³   ³   ³   ³           ÃÄÄÄvalues-nl
+³   ³   ³   ³           ÃÄÄÄvalues-or
+³   ³   ³   ³           ÃÄÄÄvalues-pa
+³   ³   ³   ³           ÃÄÄÄvalues-pl
+³   ³   ³   ³           ÃÄÄÄvalues-pt
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rBR
+³   ³   ³   ³           ÃÄÄÄvalues-pt-rPT
+³   ³   ³   ³           ÃÄÄÄvalues-ro
+³   ³   ³   ³           ÃÄÄÄvalues-ru
+³   ³   ³   ³           ÃÄÄÄvalues-si
+³   ³   ³   ³           ÃÄÄÄvalues-sk
+³   ³   ³   ³           ÃÄÄÄvalues-sl
+³   ³   ³   ³           ÃÄÄÄvalues-sq
+³   ³   ³   ³           ÃÄÄÄvalues-sr
+³   ³   ³   ³           ÃÄÄÄvalues-sv
+³   ³   ³   ³           ÃÄÄÄvalues-sw
+³   ³   ³   ³           ÃÄÄÄvalues-ta
+³   ³   ³   ³           ÃÄÄÄvalues-te
+³   ³   ³   ³           ÃÄÄÄvalues-th
+³   ³   ³   ³           ÃÄÄÄvalues-tl
+³   ³   ³   ³           ÃÄÄÄvalues-tr
+³   ³   ³   ³           ÃÄÄÄvalues-uk
+³   ³   ³   ³           ÃÄÄÄvalues-ur
+³   ³   ³   ³           ÃÄÄÄvalues-uz
+³   ³   ³   ³           ÃÄÄÄvalues-v21
+³   ³   ³   ³           ÃÄÄÄvalues-vi
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rCN
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rHK
+³   ³   ³   ³           ÃÄÄÄvalues-zh-rTW
+³   ³   ³   ³           ÀÄÄÄvalues-zu
+³   ³   ³   ÃÄÄÄmerged_res_blame_folder
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseResources
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ³               ÃÄÄÄmulti-v2
+³   ³   ³   ³               ÀÄÄÄsingle
+³   ³   ³   ÃÄÄÄmerged_shaders
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmergeReleaseShaders
+³   ³   ³   ³           ÀÄÄÄout
+³   ³   ³   ÃÄÄÄnavigation_json
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄextractDeepLinksRelease
+³   ³   ³   ÃÄÄÄnested_resources_validation_report
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseResources
+³   ³   ³   ÃÄÄÄpackaged_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄpublic_res
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄpackageReleaseResources
+³   ³   ³   ÃÄÄÄruntime_library_classes_jar
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³   ³   ³   ÃÄÄÄsource_set_path_map
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³   ³   ³   ÃÄÄÄsymbol_list_with_package_name
+³   ³   ³   ³   ÀÄÄÄrelease
+³   ³   ³   ³       ÀÄÄÄgenerateReleaseRFile
+³   ³   ³   ÀÄÄÄverified_library_resources
+³   ³   ³       ÀÄÄÄrelease
+³   ³   ³           ÀÄÄÄverifyReleaseResources
+³   ³   ³               ÀÄÄÄcompiled
+³   ³   ÃÄÄÄoutputs
+³   ³   ³   ÃÄÄÄaar
+³   ³   ³   ÀÄÄÄlogs
+³   ³   ÀÄÄÄtmp
+³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³   ÀÄÄÄurl_launcher_android
+³       ÃÄÄÄgenerated
+³       ³   ÃÄÄÄap_generated_sources
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄout
+³       ³   ÃÄÄÄres
+³       ³   ³   ÃÄÄÄpngs
+³       ³   ³   ³   ÀÄÄÄrelease
+³       ³   ³   ÀÄÄÄresValues
+³       ³   ³       ÀÄÄÄrelease
+³       ³   ÀÄÄÄsource
+³       ³       ÀÄÄÄbuildConfig
+³       ³           ÀÄÄÄrelease
+³       ³               ÀÄÄÄio
+³       ³                   ÀÄÄÄflutter
+³       ³                       ÀÄÄÄplugins
+³       ³                           ÀÄÄÄurllauncher
+³       ÃÄÄÄintermediates
+³       ³   ÃÄÄÄaapt_friendly_merged_manifests
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄprocessReleaseManifest
+³       ³   ³           ÀÄÄÄaapt
+³       ³   ÃÄÄÄaar_libs_directory
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄsyncReleaseLibJars
+³       ³   ³           ÀÄÄÄlibs
+³       ³   ÃÄÄÄaar_main_jar
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄsyncReleaseLibJars
+³       ³   ÃÄÄÄaar_metadata
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄwriteReleaseAarMetadata
+³       ³   ÃÄÄÄannotations_typedef_file
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄextractReleaseAnnotations
+³       ³   ÃÄÄÄannotations_zip
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄextractReleaseAnnotations
+³       ³   ÃÄÄÄannotation_processor_list
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄjavaPreCompileRelease
+³       ³   ÃÄÄÄcompile_library_classes_jar
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄbundleLibCompileToJarRelease
+³       ³   ÃÄÄÄcompile_r_class_jar
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄgenerateReleaseRFile
+³       ³   ÃÄÄÄcompile_symbol_list
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄgenerateReleaseRFile
+³       ³   ÃÄÄÄdata_binding_layout_info_type_merge
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmergeReleaseResources
+³       ³   ³           ÀÄÄÄout
+³       ³   ÃÄÄÄdata_binding_layout_info_type_package
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄpackageReleaseResources
+³       ³   ³           ÀÄÄÄout
+³       ³   ÃÄÄÄdefault_proguard_files
+³       ³   ³   ÀÄÄÄglobal
+³       ³   ÃÄÄÄfull_jar
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄcreateFullJarRelease
+³       ³   ÃÄÄÄincremental
+³       ³   ³   ÃÄÄÄlintVitalAnalyzeRelease
+³       ³   ³   ÃÄÄÄmergeReleaseJniLibFolders
+³       ³   ³   ÃÄÄÄmergeReleaseShaders
+³       ³   ³   ÃÄÄÄpackageReleaseAssets
+³       ³   ³   ÃÄÄÄrelease
+³       ³   ³   ³   ÃÄÄÄmergeReleaseResources
+³       ³   ³   ³   ³   ÃÄÄÄmerged.dir
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-af
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-am
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ar
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-as
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-az
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-b+sr+Latn
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-be
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-bg
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-bn
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-bs
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ca
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-cs
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-da
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-de
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-el
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rAU
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rCA
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rGB
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rIN
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-en-rXC
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-es
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-es-rUS
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-et
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-eu
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-fa
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-fi
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-fr-rCA
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-gl
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-gu
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-hi
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-hr
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-hu
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-hy
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-in
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-is
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-it
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-iw
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ja
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ka
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-kk
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-km
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-kn
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ko
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ky
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-lo
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-lt
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-lv
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-mk
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ml
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-mn
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-mr
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ms
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-my
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-nb
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ne
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-nl
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-or
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-pa
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-pl
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rBR
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-pt-rPT
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ro
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ru
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-si
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-sk
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-sl
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-sq
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-sr
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-sv
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-sw
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ta
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-te
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-th
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-tl
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-tr
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-uk
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-ur
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-uz
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-v21
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-vi
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rCN
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rHK
+³       ³   ³   ³   ³   ³   ÃÄÄÄvalues-zh-rTW
+³       ³   ³   ³   ³   ³   ÀÄÄÄvalues-zu
+³       ³   ³   ³   ³   ÀÄÄÄstripped.dir
+³       ³   ³   ³   ÀÄÄÄpackageReleaseResources
+³       ³   ³   ³       ÃÄÄÄmerged.dir
+³       ³   ³   ³       ÀÄÄÄstripped.dir
+³       ³   ³   ÀÄÄÄrelease-mergeJavaRes
+³       ³   ³       ÀÄÄÄzip-cache
+³       ³   ÃÄÄÄjavac
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄcompileReleaseJavaWithJavac
+³       ³   ³           ÀÄÄÄclasses
+³       ³   ³               ÀÄÄÄio
+³       ³   ³                   ÀÄÄÄflutter
+³       ³   ³                       ÀÄÄÄplugins
+³       ³   ³                           ÀÄÄÄurllauncher
+³       ³   ÃÄÄÄlibrary_and_local_jars_jni
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectAndLocalJars
+³       ³   ³           ÀÄÄÄjni
+³       ³   ÃÄÄÄlibrary_assets
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄpackageReleaseAssets
+³       ³   ³           ÀÄÄÄout
+³       ³   ÃÄÄÄlibrary_jni
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄcopyReleaseJniLibsProjectOnly
+³       ³   ³           ÀÄÄÄjni
+³       ³   ÃÄÄÄlint-cache
+³       ³   ³   ÀÄÄÄlintVitalAnalyzeRelease
+³       ³   ³       ÃÄÄÄmaven.google
+³       ³   ³       ³   ÃÄÄÄandroidx
+³       ³   ³       ³   ³   ÃÄÄÄannotation
+³       ³   ³       ³   ³   ÃÄÄÄbrowser
+³       ³   ³       ³   ³   ÃÄÄÄcore
+³       ³   ³       ³   ³   ÀÄÄÄtest
+³       ³   ³       ³   ÀÄÄÄcom
+³       ³   ³       ³       ÀÄÄÄandroid
+³       ³   ³       ³           ÀÄÄÄtools
+³       ³   ³       ³               ÀÄÄÄbuild
+³       ³   ³       ÀÄÄÄsdk_index
+³       ³   ÃÄÄÄlint_model
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄgenerateReleaseLintModel
+³       ³   ÃÄÄÄlint_model_metadata
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄwriteReleaseLintModelMetadata
+³       ³   ÃÄÄÄlint_vital_lint_model
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄgenerateReleaseLintVitalModel
+³       ³   ÃÄÄÄlint_vital_partial_results
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄlintVitalAnalyzeRelease
+³       ³   ³           ÀÄÄÄout
+³       ³   ÃÄÄÄlocal_aar_for_lint
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ÃÄÄÄlocal_only_symbol_list
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄparseReleaseLocalResources
+³       ³   ÃÄÄÄmanifest_merge_blame_file
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄprocessReleaseManifest
+³       ³   ÃÄÄÄmerged_java_res
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmergeReleaseJavaResource
+³       ³   ÃÄÄÄmerged_jni_libs
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmergeReleaseJniLibFolders
+³       ³   ³           ÀÄÄÄout
+³       ³   ÃÄÄÄmerged_manifest
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄprocessReleaseManifest
+³       ³   ÃÄÄÄmerged_res
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmergeReleaseResources
+³       ³   ³           ÃÄÄÄanim-v21
+³       ³   ³           ÃÄÄÄanimator
+³       ³   ³           ÃÄÄÄdrawable
+³       ³   ³           ÃÄÄÄdrawable-anydpi-v21
+³       ³   ³           ÃÄÄÄdrawable-hdpi-v4
+³       ³   ³           ÃÄÄÄdrawable-ldpi-v4
+³       ³   ³           ÃÄÄÄdrawable-mdpi-v4
+³       ³   ³           ÃÄÄÄdrawable-v21
+³       ³   ³           ÃÄÄÄdrawable-xhdpi-v4
+³       ³   ³           ÃÄÄÄdrawable-xxhdpi-v4
+³       ³   ³           ÃÄÄÄdrawable-xxxhdpi-v4
+³       ³   ³           ÃÄÄÄlayout
+³       ³   ³           ÃÄÄÄlayout-v21
+³       ³   ³           ÃÄÄÄvalues
+³       ³   ³           ÃÄÄÄvalues-af
+³       ³   ³           ÃÄÄÄvalues-am
+³       ³   ³           ÃÄÄÄvalues-ar
+³       ³   ³           ÃÄÄÄvalues-as
+³       ³   ³           ÃÄÄÄvalues-az
+³       ³   ³           ÃÄÄÄvalues-b+sr+Latn
+³       ³   ³           ÃÄÄÄvalues-be
+³       ³   ³           ÃÄÄÄvalues-bg
+³       ³   ³           ÃÄÄÄvalues-bn
+³       ³   ³           ÃÄÄÄvalues-bs
+³       ³   ³           ÃÄÄÄvalues-ca
+³       ³   ³           ÃÄÄÄvalues-cs
+³       ³   ³           ÃÄÄÄvalues-da
+³       ³   ³           ÃÄÄÄvalues-de
+³       ³   ³           ÃÄÄÄvalues-el
+³       ³   ³           ÃÄÄÄvalues-en-rAU
+³       ³   ³           ÃÄÄÄvalues-en-rCA
+³       ³   ³           ÃÄÄÄvalues-en-rGB
+³       ³   ³           ÃÄÄÄvalues-en-rIN
+³       ³   ³           ÃÄÄÄvalues-en-rXC
+³       ³   ³           ÃÄÄÄvalues-es
+³       ³   ³           ÃÄÄÄvalues-es-rUS
+³       ³   ³           ÃÄÄÄvalues-et
+³       ³   ³           ÃÄÄÄvalues-eu
+³       ³   ³           ÃÄÄÄvalues-fa
+³       ³   ³           ÃÄÄÄvalues-fi
+³       ³   ³           ÃÄÄÄvalues-fr
+³       ³   ³           ÃÄÄÄvalues-fr-rCA
+³       ³   ³           ÃÄÄÄvalues-gl
+³       ³   ³           ÃÄÄÄvalues-gu
+³       ³   ³           ÃÄÄÄvalues-hi
+³       ³   ³           ÃÄÄÄvalues-hr
+³       ³   ³           ÃÄÄÄvalues-hu
+³       ³   ³           ÃÄÄÄvalues-hy
+³       ³   ³           ÃÄÄÄvalues-in
+³       ³   ³           ÃÄÄÄvalues-is
+³       ³   ³           ÃÄÄÄvalues-it
+³       ³   ³           ÃÄÄÄvalues-iw
+³       ³   ³           ÃÄÄÄvalues-ja
+³       ³   ³           ÃÄÄÄvalues-ka
+³       ³   ³           ÃÄÄÄvalues-kk
+³       ³   ³           ÃÄÄÄvalues-km
+³       ³   ³           ÃÄÄÄvalues-kn
+³       ³   ³           ÃÄÄÄvalues-ko
+³       ³   ³           ÃÄÄÄvalues-ky
+³       ³   ³           ÃÄÄÄvalues-lo
+³       ³   ³           ÃÄÄÄvalues-lt
+³       ³   ³           ÃÄÄÄvalues-lv
+³       ³   ³           ÃÄÄÄvalues-mk
+³       ³   ³           ÃÄÄÄvalues-ml
+³       ³   ³           ÃÄÄÄvalues-mn
+³       ³   ³           ÃÄÄÄvalues-mr
+³       ³   ³           ÃÄÄÄvalues-ms
+³       ³   ³           ÃÄÄÄvalues-my
+³       ³   ³           ÃÄÄÄvalues-nb
+³       ³   ³           ÃÄÄÄvalues-ne
+³       ³   ³           ÃÄÄÄvalues-nl
+³       ³   ³           ÃÄÄÄvalues-or
+³       ³   ³           ÃÄÄÄvalues-pa
+³       ³   ³           ÃÄÄÄvalues-pl
+³       ³   ³           ÃÄÄÄvalues-pt
+³       ³   ³           ÃÄÄÄvalues-pt-rBR
+³       ³   ³           ÃÄÄÄvalues-pt-rPT
+³       ³   ³           ÃÄÄÄvalues-ro
+³       ³   ³           ÃÄÄÄvalues-ru
+³       ³   ³           ÃÄÄÄvalues-si
+³       ³   ³           ÃÄÄÄvalues-sk
+³       ³   ³           ÃÄÄÄvalues-sl
+³       ³   ³           ÃÄÄÄvalues-sq
+³       ³   ³           ÃÄÄÄvalues-sr
+³       ³   ³           ÃÄÄÄvalues-sv
+³       ³   ³           ÃÄÄÄvalues-sw
+³       ³   ³           ÃÄÄÄvalues-ta
+³       ³   ³           ÃÄÄÄvalues-te
+³       ³   ³           ÃÄÄÄvalues-th
+³       ³   ³           ÃÄÄÄvalues-tl
+³       ³   ³           ÃÄÄÄvalues-tr
+³       ³   ³           ÃÄÄÄvalues-uk
+³       ³   ³           ÃÄÄÄvalues-ur
+³       ³   ³           ÃÄÄÄvalues-uz
+³       ³   ³           ÃÄÄÄvalues-v21
+³       ³   ³           ÃÄÄÄvalues-vi
+³       ³   ³           ÃÄÄÄvalues-zh-rCN
+³       ³   ³           ÃÄÄÄvalues-zh-rHK
+³       ³   ³           ÃÄÄÄvalues-zh-rTW
+³       ³   ³           ÃÄÄÄvalues-zu
+³       ³   ³           ÀÄÄÄxml
+³       ³   ÃÄÄÄmerged_res_blame_folder
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmergeReleaseResources
+³       ³   ³           ÀÄÄÄout
+³       ³   ³               ÃÄÄÄmulti-v2
+³       ³   ³               ÀÄÄÄsingle
+³       ³   ÃÄÄÄmerged_shaders
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmergeReleaseShaders
+³       ³   ³           ÀÄÄÄout
+³       ³   ÃÄÄÄnavigation_json
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄextractDeepLinksRelease
+³       ³   ÃÄÄÄnested_resources_validation_report
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄgenerateReleaseResources
+³       ³   ÃÄÄÄpackaged_res
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄpackageReleaseResources
+³       ³   ÃÄÄÄpublic_res
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄpackageReleaseResources
+³       ³   ÃÄÄÄruntime_library_classes_jar
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄbundleLibRuntimeToJarRelease
+³       ³   ÃÄÄÄsource_set_path_map
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄmapReleaseSourceSetPaths
+³       ³   ÃÄÄÄsymbol_list_with_package_name
+³       ³   ³   ÀÄÄÄrelease
+³       ³   ³       ÀÄÄÄgenerateReleaseRFile
+³       ³   ÀÄÄÄverified_library_resources
+³       ³       ÀÄÄÄrelease
+³       ³           ÀÄÄÄverifyReleaseResources
+³       ³               ÀÄÄÄcompiled
+³       ÃÄÄÄoutputs
+³       ³   ÃÄÄÄaar
+³       ³   ÀÄÄÄlogs
+³       ÀÄÄÄtmp
+³           ÀÄÄÄcompileReleaseJavaWithJavac
+ÃÄÄÄios
+³   ÃÄÄÄFlutter
+³   ÃÄÄÄRunner
+³   ³   ÃÄÄÄAssets.xcassets
+³   ³   ³   ÃÄÄÄAppIcon.appiconset
+³   ³   ³   ÀÄÄÄLaunchImage.imageset
+³   ³   ÀÄÄÄBase.lproj
+³   ÃÄÄÄRunner.xcodeproj
+³   ³   ÃÄÄÄproject.xcworkspace
+³   ³   ³   ÀÄÄÄxcshareddata
+³   ³   ÀÄÄÄxcshareddata
+³   ³       ÀÄÄÄxcschemes
+³   ÃÄÄÄRunner.xcworkspace
+³   ³   ÀÄÄÄxcshareddata
+³   ÀÄÄÄRunnerTests
+ÃÄÄÄlib
+³   ÃÄÄÄmodels
+³   ÃÄÄÄservices
+³   ÃÄÄÄui
+³   ³   ÃÄÄÄscreens
+³   ³   ÀÄÄÄwidgets
+³   ÀÄÄÄutils
+ÃÄÄÄlinux
+³   ÃÄÄÄflutter
+³   ³   ÀÄÄÄephemeral
+³   ³       ÀÄÄÄ.plugin_symlinks
+³   ³           ÃÄÄÄpath_provider_linux
+³   ³           ³   ÃÄÄÄexample
+³   ³           ³   ³   ÃÄÄÄintegration_test
+³   ³           ³   ³   ÃÄÄÄlib
+³   ³           ³   ³   ÃÄÄÄlinux
+³   ³           ³   ³   ³   ÀÄÄÄflutter
+³   ³           ³   ³   ÀÄÄÄtest_driver
+³   ³           ³   ÃÄÄÄlib
+³   ³           ³   ³   ÀÄÄÄsrc
+³   ³           ³   ÀÄÄÄtest
+³   ³           ÃÄÄÄshared_preferences_linux
+³   ³           ³   ÃÄÄÄexample
+³   ³           ³   ³   ÃÄÄÄintegration_test
+³   ³           ³   ³   ÃÄÄÄlib
+³   ³           ³   ³   ÃÄÄÄlinux
+³   ³           ³   ³   ³   ÀÄÄÄflutter
+³   ³           ³   ³   ÀÄÄÄtest_driver
+³   ³           ³   ÃÄÄÄlib
+³   ³           ³   ÀÄÄÄtest
+³   ³           ÃÄÄÄshare_plus
+³   ³           ³   ÃÄÄÄandroid
+³   ³           ³   ³   ÃÄÄÄgradle
+³   ³           ³   ³   ³   ÀÄÄÄwrapper
+³   ³           ³   ³   ÀÄÄÄsrc
+³   ³           ³   ³       ÀÄÄÄmain
+³   ³           ³   ³           ÃÄÄÄkotlin
+³   ³           ³   ³           ³   ÀÄÄÄdev
+³   ³           ³   ³           ³       ÀÄÄÄfluttercommunity
+³   ³           ³   ³           ³           ÀÄÄÄplus
+³   ³           ³   ³           ³               ÀÄÄÄshare
+³   ³           ³   ³           ÀÄÄÄres
+³   ³           ³   ³               ÀÄÄÄxml
+³   ³           ³   ÃÄÄÄexample
+³   ³           ³   ³   ÃÄÄÄandroid
+³   ³           ³   ³   ³   ÃÄÄÄapp
+³   ³           ³   ³   ³   ³   ÃÄÄÄgradle
+³   ³           ³   ³   ³   ³   ³   ÀÄÄÄwrapper
+³   ³           ³   ³   ³   ³   ÀÄÄÄsrc
+³   ³           ³   ³   ³   ³       ÀÄÄÄmain
+³   ³           ³   ³   ³   ³           ÀÄÄÄres
+³   ³           ³   ³   ³   ³               ÃÄÄÄmipmap-hdpi
+³   ³           ³   ³   ³   ³               ÃÄÄÄmipmap-mdpi
+³   ³           ³   ³   ³   ³               ÃÄÄÄmipmap-xhdpi
+³   ³           ³   ³   ³   ³               ÃÄÄÄmipmap-xxhdpi
+³   ³           ³   ³   ³   ³               ÀÄÄÄmipmap-xxxhdpi
+³   ³           ³   ³   ³   ÀÄÄÄgradle
+³   ³           ³   ³   ³       ÀÄÄÄwrapper
+³   ³           ³   ³   ÃÄÄÄassets
+³   ³           ³   ³   ÃÄÄÄintegration_test
+³   ³           ³   ³   ÃÄÄÄios
+³   ³           ³   ³   ³   ÃÄÄÄFlutter
+³   ³           ³   ³   ³   ÃÄÄÄRunner
+³   ³           ³   ³   ³   ³   ÃÄÄÄAssets.xcassets
+³   ³           ³   ³   ³   ³   ³   ÃÄÄÄAppIcon.appiconset
+³   ³           ³   ³   ³   ³   ³   ÀÄÄÄLaunchImage.imageset
+³   ³           ³   ³   ³   ³   ÀÄÄÄBase.lproj
+³   ³           ³   ³   ³   ÃÄÄÄRunner.xcodeproj
+³   ³           ³   ³   ³   ³   ÃÄÄÄproject.xcworkspace
+³   ³           ³   ³   ³   ³   ³   ÀÄÄÄxcshareddata
+³   ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+³   ³           ³   ³   ³   ³       ÀÄÄÄxcschemes
+³   ³           ³   ³   ³   ÃÄÄÄRunner.xcworkspace
+³   ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+³   ³           ³   ³   ³   ÀÄÄÄRunnerTests
+³   ³           ³   ³   ÃÄÄÄlib
+³   ³           ³   ³   ÃÄÄÄlinux
+³   ³           ³   ³   ³   ÀÄÄÄflutter
+³   ³           ³   ³   ÃÄÄÄmacos
+³   ³           ³   ³   ³   ÃÄÄÄFlutter
+³   ³           ³   ³   ³   ÃÄÄÄRunner
+³   ³           ³   ³   ³   ³   ÃÄÄÄAssets.xcassets
+³   ³           ³   ³   ³   ³   ³   ÀÄÄÄAppIcon.appiconset
+³   ³           ³   ³   ³   ³   ÃÄÄÄBase.lproj
+³   ³           ³   ³   ³   ³   ÀÄÄÄConfigs
+³   ³           ³   ³   ³   ÃÄÄÄRunner.xcodeproj
+³   ³           ³   ³   ³   ³   ÃÄÄÄproject.xcworkspace
+³   ³           ³   ³   ³   ³   ³   ÀÄÄÄxcshareddata
+³   ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+³   ³           ³   ³   ³   ³       ÀÄÄÄxcschemes
+³   ³           ³   ³   ³   ÃÄÄÄRunner.xcworkspace
+³   ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+³   ³           ³   ³   ³   ÀÄÄÄRunnerTests
+³   ³           ³   ³   ÃÄÄÄtest_driver
+³   ³           ³   ³   ÃÄÄÄweb
+³   ³           ³   ³   ³   ÀÄÄÄicons
+³   ³           ³   ³   ÀÄÄÄwindows
+³   ³           ³   ³       ÃÄÄÄflutter
+³   ³           ³   ³       ÀÄÄÄrunner
+³   ³           ³   ³           ÀÄÄÄresources
+³   ³           ³   ÃÄÄÄios
+³   ³           ³   ³   ÀÄÄÄClasses
+³   ³           ³   ÃÄÄÄlib
+³   ³           ³   ³   ÀÄÄÄsrc
+³   ³           ³   ÃÄÄÄmacos
+³   ³           ³   ³   ÀÄÄÄClasses
+³   ³           ³   ÃÄÄÄtest
+³   ³           ³   ÀÄÄÄwindows
+³   ³           ³       ÀÄÄÄinclude
+³   ³           ³           ÀÄÄÄshare_plus
+³   ³           ÀÄÄÄurl_launcher_linux
+³   ³               ÃÄÄÄexample
+³   ³               ³   ÃÄÄÄintegration_test
+³   ³               ³   ÃÄÄÄlib
+³   ³               ³   ÃÄÄÄlinux
+³   ³               ³   ³   ÀÄÄÄflutter
+³   ³               ³   ÀÄÄÄtest_driver
+³   ³               ÃÄÄÄlib
+³   ³               ³   ÀÄÄÄsrc
+³   ³               ÃÄÄÄlinux
+³   ³               ³   ÃÄÄÄinclude
+³   ³               ³   ³   ÀÄÄÄurl_launcher_linux
+³   ³               ³   ÀÄÄÄtest
+³   ³               ÃÄÄÄpigeons
+³   ³               ÀÄÄÄtest
+³   ÀÄÄÄrunner
+ÃÄÄÄmacos
+³   ÃÄÄÄFlutter
+³   ³   ÀÄÄÄephemeral
+³   ÃÄÄÄRunner
+³   ³   ÃÄÄÄAssets.xcassets
+³   ³   ³   ÀÄÄÄAppIcon.appiconset
+³   ³   ÃÄÄÄBase.lproj
+³   ³   ÀÄÄÄConfigs
+³   ÃÄÄÄRunner.xcodeproj
+³   ³   ÃÄÄÄproject.xcworkspace
+³   ³   ³   ÀÄÄÄxcshareddata
+³   ³   ÀÄÄÄxcshareddata
+³   ³       ÀÄÄÄxcschemes
+³   ÃÄÄÄRunner.xcworkspace
+³   ³   ÀÄÄÄxcshareddata
+³   ÀÄÄÄRunnerTests
+ÃÄÄÄtest
+ÃÄÄÄtools
+ÃÄÄÄweb
+³   ÀÄÄÄicons
+ÀÄÄÄwindows
+    ÃÄÄÄflutter
+    ³   ÀÄÄÄephemeral
+    ³       ÀÄÄÄ.plugin_symlinks
+    ³           ÃÄÄÄpath_provider_windows
+    ³           ³   ÃÄÄÄexample
+    ³           ³   ³   ÃÄÄÄintegration_test
+    ³           ³   ³   ÃÄÄÄlib
+    ³           ³   ³   ÃÄÄÄtest_driver
+    ³           ³   ³   ÀÄÄÄwindows
+    ³           ³   ³       ÃÄÄÄflutter
+    ³           ³   ³       ÀÄÄÄrunner
+    ³           ³   ³           ÀÄÄÄresources
+    ³           ³   ÃÄÄÄlib
+    ³           ³   ³   ÀÄÄÄsrc
+    ³           ³   ÀÄÄÄtest
+    ³           ÃÄÄÄshared_preferences_windows
+    ³           ³   ÃÄÄÄexample
+    ³           ³   ³   ÃÄÄÄintegration_test
+    ³           ³   ³   ÃÄÄÄlib
+    ³           ³   ³   ÃÄÄÄtest_driver
+    ³           ³   ³   ÀÄÄÄwindows
+    ³           ³   ³       ÃÄÄÄflutter
+    ³           ³   ³       ÀÄÄÄrunner
+    ³           ³   ³           ÀÄÄÄresources
+    ³           ³   ÃÄÄÄlib
+    ³           ³   ÀÄÄÄtest
+    ³           ÃÄÄÄshare_plus
+    ³           ³   ÃÄÄÄandroid
+    ³           ³   ³   ÃÄÄÄgradle
+    ³           ³   ³   ³   ÀÄÄÄwrapper
+    ³           ³   ³   ÀÄÄÄsrc
+    ³           ³   ³       ÀÄÄÄmain
+    ³           ³   ³           ÃÄÄÄkotlin
+    ³           ³   ³           ³   ÀÄÄÄdev
+    ³           ³   ³           ³       ÀÄÄÄfluttercommunity
+    ³           ³   ³           ³           ÀÄÄÄplus
+    ³           ³   ³           ³               ÀÄÄÄshare
+    ³           ³   ³           ÀÄÄÄres
+    ³           ³   ³               ÀÄÄÄxml
+    ³           ³   ÃÄÄÄexample
+    ³           ³   ³   ÃÄÄÄandroid
+    ³           ³   ³   ³   ÃÄÄÄapp
+    ³           ³   ³   ³   ³   ÃÄÄÄgradle
+    ³           ³   ³   ³   ³   ³   ÀÄÄÄwrapper
+    ³           ³   ³   ³   ³   ÀÄÄÄsrc
+    ³           ³   ³   ³   ³       ÀÄÄÄmain
+    ³           ³   ³   ³   ³           ÀÄÄÄres
+    ³           ³   ³   ³   ³               ÃÄÄÄmipmap-hdpi
+    ³           ³   ³   ³   ³               ÃÄÄÄmipmap-mdpi
+    ³           ³   ³   ³   ³               ÃÄÄÄmipmap-xhdpi
+    ³           ³   ³   ³   ³               ÃÄÄÄmipmap-xxhdpi
+    ³           ³   ³   ³   ³               ÀÄÄÄmipmap-xxxhdpi
+    ³           ³   ³   ³   ÀÄÄÄgradle
+    ³           ³   ³   ³       ÀÄÄÄwrapper
+    ³           ³   ³   ÃÄÄÄassets
+    ³           ³   ³   ÃÄÄÄintegration_test
+    ³           ³   ³   ÃÄÄÄios
+    ³           ³   ³   ³   ÃÄÄÄFlutter
+    ³           ³   ³   ³   ÃÄÄÄRunner
+    ³           ³   ³   ³   ³   ÃÄÄÄAssets.xcassets
+    ³           ³   ³   ³   ³   ³   ÃÄÄÄAppIcon.appiconset
+    ³           ³   ³   ³   ³   ³   ÀÄÄÄLaunchImage.imageset
+    ³           ³   ³   ³   ³   ÀÄÄÄBase.lproj
+    ³           ³   ³   ³   ÃÄÄÄRunner.xcodeproj
+    ³           ³   ³   ³   ³   ÃÄÄÄproject.xcworkspace
+    ³           ³   ³   ³   ³   ³   ÀÄÄÄxcshareddata
+    ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+    ³           ³   ³   ³   ³       ÀÄÄÄxcschemes
+    ³           ³   ³   ³   ÃÄÄÄRunner.xcworkspace
+    ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+    ³           ³   ³   ³   ÀÄÄÄRunnerTests
+    ³           ³   ³   ÃÄÄÄlib
+    ³           ³   ³   ÃÄÄÄlinux
+    ³           ³   ³   ³   ÀÄÄÄflutter
+    ³           ³   ³   ÃÄÄÄmacos
+    ³           ³   ³   ³   ÃÄÄÄFlutter
+    ³           ³   ³   ³   ÃÄÄÄRunner
+    ³           ³   ³   ³   ³   ÃÄÄÄAssets.xcassets
+    ³           ³   ³   ³   ³   ³   ÀÄÄÄAppIcon.appiconset
+    ³           ³   ³   ³   ³   ÃÄÄÄBase.lproj
+    ³           ³   ³   ³   ³   ÀÄÄÄConfigs
+    ³           ³   ³   ³   ÃÄÄÄRunner.xcodeproj
+    ³           ³   ³   ³   ³   ÃÄÄÄproject.xcworkspace
+    ³           ³   ³   ³   ³   ³   ÀÄÄÄxcshareddata
+    ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+    ³           ³   ³   ³   ³       ÀÄÄÄxcschemes
+    ³           ³   ³   ³   ÃÄÄÄRunner.xcworkspace
+    ³           ³   ³   ³   ³   ÀÄÄÄxcshareddata
+    ³           ³   ³   ³   ÀÄÄÄRunnerTests
+    ³           ³   ³   ÃÄÄÄtest_driver
+    ³           ³   ³   ÃÄÄÄweb
+    ³           ³   ³   ³   ÀÄÄÄicons
+    ³           ³   ³   ÀÄÄÄwindows
+    ³           ³   ³       ÃÄÄÄflutter
+    ³           ³   ³       ÀÄÄÄrunner
+    ³           ³   ³           ÀÄÄÄresources
+    ³           ³   ÃÄÄÄios
+    ³           ³   ³   ÀÄÄÄClasses
+    ³           ³   ÃÄÄÄlib
+    ³           ³   ³   ÀÄÄÄsrc
+    ³           ³   ÃÄÄÄmacos
+    ³           ³   ³   ÀÄÄÄClasses
+    ³           ³   ÃÄÄÄtest
+    ³           ³   ÀÄÄÄwindows
+    ³           ³       ÀÄÄÄinclude
+    ³           ³           ÀÄÄÄshare_plus
+    ³           ÀÄÄÄurl_launcher_windows
+    ³               ÃÄÄÄexample
+    ³               ³   ÃÄÄÄintegration_test
+    ³               ³   ÃÄÄÄlib
+    ³               ³   ÃÄÄÄtest_driver
+    ³               ³   ÀÄÄÄwindows
+    ³               ³       ÃÄÄÄflutter
+    ³               ³       ÀÄÄÄrunner
+    ³               ³           ÀÄÄÄresources
+    ³               ÃÄÄÄlib
+    ³               ³   ÀÄÄÄsrc
+    ³               ÃÄÄÄpigeons
+    ³               ÃÄÄÄtest
+    ³               ÀÄÄÄwindows
+    ³                   ÃÄÄÄinclude
+    ³                   ³   ÀÄÄÄurl_launcher_windows
+    ³                   ÀÄÄÄtest
+    ÀÄÄÄrunner
+        ÀÄÄÄresources

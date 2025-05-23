@@ -7,12 +7,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_spinkit: ^5.2.0
   cached_network_image: ^3.2.3
   share_plus: ^7.0.0
   shared_preferences: ^2.1.1
   palette_generator: ^0.3.2
   google_fonts: ^5.0.0
   flutter_cache_manager: ^3.3.1
+  url_launcher: ^6.3.1
+  just_audio: ^0.9.36
+  lottie: ^3.3.1
+  
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +32,17 @@ flutter:
   assets:
     - assets/quotes.json
     - assets/icon/
+    - assets/animations/fire.gif
+    - assets/sounds/fire.mp3
+    - assets/sounds/chime.mp3
+    - assets/sounds/page_turn.mp3
+    - assets/sounds/candle.mp3
+    - assets/images/book_background.jpg
+    - assets/images/greece.jpg
+    - assets/images/nordic.jpg
+    - assets/images/pagan.jpg
+    - assets/images/philosophy.jpg
+
 
 flutter_launcher_icons:
   android: true

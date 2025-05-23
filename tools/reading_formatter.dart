@@ -1,0 +1,307 @@
+// tools/reading_formatter.dart
+import 'dart:io';
+import 'dart:convert';
+
+/// Утилита для создания читабельной версии текста, синхронизированной с очищенной версией
+/// Сохраняет оригинальное форматирование, но добавляет позиционные маркеры [pos:N]
+/// для синхронизации с результатами поиска
+class ReadingTextFormatter {
+  /// Основной метод обработки файла
+  static Future<void> formatFile(String inputPath, String cleanedPath, String outputPath) async {
+    print('📖 Начинаем создание читабельной версии: $inputPath');
+    print('🔗 Синхронизация с очищенной версией: $cleanedPath');
+    
+    try {
+      // Читаем исходный файл
+      final inputFile = File(inputPath);
+      if (!await inputFile.exists()) {
+        throw Exception('Исходный файл не найден: $inputPath');
+      }
+      
+      // Читаем очищенную версию для получения позиций
+      final cleanedFile = File(cleanedPath);
+      if (!await cleanedFile.exists()) {
+        throw Exception('Очищенный файл не найден: $cleanedPath');
+      }
+      
+      final originalContent = await inputFile.readAsString(encoding: utf8);
+      final cleanedContent = await cleanedFile.readAsString(encoding: utf8);
+      
+      print('📊 Исходный текст: ${originalContent.length} символов');
+      print('📊 Очищенный текст: ${cleanedContent.length} символов');
+      
+      // Обрабатываем текст
+      final readableText = _processText(originalContent, cleanedContent);
+      
+      // Сохраняем результат
+      final outputFile = File(outputPath);
+      await outputFile.create(recursive: true);
+      await outputFile.writeAsString(readableText, encoding: utf8);
+      
+      print('✅ Сохранена читабельная версия: $outputPath');
+      print('📊 Финальный размер: ${readableText.length} символов');
+      
+      // Статистика
+      final positionCount = _countPositionMarkers(readableText);
+      print('🏷️ Добавлено позиционных маркеров: $positionCount');
+      
+    } catch (e) {
+      print('❌ Ошибка обработки файла: $e');
+      rethrow;
+    }
+  }
+  
+  /// Основная логика обработки текста
+  static String _processText(String originalText, String cleanedText) {
+    print('🔄 Начинаем обработку для чтения...');
+    
+    // Извлекаем позиции из очищенного текста
+    final cleanedParagraphs = _extractCleanedParagraphs(cleanedText);
+    print('📝 Найдено очищенных абзацев: ${cleanedParagraphs.length}');
+    
+    // Обрабатываем оригинальный текст
+    String text = originalText;
+    
+    // 1. Минимальная очистка (только критический мусор)
+    text = _minimalCleanup(text);
+    
+    // 2. Нормализуем переносы строк
+    text = _normalizeLineBreaks(text);
+    
+    // 3. Находим соответствия с очищенными абзацами
+    text = _mapToCleanedParagraphs(text, cleanedParagraphs);
+    
+    print('✨ Обработка для чтения завершена');
+    return text;
+  }
+  
+  /// Извлекает абзацы из очищенного текста с их позициями
+  static List<CleanedParagraph> _extractCleanedParagraphs(String cleanedText) {
+    final paragraphs = <CleanedParagraph>[];
+    final lines = cleanedText.split('\n\n');
+    
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isNotEmpty && trimmed.startsWith('[pos:')) {
+        final match = RegExp(r'\[pos:(\d+)\]\s*(.*)').firstMatch(trimmed);
+        if (match != null) {
+          final position = int.parse(match.group(1)!);
+          final content = match.group(2)!.trim();
+          paragraphs.add(CleanedParagraph(position, content));
+        }
+      }
+    }
+    
+    return paragraphs;
+  }
+  
+  /// Минимальная очистка только критического мусора
+  static String _minimalCleanup(String text) {
+    print('🧹 Минимальная очистка...');
+    
+    // Убираем только явно вредные символы, но сохраняем форматирование
+    final patterns = [
+      // Служебные не-текстовые символы
+      RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
+      
+      // Множественные пробелы в одной строке (но сохраняем переносы)
+      RegExp(r'[ \t]{2,}'),
+    ];
+    
+    text = text.replaceAll(patterns[0], ''); // Служебные символы
+    text = text.replaceAll(patterns[1], ' '); // Множественные пробелы
+    
+    return text;
+  }
+  
+  /// Нормализует переносы строк
+  static String _normalizeLineBreaks(String text) {
+    print('↩️ Нормализуем переносы строк...');
+    
+    // Заменяем различные типы переносов на единообразные
+    text = text.replaceAll(RegExp(r'\r\n|\r'), '\n');
+    
+    return text;
+  }
+  
+  /// Сопоставляет оригинальный текст с очищенными абзацами
+  static String _mapToCleanedParagraphs(String originalText, List<CleanedParagraph> cleanedParagraphs) {
+    print('🗺️ Сопоставляем с очищенными абзацами...');
+    
+    if (cleanedParagraphs.isEmpty) {
+      print('⚠️ Нет очищенных абзацев для сопоставления');
+      return originalText;
+    }
+    
+    final result = <String>[];
+    final lines = originalText.split('\n');
+    
+    int currentCleanedIndex = 0;
+    String currentChunk = '';
+    
+    for (final line in lines) {
+      currentChunk += '$line\n';
+      
+      // Проверяем, соответствует ли накопленный кусок следующему очищенному абзацу
+      if (currentCleanedIndex < cleanedParagraphs.length) {
+        final cleanedParagraph = cleanedParagraphs[currentCleanedIndex];
+        
+        if (_isChunkMatchesCleaned(currentChunk, cleanedParagraph.content)) {
+          // Найдено соответствие - добавляем маркер позиции
+          final cleanChunk = currentChunk.trim();
+          if (cleanChunk.isNotEmpty) {
+            result.add('[pos:${cleanedParagraph.position}]');
+            result.add(cleanChunk);
+            result.add(''); // Пустая строка для разделения
+          }
+          
+          currentChunk = '';
+          currentCleanedIndex++;
+        }
+      }
+    }
+    
+    // Добавляем оставшийся кусок, если есть
+    final remainingChunk = currentChunk.trim();
+    if (remainingChunk.isNotEmpty) {
+      if (currentCleanedIndex < cleanedParagraphs.length) {
+        result.add('[pos:${cleanedParagraphs[currentCleanedIndex].position}]');
+      }
+      result.add(remainingChunk);
+    }
+    
+    print('🎯 Сопоставлено позиций: $currentCleanedIndex из ${cleanedParagraphs.length}');
+    return result.join('\n');
+  }
+  
+  /// Проверяет, соответствует ли кусок оригинального текста очищенному абзацу
+  static bool _isChunkMatchesCleaned(String chunk, String cleanedContent) {
+    // Упрощенная проверка соответствия
+    final chunkCleaned = _simplifyForComparison(chunk);
+    final cleanedSimplified = _simplifyForComparison(cleanedContent);
+    
+    // Проверяем, содержит ли кусок достаточно слов из очищенного абзаца
+    final chunkWords = chunkCleaned.split(RegExp(r'\s+'));
+    final cleanedWords = cleanedSimplified.split(RegExp(r'\s+'));
+    
+    if (cleanedWords.length < 3) return false; // Слишком короткий абзац
+    
+    int matchedWords = 0;
+    for (final word in cleanedWords) {
+      if (word.length > 2 && chunkWords.contains(word)) {
+        matchedWords++;
+      }
+    }
+    
+    // Считаем соответствием, если совпадает больше 70% значимых слов
+    final significantWords = cleanedWords.where((w) => w.length > 2).length;
+    final matchRatio = significantWords > 0 ? matchedWords / significantWords : 0;
+    
+    return matchRatio > 0.7 && chunkCleaned.length >= cleanedSimplified.length * 0.5;
+  }
+  
+  /// Упрощает текст для сравнения
+  static String _simplifyForComparison(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]', unicode: true), '') // Убираем знаки препинания
+        .replaceAll(RegExp(r'\s+'), ' ') // Нормализуем пробелы
+        .trim();
+  }
+  
+  /// Подсчитывает количество позиционных маркеров
+  static int _countPositionMarkers(String text) {
+    return RegExp(r'\[pos:\d+\]').allMatches(text).length;
+  }
+  
+  /// Пакетная обработка файлов в директории
+  static Future<void> formatDirectory(String inputDir, String cleanedDir, String outputDir) async {
+    print('📁 Пакетная обработка директории: $inputDir');
+    print('🔗 Очищенные файлы из: $cleanedDir');
+    
+    final inputDirectory = Directory(inputDir);
+    if (!await inputDirectory.exists()) {
+      throw Exception('Исходная директория не найдена: $inputDir');
+    }
+    
+    final cleanedDirectory = Directory(cleanedDir);
+    if (!await cleanedDirectory.exists()) {
+      throw Exception('Директория с очищенными файлами не найдена: $cleanedDir');
+    }
+    
+    final outputDirectory = Directory(outputDir);
+    await outputDirectory.create(recursive: true);
+    
+    await for (final entity in inputDirectory.list()) {
+      if (entity is File && entity.path.endsWith('.txt')) {
+        final fileName = entity.path.split('/').last;
+        final baseName = fileName.replaceAll('.txt', '');
+        
+        // Ищем соответствующий очищенный файл
+        final cleanedPath = '$cleanedDir/${baseName}_raw.txt';
+        final cleanedFile = File(cleanedPath);
+        
+        if (await cleanedFile.exists()) {
+          final outputPath = '$outputDir/${baseName}_reading.txt';
+          
+          print('\n📖 Обрабатываем: $fileName');
+          await formatFile(entity.path, cleanedPath, outputPath);
+        } else {
+          print('⚠️ Пропускаем $fileName - не найден очищенный файл: $cleanedPath');
+        }
+      }
+    }
+    
+    print('\n✅ Пакетная обработка завершена!');
+  }
+}
+
+/// Класс для хранения информации об очищенном абзаце
+class CleanedParagraph {
+  final int position;
+  final String content;
+  
+  CleanedParagraph(this.position, this.content);
+  
+  @override
+  String toString() => 'CleanedParagraph(pos: $position, content: ${content.length} chars)';
+}
+
+/// Точка входа для консольного использования
+void main(List<String> args) async {
+  if (args.length < 3) {
+    print('''
+📖 Reading Text Formatter для Sacral App
+
+Создает читабельную версию текста, синхронизированную с очищенной версией
+
+Использование:
+  dart reading_formatter.dart <input_file> <cleaned_file> <output_file>
+  dart reading_formatter.dart <input_dir> <cleaned_dir> <output_dir> --batch
+
+Примеры:
+  dart reading_formatter.dart republic_source.txt republic_raw.txt republic_reading.txt
+  dart reading_formatter.dart ./sources/ ./assets/raw_texts/ ./assets/reading_texts/ --batch
+
+Функции:
+  ✅ Сохранение оригинального форматирования
+  ✅ Минимальная очистка только критического мусора
+  ✅ Синхронизация позиционных маркеров с очищенной версией
+  ✅ Создание удобной для чтения версии
+    ''');
+    exit(1);
+  }
+  
+  try {
+    if (args.length > 3 && args[3] == '--batch') {
+      await ReadingTextFormatter.formatDirectory(args[0], args[1], args[2]);
+    } else {
+      await ReadingTextFormatter.formatFile(args[0], args[1], args[2]);
+    }
+    
+    print('\n🎉 Создание читабельной версии завершено успешно!');
+  } catch (e) {
+    print('\n❌ Ошибка: $e');
+    exit(1);
+  }
+}

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'widgets/quote_page.dart';
+import 'ui/screens/splash_screen.dart'; // Добавили Splash
 
 void main() {
   runApp(const MyApp());
@@ -10,11 +10,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('📦 Приложение запускается...');
     return MaterialApp(
       title: 'Pagan Quotes',
       debugShowCheckedModeBanner: false,
-      home: const QuotePage(),
+      theme: ThemeData.dark(),
+      home: const SplashScreen(), // Показываем сперва splash
     );
   }
 }
