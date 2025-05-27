@@ -64,7 +64,7 @@ class _FavoritesPageState extends State<FavoritesPage> with TickerProviderStateM
                   itemBuilder: (context, index) {
                     final quote = _favorites[index];
                     final imageList =
-                        ImagePickerService.themeImages[quote.theme];
+                        ImagePickerService.themeImages[quote.category]; // Используем category вместо theme
                     final imageUrl =
                         (imageList != null && imageList.isNotEmpty)
                             ? imageList.first
@@ -104,7 +104,7 @@ class _FavoritesPageState extends State<FavoritesPage> with TickerProviderStateM
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: Stack(
-                          fit: StackFit.expand,
+                              fit: StackFit.expand,
                               children: [
                                 if (imageUrl != null)
                                   CachedNetworkImage(
@@ -143,3 +143,5 @@ class _FavoritesPageState extends State<FavoritesPage> with TickerProviderStateM
     );
   }
 }
+
+
