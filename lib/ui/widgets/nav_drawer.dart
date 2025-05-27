@@ -5,7 +5,6 @@ import '../screens/about_page.dart';
 import '../screens/favorites_page.dart';
 import '../screens/quote_page.dart';
 import '../screens/theme_selector_page.dart';
-import '../../services/session_data.dart';
 
 class NavDrawer extends StatelessWidget {
   const NavDrawer({super.key});
@@ -56,11 +55,7 @@ class NavDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => QuotePage(
-                    quote: SessionData.quote,
-                    imageUrl: SessionData.imageUrl,
-                    textColor: SessionData.textColor,
-                  ),
+                  builder: (_) => const QuotePage(),
                 ),
               );
             },
@@ -140,3 +135,5 @@ class NavDrawer extends StatelessWidget {
     );
   }
 }
+
+
