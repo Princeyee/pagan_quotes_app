@@ -1,4 +1,7 @@
 // lib/models/daily_quote.dart
+import 'quote.dart';
+import 'quote_context.dart';
+
 class DailyQuote {
   final Quote quote;
   final DateTime date;

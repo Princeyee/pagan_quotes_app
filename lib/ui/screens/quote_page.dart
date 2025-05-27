@@ -1,295 +1,492 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'context_page.dart';
+// lib/ui/screens/quote_page.dart
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../models/daily_quote.dart';
 import '../../models/quote.dart';
-import '../../services/favorites_service.dart';
+import '../../models/quote_context.dart';
+import '../../services/quote_extraction_service.dart';
 import '../../utils/custom_cache.dart';
-import '../widgets/nav_drawer.dart';
+import 'context_page.dart';
 
 class QuotePage extends StatefulWidget {
-  final Quote quote;
-  final String imageUrl;
-  final Color textColor;
-
-  const QuotePage({
-    super.key,
-    required this.quote,
-    required this.imageUrl,
-    required this.textColor,
-  });
+  const QuotePage({super.key});
 
   @override
   State<QuotePage> createState() => _QuotePageState();
 }
 
-class _QuotePageState extends State<QuotePage> with SingleTickerProviderStateMixin {
-  late FavoritesService _favSvc;
-  late bool _isLiked;
-  double _likeScale = 1.0;
-  bool _loading = true;
-  bool _showHint = true;
+class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
+  final PageController _pageController = PageController();
+  final QuoteExtractionService _quoteService = QuoteExtractionService();
+  final CustomCache _cache = CustomCache();
 
-  late AnimationController _animCtrl;
-  late Animation<Offset> _slideAnim;
-  late Animation<double> _fadeAnim;
-  late Animation<double> _revealAnim;
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  DailyQuote? _currentDailyQuote;
+  bool _isLoading = true;
+  bool _isFavorite = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
-    _slideAnim = Tween(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut),
-    );
-    _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeIn);
-    _revealAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut),
-    );
-    _initFavorites();
+    _initializeAnimations();
+    _loadTodayQuote();
   }
 
-  Future<void> _initFavorites() async {
-    _favSvc = await FavoritesService.init();
-    _isLiked = _favSvc.isFavorite(widget.quote.id);
-    final prefs = await SharedPreferences.getInstance();
-    _showHint = prefs.getBool('show_swipe_hint') ?? true;
-    setState(() => _loading = false);
-    _animCtrl.forward();
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
   }
 
-  void _toggleFavorite() async {
-    await _favSvc.toggleFavorite(widget.quote.id);
+  Future<void> _loadTodayQuote() async {
     setState(() {
-      _isLiked = _favSvc.isFavorite(widget.quote.id);
-      _likeScale = 1.3;
-      Future.delayed(const Duration(milliseconds: 200), () {
-        setState(() => _likeScale = 1.0);
-      });
+      _isLoading = true;
+      _error = null;
     });
-  }
 
-  void _navigateToContext() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('show_swipe_hint', false);
-    final player = AudioPlayer();
-    await player.setAsset('assets/sounds/page_turn.mp3');
-    player.play();
+    try {
+      // Сначала проверяем кэш
+      final cached = _cache.getTodayQuote();
+      if (cached != null) {
+        setState(() {
+          _currentDailyQuote = cached;
+          _isFavorite = _cache.isFavorite(cached.quote.id);
+          _isLoading = false;
+        });
+        _startAnimations();
+        return;
+      }
 
-    if (!mounted) return;
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, __, ___) => ContextPage(
-          quote: widget.quote,
-          textColor: widget.textColor,
-          imageUrl: widget.imageUrl,
-        ),
-        transitionsBuilder: (_, animation, __, child) {
-          final slide = Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-          final fade = CurvedAnimation(parent: animation, curve: Curves.easeIn);
-          return SlideTransition(position: slide, child: FadeTransition(opacity: fade, child: child));
-        },
-      ),
-    );
-  }
-
-  String _getLottiePath() {
-    final theme = widget.quote.theme;
-    switch (theme) {
-      case 'greece':
-        return 'assets/animations/greece.json';
-      case 'nordic':
-        return 'assets/animations/nordic.json';
-      case 'philosophy':
-        return 'assets/animations/philosophy.json';
-      case 'pagan':
-        return 'assets/animations/pagan.json';
-      default:
-        return 'assets/animations/default.json';
+      // Генерируем новую цитату
+      final dailyQuote = await _quoteService.generateDailyQuote();
+      if (dailyQuote != null) {
+        await _cache.cacheDailyQuote(dailyQuote);
+        setState(() {
+          _currentDailyQuote = dailyQuote;
+          _isFavorite = _cache.isFavorite(dailyQuote.quote.id);
+          _isLoading = false;
+        });
+        _startAnimations();
+      } else {
+        setState(() {
+          _error = 'Не удалось загрузить цитату дня';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Ошибка загрузки: $e';
+        _isLoading = false;
+      });
     }
   }
 
-  @override
-  void dispose() {
-    _animCtrl.dispose();
-    super.dispose();
+  void _startAnimations() {
+    _fadeController.forward();
+    Future.delayed(const Duration(milliseconds: 200), () {
+      _slideController.forward();
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_currentDailyQuote == null) return;
+
+    final quote = _currentDailyQuote!.quote;
+    
+    // Haptic feedback
+    HapticFeedback.lightImpact();
+
+    if (_isFavorite) {
+      await _cache.removeFromFavorites(quote.id);
+    } else {
+      await _cache.addToFavorites(quote);
+    }
+
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
+    // Показываем снэкбар
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isFavorite ? 'Добавлено в избранное' : 'Удалено из избранного'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _navigateToContext() async {
+    if (_currentDailyQuote == null) return;
+
+    // Отмечаем цитату как просмотренную
+    await _cache.markQuoteAsViewed(_currentDailyQuote!.quote.id);
+    await _cache.markDailyQuoteAsViewed(DateTime.now());
+
+    if (mounted) {
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => 
+              ContextPage(dailyQuote: _currentDailyQuote!),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+        ),
+      );
+    }
+  }
+
+  Future<void> _refreshQuote() async {
+    // Генерируем новую случайную цитату (не привязанную к дате)
+    try {
+      setState(() => _isLoading = true);
+      
+      final sources = await TextFileService().loadBookSources();
+      if (sources.isNotEmpty) {
+        final randomSource = sources[DateTime.now().millisecondsSinceEpoch % sources.length];
+        final quote = await _quoteService.extractRandomQuote(randomSource);
+        
+        if (quote != null) {
+          final newDailyQuote = DailyQuote(
+            quote: quote,
+            date: DateTime.now(),
+          );
+          
+          setState(() {
+            _currentDailyQuote = newDailyQuote;
+            _isFavorite = _cache.isFavorite(quote.id);
+            _isLoading = false;
+          });
+          
+          // Restart animations
+          _fadeController.reset();
+          _slideController.reset();
+          _startAnimations();
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Ошибка обновления: $e';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
-      );
-    }
-
     return Scaffold(
-      drawer: const NavDrawer(),
-      body: GestureDetector(
-        onVerticalDragEnd: (details) {
-          if (details.primaryVelocity != null && details.primaryVelocity! < -300) {
-            _navigateToContext();
-          }
-        },
-        child: Stack(
-          fit: StackFit.expand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: _isLoading 
+            ? _buildLoadingState()
+            : _error != null 
+                ? _buildErrorState()
+                : _buildQuoteContent(),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text(
+            'Загружаем мудрость...',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 📷 Фоновое изображение
-            CachedNetworkImage(
-              imageUrl: widget.imageUrl,
-              cacheManager: CustomCache.instance,
-              placeholder: (_, __) => Container(color: Colors.black12),
-              errorWidget: (_, __, ___) => const Icon(Icons.error),
-              fit: BoxFit.cover,
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Theme.of(context).colorScheme.error,
             ),
-
-            // 🌒 Тёмный фильтр
-            Container(color: Colors.black.withOpacity(0.3)),
-
-            // 🌌 Анимация по теме
-            IgnorePointer(
-              child: Lottie.asset(
-                _getLottiePath(),
-                fit: BoxFit.cover,
-                repeat: true,
-                animate: true,
-              ),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16),
             ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _loadTodayQuote,
+              child: const Text('Попробовать снова'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-            SafeArea(
-              child: Stack(
-                children: [
-                  // 🌘 Доп. затемнение
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black87],
-                          ),
-                        ),
-                      ),
-                    ),
+  Widget _buildQuoteContent() {
+    final quote = _currentDailyQuote!.quote;
+    
+    return GestureDetector(
+      onVerticalDragEnd: (details) {
+        // Свайп вверх для перехода к контексту
+        if (details.primaryVelocity != null && details.primaryVelocity! < -500) {
+          _navigateToContext();
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            // Header с датой и действиями
+            _buildHeader(),
+            
+            // Основной контент с цитатой
+            Expanded(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Цитата
+                      _buildQuoteText(quote),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Автор и источник
+                      _buildQuoteAttribution(quote),
+                      
+                      const SizedBox(height: 48),
+                      
+                      // Кнопка для перехода к контексту
+                      _buildContextButton(),
+                    ],
                   ),
-
-                  // 🍔 Меню
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Builder(
-                      builder: (context) => IconButton(
-                        icon: Icon(Icons.menu, color: widget.textColor),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                      ),
-                    ),
-                  ),
-
-                  // 💬 Цитата и автор
-                  Positioned(
-                    bottom: 80,
-                    left: 16,
-                    right: 16,
-                    child: SlideTransition(
-                      position: _slideAnim,
-                      child: FadeTransition(
-                        opacity: _fadeAnim,
-                        child: Column(
-                          children: [
-                            Text(
-                              widget.quote.author.toUpperCase(),
-                              style: GoogleFonts.merriweather(
-                                color: widget.textColor.withOpacity(0.8),
-                                fontSize: 16,
-                                fontStyle: FontStyle.italic,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 12),
-                            AnimatedBuilder(
-                              animation: _revealAnim,
-                              builder: (context, child) {
-                                return ShaderMask(
-                                  shaderCallback: (bounds) {
-                                    return LinearGradient(
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                      stops: [_revealAnim.value, _revealAnim.value],
-                                      colors: [Colors.white, Colors.transparent],
-                                    ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height));
-                                  },
-                                  blendMode: BlendMode.dstIn,
-                                  child: child,
-                                );
-                              },
-                              child: Text(
-                                '"${widget.quote.text}"',
-                                style: GoogleFonts.merriweather(
-                                  color: widget.textColor,
-                                  fontSize: 22,
-                                  height: 1.4,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            if (_showHint)
-                              const Icon(Icons.keyboard_arrow_up, color: Colors.white54, size: 32),
-
-                            const SizedBox(height: 24),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                GestureDetector(
-                                  onTap: _toggleFavorite,
-                                  child: AnimatedScale(
-                                    scale: _likeScale,
-                                    duration: const Duration(milliseconds: 200),
-                                    child: Icon(
-                                      _isLiked ? Icons.favorite : Icons.favorite_border,
-                                      color: _isLiked ? Colors.redAccent : widget.textColor,
-                                      size: 30,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 24),
-                                IconButton(
-                                  icon: const Icon(Icons.share),
-                                  color: widget.textColor,
-                                  iconSize: 28,
-                                  onPressed: () {
-                                    Share.share(
-                                      '"${widget.quote.text}"\n— ${widget.quote.author}',
-                                      subject: 'Цитата дня',
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Дата
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Сегодня',
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            Text(
+              _currentDailyQuote!.formattedDate,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        
+        // Действия
+        Row(
+          children: [
+            IconButton(
+              onPressed: _refreshQuote,
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Новая цитата',
+            ),
+            IconButton(
+              onPressed: _toggleFavorite,
+              icon: Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : null,
+              ),
+              tooltip: _isFavorite ? 'Удалить из избранного' : 'Добавить в избранное',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuoteText(Quote quote) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).cardColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Text(
+        '"${quote.text}"',
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w400,
+          height: 1.6,
+          letterSpacing: 0.5,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildQuoteAttribution(Quote quote) {
+    return Column(
+      children: [
+        Text(
+          quote.author,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          quote.source,
+          style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (quote.translation != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            'пер. ${quote.translation}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildContextButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _navigateToContext,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 16,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.arrow_upward,
+                  size: 20,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Смотреть контекст',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    _pageController.dispose();
+    super.dispose();
   }
 }

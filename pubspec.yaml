@@ -42,6 +42,13 @@ flutter:
     - assets/images/nordic.jpg
     - assets/images/pagan.jpg
     - assets/images/philosophy.jpg
+    - assets/config/book_sources.json
+    - assets/full_texts/
+    - assets/animations/greece.json
+    - assets/animations/nordic.json
+    - assets/animations/pagan.json
+    - assets/animations/philosophy.json
+    
 
 
 flutter_launcher_icons:

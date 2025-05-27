@@ -1,4 +1,6 @@
 // lib/models/quote_context.dart
+import 'quote.dart';
+
 class QuoteContext {
   final Quote quote;
   final String contextText; // расширенный контекст ~10 строк
@@ -35,7 +37,7 @@ class QuoteContext {
   }
 
   /// Получает абзац, содержащий саму цитату
-  String get quoteParentalph {
+  String get quoteParagraph {
     return contextParagraphs.firstWhere(
       (paragraph) => paragraph.toLowerCase().contains(quote.text.toLowerCase()),
       orElse: () => contextParagraphs.first,

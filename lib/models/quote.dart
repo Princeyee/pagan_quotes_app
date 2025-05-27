@@ -9,6 +9,8 @@ class Quote {
   final String? translation;
   final DateTime? dateAdded;
   final bool isFavorite;
+  final String theme; // Добавляем theme для совместимости
+  final String context; // Добавляем context для совместимости
 
   const Quote({
     required this.id,
@@ -20,7 +22,12 @@ class Quote {
     this.translation,
     this.dateAdded,
     this.isFavorite = false,
+    required this.theme,
+    this.context = '',
   });
+
+  // Добавляем геттер theme который возвращает category
+  String get themeId => category;
 
   factory Quote.fromJson(Map<String, dynamic> json) {
     return Quote(
@@ -35,6 +42,8 @@ class Quote {
           ? DateTime.parse(json['dateAdded'] as String)
           : null,
       isFavorite: json['isFavorite'] as bool? ?? false,
+      theme: json['theme'] as String? ?? json['category'] as String,
+      context: json['context'] as String? ?? '',
     );
   }
 
@@ -49,6 +58,8 @@ class Quote {
       'translation': translation,
       'dateAdded': dateAdded?.toIso8601String(),
       'isFavorite': isFavorite,
+      'theme': theme,
+      'context': context,
     };
   }
 
@@ -62,6 +73,8 @@ class Quote {
     String? translation,
     DateTime? dateAdded,
     bool? isFavorite,
+    String? theme,
+    String? context,
   }) {
     return Quote(
       id: id ?? this.id,
@@ -73,12 +86,14 @@ class Quote {
       translation: translation ?? this.translation,
       dateAdded: dateAdded ?? this.dateAdded,
       isFavorite: isFavorite ?? this.isFavorite,
+      theme: theme ?? this.theme,
+      context: context ?? this.context,
     );
   }
 
   @override
   String toString() {
-    return 'Quote(id: $id, text: ${text.substring(0, 50)}..., author: $author)';
+    return 'Quote(id: $id, text: ${text.substring(0, text.length > 50 ? 50 : text.length)}..., author: $author)';
   }
 
   @override

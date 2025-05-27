@@ -11,6 +11,7 @@ import '../../models/quote.dart';
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
 import '../../services/session_data.dart';
+import '../../services/favorites_service.dart';
 import '../../utils/custom_cache.dart';
 import '../screens/quote_page.dart';
 import '../../services/theme_service.dart';

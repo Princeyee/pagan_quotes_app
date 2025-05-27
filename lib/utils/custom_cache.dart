@@ -1,15 +1,37 @@
 // lib/utils/custom_cache.dart
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../models/quote.dart';
 import '../models/daily_quote.dart';
 import '../models/quote_context.dart';
 import '../models/book_source.dart';
 
-class CustomCache {
-  static final CustomCache _instance = CustomCache._internal();
-  factory CustomCache() => _instance;
-  CustomCache._internal();
+class CustomCache extends CacheManager {
+  static const key = 'customCacheKey';
+  static CustomCache? _instance;
+
+  factory CustomCache() {
+    _instance ??= CustomCache._();
+    return _instance!;
+  }
+
+  CustomCache._() : super(Config(
+    key,
+    stalePeriod: const Duration(days: 7),
+    maxNrOfCacheObjects: 200,
+  ));
+
+  static CustomCache get instance => _instance ?? CustomCache();
+
+  // SharedPreferences часть
+  static final CustomCachePrefs prefs = CustomCachePrefs();
+}
+
+class CustomCachePrefs {
+  static final CustomCachePrefs _instance = CustomCachePrefs._internal();
+  factory CustomCachePrefs() => _instance;
+  CustomCachePrefs._internal();
 
   SharedPreferences? _prefs;
   
@@ -28,7 +50,7 @@ class CustomCache {
 
   SharedPreferences get prefs {
     if (_prefs == null) {
-      throw Exception('CustomCache not initialized. Call init() first.');
+      throw Exception('CustomCachePrefs not initialized. Call init() first.');
     }
     return _prefs!;
   }
