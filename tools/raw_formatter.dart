@@ -180,13 +180,12 @@ class RawTextFormatter {
         continue;
       }
       
-      // Если строка не заканчивается знаком препинания и следующая строка не пустая
+      // ИСПРАВЛЕНО: проверяем окончание строки правильным способом
       if (i < lines.length - 1 && 
-          !currentLine.endsWith(RegExp(r'[.!?;:]')) &&
-          !currentLine.endsWith(',') &&
+          !RegExp(r'[.!?;:,]$').hasMatch(currentLine) &&
           lines[i + 1].trim().isNotEmpty &&
-          !lines[i + 1].trim().startsWith(RegExp(r'[A-ZА-Я]')) && // Не начинается с заглавной
-          currentLine.length > 10) { // Не слишком короткая строка
+          !RegExp(r'^[A-ZА-Я]').hasMatch(lines[i + 1].trim()) &&
+          currentLine.length > 10) {
         
         // Склеиваем с следующей строкой
         final nextLine = lines[i + 1].trim();

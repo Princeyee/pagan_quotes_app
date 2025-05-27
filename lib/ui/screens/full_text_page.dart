@@ -6,7 +6,7 @@ import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
 
 class FullTextPage extends StatefulWidget {
-  final QuoteContext context;
+  final QuoteContext context; // ← ИСПРАВЛЕНО: правильный тип
 
   const FullTextPage({
     super.key,

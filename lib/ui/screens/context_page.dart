@@ -1,8 +1,7 @@
-
-
 // lib/ui/screens/context_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ← Добавлен импорт
 import '../../models/daily_quote.dart';
 import '../../models/quote_context.dart';
 import '../../services/quote_extraction_service.dart';
@@ -93,8 +92,8 @@ class _ContextPageState extends State<ContextPage>
         return;
       }
 
-      // Загружаем контекст
-      final context = await _quoteService.extractQuoteContext(widget.dailyQuote.quote);
+      // Загружаем контекст - ИСПРАВЛЕНО: используем правильный метод
+      final context = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
       if (context != null) {
         await _cache.cacheQuoteContext(context);
         setState(() {
@@ -128,7 +127,7 @@ class _ContextPageState extends State<ContextPage>
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
-            FullTextPage(bookSource: widget.dailyQuote.quote),
+            FullTextPage(context: _context!), // ← Передаем контекст
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
@@ -380,5 +379,3 @@ class _ContextPageState extends State<ContextPage>
     super.dispose();
   }
 }
-
-

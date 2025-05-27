@@ -86,6 +86,7 @@ class QuoteExtractionService {
       position: position,
       translation: source.translator,
       dateAdded: DateTime.now(),
+      theme: source.category, // ← ИСПРАВЛЕНО: добавлен обязательный параметр
     );
   }
 
