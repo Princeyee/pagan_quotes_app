@@ -6,7 +6,9 @@ import '../../models/daily_quote.dart';
 import '../../models/quote.dart';
 import '../../models/quote_context.dart';
 import '../../services/quote_extraction_service.dart';
+import '../../services/text_file_service.dart';
 import '../../utils/custom_cache.dart';
+import '../widgets/nav_drawer.dart';
 import 'context_page.dart';
 
 class QuotePage extends StatefulWidget {
@@ -19,7 +21,7 @@ class QuotePage extends StatefulWidget {
 class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   final QuoteExtractionService _quoteService = QuoteExtractionService();
-  final CustomCache _cache = CustomCache();
+  final CustomCachePrefs _cache = CustomCache.prefs;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -218,6 +220,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      drawer: const NavDrawer(),
       body: SafeArea(
         child: _isLoading 
             ? _buildLoadingState()
@@ -331,9 +334,16 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        // Меню
+        Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        
         // Дата
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Сегодня',
@@ -367,7 +377,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
                 _isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: _isFavorite ? Colors.red : null,
               ),
-              tooltip: _isFavorite ? 'Удалить из избранного' : 'Добавить в избранное',
+              tooltip: 'В избранное',
             ),
           ],
         ),
@@ -377,25 +387,22 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
 
   Widget _buildQuoteText(Quote quote) {
     return Container(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+        border: Border(
+          left: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 3,
           ),
-        ],
+        ),
       ),
       child: Text(
         '"${quote.text}"',
         style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w400,
-          height: 1.6,
-          letterSpacing: 0.5,
+          fontSize: 24,
+          height: 1.5,
+          fontWeight: FontWeight.w300,
+          fontStyle: FontStyle.italic,
         ),
         textAlign: TextAlign.center,
       ),
@@ -408,76 +415,30 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
         Text(
           quote.author,
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
-          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Text(
           quote.source,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 16,
             color: Theme.of(context).textTheme.bodySmall?.color,
             fontStyle: FontStyle.italic,
           ),
-          textAlign: TextAlign.center,
         ),
-        if (quote.translation != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            'пер. ${quote.translation}',
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ],
     );
   }
 
   Widget _buildContextButton() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _navigateToContext,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 16,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.arrow_upward,
-                  size: 20,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Смотреть контекст',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+    return OutlinedButton.icon(
+      onPressed: _navigateToContext,
+      icon: const Icon(Icons.auto_stories),
+      label: const Text('Читать в контексте'),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
     );
   }
