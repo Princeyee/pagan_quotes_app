@@ -275,7 +275,7 @@ class QuoteExtractionService {
       final contextParagraphs = _textService.getContextAroundPosition(
         cleanedText, 
         quote.position,
-        contextSize: 3, // Уменьшаем размер контекста для лучшей читаемости
+        contextSize: 2, // Уменьшаем размер контекста для лучшей читаемости
       );
       
       if (contextParagraphs.isEmpty) {

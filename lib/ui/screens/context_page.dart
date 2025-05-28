@@ -546,11 +546,11 @@ class _ContextPageState extends State<ContextPage>
               TextSpan(text: beforeQuote),
             TextSpan(
               text: quoteText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
                 color: Colors.white,
-                backgroundColor: Colors.white24,
+                backgroundColor: Colors.orange.withOpacity(0.3),
               ),
             ),
             if (afterQuote.isNotEmpty)

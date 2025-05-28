@@ -122,7 +122,7 @@ class _FullTextPageState extends State<FullTextPage>
           final totalLength = fullTextClean.length;
           final progress = index / totalLength;
           final maxScroll = _scrollController.position.maxScrollExtent;
-          final targetScroll = maxScroll * progress;
+          final targetScroll = (maxScroll * progress) - (MediaQuery.of(context).size.height * 0.4);
 
           // Плавная прокрутка
           await _scrollController.animateTo(
@@ -435,6 +435,7 @@ class _FullTextPageState extends State<FullTextPage>
       child: SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.all(24.0),
+        physics: const ClampingScrollPhysics(),
         child: _buildFormattedText(),
       ),
     );
@@ -473,7 +474,7 @@ class _FullTextPageState extends State<FullTextPage>
               children: isQuoteParagraph 
                   ? _highlightQuoteInParagraph(paragraph['content'] as String)
                   : [TextSpan(text: paragraph['content'] as String)],
-            ),
+            )
           ),
         );
       }).toList(),

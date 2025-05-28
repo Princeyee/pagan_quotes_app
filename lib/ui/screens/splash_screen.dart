@@ -131,26 +131,22 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Иконка или анимация
-              Container(
+              Image.asset(
+                'assets/animations/fire.gif',
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.withOpacity(0.8),
-                      Colors.red.withOpacity(0.6),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.local_fire_department,
-                  color: Colors.white,
-                  size: 60,
-                ),
-              ),
+               errorBuilder: (context, error, stackTrace) {
+               return Container(
+                 width: 120,
+                 height: 120,
+                 decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                       gradient: LinearGradient(colors: [Colors.orange.withOpacity(0.8), Colors.red.withOpacity(0.6)]),
+                      ),
+                   child: const Icon(Icons.local_fire_department, color: Colors.white, size: 60),
+             );
+  },
+),
               
               const SizedBox(height: 24),
               
