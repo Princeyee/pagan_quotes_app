@@ -35,6 +35,14 @@ flutter:
     - assets/sounds/chime.mp3
     - assets/sounds/fire.mp3
     - assets/sounds/page_turn.mp3
+    - assets/sounds/theme_greece_ambient.mp3
+    - assets/sounds/theme_nordic_ambient.mp3
+    - assets/sounds/theme_pagan_ambient.mp3
+    - assets/sounds/theme_philosophy_ambient.mp3
+    - assets/sounds/theme_philosophy_open.mp3
+    - assets/sounds/theme_nordic_open.mp3
+    - assets/sounds/theme_greece_open.mp3
+    - assets/sounds/theme_pagan_open.mp3
     - assets/images/book_background.jpg
     - assets/images/greece.jpg
     - assets/images/nordic.jpg
