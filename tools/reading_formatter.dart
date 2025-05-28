@@ -133,80 +133,51 @@ class ReadingTextFormatter {
       return originalText;
     }
     
+    // УПРОЩЕННЫЙ ПОДХОД: разбиваем оригинальный текст на части примерно равные количеству очищенных абзацев
+    final originalLines = originalText.split('\n');
     final result = <String>[];
-    final lines = originalText.split('\n');
     
-    int currentCleanedIndex = 0;
-    String currentChunk = '';
+    // Вычисляем примерный размер куска для каждого очищенного абзаца
+    final linesPerParagraph = (originalLines.length / cleanedParagraphs.length).ceil();
     
-    for (final line in lines) {
-      currentChunk += '$line\n';
+    int lineIndex = 0;
+    int paragraphIndex = 0;
+    
+    while (lineIndex < originalLines.length && paragraphIndex < cleanedParagraphs.length) {
+      final cleanedPar = cleanedParagraphs[paragraphIndex];
       
-      // Проверяем, соответствует ли накопленный кусок следующему очищенному абзацу
-      if (currentCleanedIndex < cleanedParagraphs.length) {
-        final cleanedParagraph = cleanedParagraphs[currentCleanedIndex];
-        
-        if (_isChunkMatchesCleaned(currentChunk, cleanedParagraph.content)) {
-          // Найдено соответствие - добавляем маркер позиции
-          final cleanChunk = currentChunk.trim();
-          if (cleanChunk.isNotEmpty) {
-            result.add('[pos:${cleanedParagraph.position}]');
-            result.add(cleanChunk);
-            result.add(''); // Пустая строка для разделения
-          }
-          
-          currentChunk = '';
-          currentCleanedIndex++;
+      // Берем кусок оригинального текста
+      final endIndex = (lineIndex + linesPerParagraph).clamp(0, originalLines.length);
+      final chunk = originalLines.sublist(lineIndex, endIndex);
+      
+      // Объединяем строки в один абзац
+      final chunkText = chunk.join('\n').trim();
+      
+      if (chunkText.isNotEmpty) {
+        result.add('[pos:${cleanedPar.position}]');
+        result.add(chunkText);
+        result.add(''); // Пустая строка для разделения
+      }
+      
+      lineIndex = endIndex;
+      paragraphIndex++;
+    }
+    
+    // Добавляем оставшийся текст, если есть
+    if (lineIndex < originalLines.length) {
+      final remainingText = originalLines.sublist(lineIndex).join('\n').trim();
+      if (remainingText.isNotEmpty) {
+        if (paragraphIndex < cleanedParagraphs.length) {
+          result.add('[pos:${cleanedParagraphs[paragraphIndex].position}]');
+        } else {
+          result.add('[pos:${cleanedParagraphs.last.position + 1}]');
         }
+        result.add(remainingText);
       }
     }
     
-    // Добавляем оставшийся кусок, если есть
-    final remainingChunk = currentChunk.trim();
-    if (remainingChunk.isNotEmpty) {
-      if (currentCleanedIndex < cleanedParagraphs.length) {
-        result.add('[pos:${cleanedParagraphs[currentCleanedIndex].position}]');
-      }
-      result.add(remainingChunk);
-    }
-    
-    print('🎯 Сопоставлено позиций: $currentCleanedIndex из ${cleanedParagraphs.length}');
+    print('🎯 Сопоставлено позиций: $paragraphIndex из ${cleanedParagraphs.length}');
     return result.join('\n');
-  }
-  
-  /// Проверяет, соответствует ли кусок оригинального текста очищенному абзацу
-  static bool _isChunkMatchesCleaned(String chunk, String cleanedContent) {
-    // Упрощенная проверка соответствия
-    final chunkCleaned = _simplifyForComparison(chunk);
-    final cleanedSimplified = _simplifyForComparison(cleanedContent);
-    
-    // Проверяем, содержит ли кусок достаточно слов из очищенного абзаца
-    final chunkWords = chunkCleaned.split(RegExp(r'\s+'));
-    final cleanedWords = cleanedSimplified.split(RegExp(r'\s+'));
-    
-    if (cleanedWords.length < 3) return false; // Слишком короткий абзац
-    
-    int matchedWords = 0;
-    for (final word in cleanedWords) {
-      if (word.length > 2 && chunkWords.contains(word)) {
-        matchedWords++;
-      }
-    }
-    
-    // Считаем соответствием, если совпадает больше 70% значимых слов
-    final significantWords = cleanedWords.where((w) => w.length > 2).length;
-    final matchRatio = significantWords > 0 ? matchedWords / significantWords : 0;
-    
-    return matchRatio > 0.7 && chunkCleaned.length >= cleanedSimplified.length * 0.5;
-  }
-  
-  /// Упрощает текст для сравнения
-  static String _simplifyForComparison(String text) {
-    return text
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s]', unicode: true), '') // Убираем знаки препинания
-        .replaceAll(RegExp(r'\s+'), ' ') // Нормализуем пробелы
-        .trim();
   }
   
   /// Подсчитывает количество позиционных маркеров

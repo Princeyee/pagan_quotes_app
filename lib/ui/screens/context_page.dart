@@ -1,7 +1,8 @@
 // lib/ui/screens/context_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ← Добавлен импорт
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:just_audio/just_audio.dart';
 import '../../models/daily_quote.dart';
 import '../../models/quote_context.dart';
 import '../../services/quote_extraction_service.dart';
@@ -24,21 +25,36 @@ class _ContextPageState extends State<ContextPage>
     with SingleTickerProviderStateMixin {
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final CustomCachePrefs _cache = CustomCache.prefs;
+  final AudioPlayer _candlePlayer = AudioPlayer();
   
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
   
   QuoteContext? _context;
   bool _isLoading = true;
   String? _error;
   bool _showSwipeHint = true;
+  bool _showTapHint = true;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimation();
+    _startCandleSound();
     _loadContext();
-    _checkSwipeHint();
+    _checkHints();
+  }
+
+  Future<void> _startCandleSound() async {
+    try {
+      await _candlePlayer.setAsset('assets/sounds/candle.mp3');
+      _candlePlayer.setLoopMode(LoopMode.one);
+      await _candlePlayer.play();
+      print('Candle sound started');
+    } catch (e) {
+      print('Candle sound not available: $e');
+    }
   }
 
   void _initializeAnimation() {
@@ -54,23 +70,49 @@ class _ContextPageState extends State<ContextPage>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
   }
 
-  Future<void> _checkSwipeHint() async {
+  Future<void> _checkHints() async {
     final prefs = await SharedPreferences.getInstance();
-    final shown = prefs.getBool('context_swipe_hint_shown') ?? false;
-    if (!shown) {
+    
+    // Проверяем подсказку для свайпа назад
+    final swipeHintShown = prefs.getBool('context_swipe_hint_shown') ?? false;
+    if (!swipeHintShown) {
       setState(() => _showSwipeHint = true);
       await prefs.setBool('context_swipe_hint_shown', true);
       
-      // Скрыть подсказку через 3 секунды
-      Future.delayed(const Duration(seconds: 3), () {
+      // Скрыть подсказку через 4 секунды
+      Future.delayed(const Duration(seconds: 4), () {
         if (mounted) {
           setState(() => _showSwipeHint = false);
         }
       });
     } else {
       setState(() => _showSwipeHint = false);
+    }
+
+    // Проверяем подсказку для тапа на полный текст
+    final tapHintShown = prefs.getBool('fulltext_tap_hint_shown') ?? false;
+    if (!tapHintShown) {
+      setState(() => _showTapHint = true);
+      await prefs.setBool('fulltext_tap_hint_shown', true);
+      
+      // Скрыть подсказку через 5 секунд
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          setState(() => _showTapHint = false);
+        }
+      });
+    } else {
+      setState(() => _showTapHint = false);
     }
   }
 
@@ -92,7 +134,7 @@ class _ContextPageState extends State<ContextPage>
         return;
       }
 
-      // Загружаем контекст - ИСПРАВЛЕНО: используем правильный метод
+      // Загружаем контекст
       final context = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
       if (context != null) {
         await _cache.cacheQuoteContext(context);
@@ -103,7 +145,7 @@ class _ContextPageState extends State<ContextPage>
         _animationController.forward();
       } else {
         setState(() {
-          _error = 'Не удалось загрузить контекст';
+          _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
           _isLoading = false;
         });
       }
@@ -121,28 +163,37 @@ class _ContextPageState extends State<ContextPage>
     }
   }
 
+  void _goBack() {
+    _candlePlayer.stop();
+    Navigator.of(context).pop();
+  }
+
   void _navigateToFullText() {
     if (_context == null) return;
+    
+    _candlePlayer.stop(); // Останавливаем звук при переходе к полному тексту
     
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
-            FullTextPage(context: _context!), // ← Передаем контекст
+            FullTextPage(context: _context!),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOutCubic;
-
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
+          // Анимация расширения из центра экрана
+          return ScaleTransition(
+            scale: Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOutCubic,
+            )),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
           );
         },
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 500),
       ),
     );
   }
@@ -150,19 +201,56 @@ class _ContextPageState extends State<ContextPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(widget.dailyQuote.quote.source),
+        title: Text(
+          widget.dailyQuote.quote.source,
+          style: const TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: _goBack,
+        ),
       ),
       body: SafeArea(
-        child: _isLoading
-            ? _buildLoadingState()
-            : _error != null
-                ? _buildErrorState()
-                : _buildContextContent(),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Фоновое изображение для книжного контекста
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/book_background.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            
+            // Темный оверлей для читаемости
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.black.withOpacity(0.8),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            
+            // Основной контент
+            _isLoading
+                ? _buildLoadingState()
+                : _error != null
+                    ? _buildErrorState()
+                    : _buildContextContent(),
+          ],
+        ),
       ),
     );
   }
@@ -172,13 +260,14 @@ class _ContextPageState extends State<ContextPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
+          CircularProgressIndicator(color: Colors.white),
           SizedBox(height: 16),
           Text(
             'Загружаем контекст...',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w300,
+              color: Colors.white,
             ),
           ),
         ],
@@ -196,18 +285,38 @@ class _ContextPageState extends State<ContextPage>
             Icon(
               Icons.error_outline,
               size: 64,
-              color: Theme.of(context).colorScheme.error,
+              color: Colors.red,
             ),
             const SizedBox(height: 16),
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadContext,
-              child: const Text('Попробовать снова'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: _goBack,
+                  child: const Text(
+                    'Назад',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: _loadContext,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: const Text('Попробовать снова'),
+                ),
+              ],
             ),
           ],
         ),
@@ -218,81 +327,130 @@ class _ContextPageState extends State<ContextPage>
   Widget _buildContextContent() {
     return GestureDetector(
       onVerticalDragEnd: (details) {
-        // Свайп вверх для перехода к полному тексту
-        if (details.primaryVelocity != null && details.primaryVelocity! < -500) {
-          _navigateToFullText();
-        }
         // Свайп вниз для возврата
         if (details.primaryVelocity != null && details.primaryVelocity! > 500) {
-          Navigator.of(context).pop();
+          _goBack();
         }
       },
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Stack(
-          children: [
-            // Основной контент
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  // Контекст до цитаты
-                  if (_context!.beforeContext.isNotEmpty) ...[
-                    ..._context!.beforeContext.map((paragraph) => 
-                      _buildParagraph(paragraph, isContext: true)),
-                    const SizedBox(height: 24),
+      onTap: () {
+        // Тап для перехода к полному тексту
+        _navigateToFullText();
+      },
+      child: Stack(
+        children: [
+          // Основной контент
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    // Контекст до цитаты
+                    if (_context!.beforeContext.isNotEmpty) ...[
+                      ..._context!.beforeContext.map((paragraph) => 
+                        _buildParagraph(paragraph, isContext: true)),
+                      const SizedBox(height: 24),
+                    ],
+                    
+                    // Сама цитата
+                    _buildQuoteParagraph(),
+                    
+                    // Контекст после цитаты
+                    if (_context!.afterContext.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      ..._context!.afterContext.map((paragraph) => 
+                        _buildParagraph(paragraph, isContext: true)),
+                    ],
+                    
+                    const SizedBox(height: 48),
                   ],
-                  
-                  // Сама цитата
-                  _buildQuoteParagraph(),
-                  
-                  // Контекст после цитаты
-                  if (_context!.afterContext.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    ..._context!.afterContext.map((paragraph) => 
-                      _buildParagraph(paragraph, isContext: true)),
-                  ],
-                  
-                  const SizedBox(height: 48),
-                  
-                  // Кнопка для перехода к полному тексту
-                  _buildFullTextButton(),
-                  
-                  const SizedBox(height: 24),
-                ],
+                ),
               ),
             ),
-            
-            // Подсказка о свайпе
-            if (_showSwipeHint)
-              Positioned(
-                bottom: 24,
-                left: 0,
-                right: 0,
-                child: AnimatedOpacity(
-                  opacity: _showSwipeHint ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Row(
+          ),
+          
+          // Подсказка о свайпе вниз
+          if (_showSwipeHint)
+            Positioned(
+              top: 16,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                opacity: _showSwipeHint ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.swipe_up,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        Icons.swipe_down,
+                        color: Colors.white70,
+                        size: 16,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
-                        'Свайп вверх для полного текста',
+                        'Свайп вниз для возврата',
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: 14,
+                          color: Colors.white70,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+
+          // Подсказка о тапе для полного текста
+          if (_showTapHint)
+            Positioned(
+              bottom: 16,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                opacity: _showTapHint ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.touch_app,
+                        color: Colors.white70,
+                        size: 16,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Нажмите для чтения полного текста',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -306,8 +464,8 @@ class _ContextPageState extends State<ContextPage>
           fontSize: 16,
           height: 1.6,
           color: isContext 
-              ? Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8)
-              : Theme.of(context).textTheme.bodyMedium?.color,
+              ? Colors.white.withOpacity(0.8)
+              : Colors.white,
         ),
         textAlign: TextAlign.justify,
       ),
@@ -318,30 +476,70 @@ class _ContextPageState extends State<ContextPage>
     final paragraph = _context!.quoteParagraph;
     final quoteText = widget.dailyQuote.quote.text;
     
-    // Подсвечиваем саму цитату в абзаце
-    final beforeQuote = paragraph.substring(0, paragraph.indexOf(quoteText));
-    final afterQuote = paragraph.substring(
-      paragraph.indexOf(quoteText) + quoteText.length,
-    );
+    // Находим позицию цитаты в абзаце (более надежный поиск)
+    final quoteLower = quoteText.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
+    final paragraphLower = paragraph.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
+    
+    int quoteIndex = paragraphLower.indexOf(quoteLower);
+    
+    if (quoteIndex == -1) {
+      // Если точное совпадение не найдено, ищем по первым словам
+      final quoteWords = quoteLower.split(' ').take(5).join(' ');
+      quoteIndex = paragraphLower.indexOf(quoteWords);
+    }
+    
+    if (quoteIndex == -1) {
+      // Fallback: выделяем весь абзац
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            left: BorderSide(
+              color: Colors.white,
+              width: 3,
+            ),
+          ),
+        ),
+        child: Text(
+          paragraph,
+          style: const TextStyle(
+            fontSize: 16,
+            height: 1.6,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+          textAlign: TextAlign.justify,
+        ),
+      );
+    }
+    
+    // Выделяем цитату в контексте
+    final beforeQuote = paragraph.substring(0, quoteIndex);
+    final afterQuoteStart = quoteIndex + quoteText.length;
+    final afterQuote = afterQuoteStart < paragraph.length 
+        ? paragraph.substring(afterQuoteStart)
+        : '';
     
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
+            color: Colors.white,
             width: 3,
           ),
         ),
       ),
       child: RichText(
         text: TextSpan(
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             height: 1.6,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
+            color: Colors.white,
           ),
           children: [
             if (beforeQuote.isNotEmpty)
@@ -351,6 +549,8 @@ class _ContextPageState extends State<ContextPage>
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
+                color: Colors.white,
+                backgroundColor: Colors.white24,
               ),
             ),
             if (afterQuote.isNotEmpty)
@@ -362,20 +562,10 @@ class _ContextPageState extends State<ContextPage>
     );
   }
 
-  Widget _buildFullTextButton() {
-    return OutlinedButton.icon(
-      onPressed: _navigateToFullText,
-      icon: const Icon(Icons.menu_book),
-      label: const Text('Читать весь текст'),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _animationController.dispose();
+    _candlePlayer.dispose(); // Не забываем освободить ресурсы
     super.dispose();
   }
 }

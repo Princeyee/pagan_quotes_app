@@ -30,25 +30,24 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/quotes.json
-    - assets/icon/
-    - assets/animations/fire.gif
-    - assets/sounds/fire.mp3
-    - assets/sounds/chime.mp3
-    - assets/sounds/page_turn.mp3
+    - assets/icon/app_icon.png
     - assets/sounds/candle.mp3
+    - assets/sounds/chime.mp3
+    - assets/sounds/fire.mp3
+    - assets/sounds/page_turn.mp3
     - assets/images/book_background.jpg
     - assets/images/greece.jpg
     - assets/images/nordic.jpg
     - assets/images/pagan.jpg
     - assets/images/philosophy.jpg
-    - assets/config/book_sources.json
-    - assets/full_texts/
+    - assets/animations/fire.gif
     - assets/animations/greece.json
     - assets/animations/nordic.json
     - assets/animations/pagan.json
     - assets/animations/philosophy.json
-    - assets/source_files/
+    - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
+    - assets/full_texts/greece/aristotle/metaphysics_raw.txt
+    - assets/config/book_sources.json
 
 
 flutter_launcher_icons:
