@@ -377,7 +377,7 @@ class QuoteExtractionService {
     if (wordCount < 8) return false; // Минимум 8 слов
     
     // Должно заканчиваться пунктуацией
-    if (!RegExp(r'[.!?;:]).hasMatch(text.trim())) return false;
+    if (!RegExp(r'[.!?;:]').hasMatch(text.trim())) return false;
     
     // Не должно содержать слишком много цифр
     final digitCount = RegExp(r'\d').allMatches(text).length;

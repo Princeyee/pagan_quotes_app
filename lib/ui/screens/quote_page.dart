@@ -129,11 +129,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
     
     _startAnimations();
   }
-      _isLoading = false;
-    });
     
-    _startAnimations();
-  }
 
   Color _determineTextColor(String category) {
     // Простая логика определения цвета текста по категории
