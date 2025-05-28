@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/theme_info.dart';
 import '../../services/theme_service.dart';
+import 'package:just_audio/just_audio.dart';
 
 class ThemeSelectorPage extends StatefulWidget {
   const ThemeSelectorPage({super.key});
@@ -12,11 +13,26 @@ class ThemeSelectorPage extends StatefulWidget {
 class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   late List<String> _enabledThemes;
   ThemeInfo? _expandedTheme;
+  // В класс _ThemeSelectorPageState добавить:
+final Map<String, AudioPlayer> _audioPlayers = {};
+
+Future<void> _playThemeSound(String themeId) async {
+  try {
+    final player = AudioPlayer();
+    await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
+    await player.play();
+    _audioPlayers[themeId] = player;
+  } catch (e) {
+    print('Theme sound not available: $e');
+  }
+
+}
 
   @override
   void initState() {
     super.initState();
     _loadEnabledThemes();
+    
   }
 
   Future<void> _loadEnabledThemes() async {
@@ -30,6 +46,12 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   }
 
   @override
+   void dispose() {
+  for (final player in _audioPlayers.values) {
+    player.dispose();
+  }
+  super.dispose();
+}
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
@@ -54,6 +76,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
             ),
             child: InkWell(
               onTap: () {
+                _playThemeSound(theme.id);
                 setState(() {
                   _expandedTheme = isExpanded ? null : theme;
                 });
@@ -69,6 +92,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
         },
       ),
     );
+    
   }
 
   Widget _buildCollapsedCard(ThemeInfo theme, bool isSelected) {

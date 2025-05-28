@@ -126,32 +126,16 @@ class _FullTextPageState extends State<FullTextPage>
 
           // Плавная прокрутка
           await _scrollController.animateTo(
-            targetScroll,
-            duration: const Duration(milliseconds: 1500),
-            curve: Curves.easeInOutCubic,
-          );
+             targetScroll - (MediaQuery.of(context).size.height * 0.3),
+              duration: const Duration(milliseconds: 2500),
+              curve: Curves.easeInOutQuart,
+            );
 
           _autoScrolled = true;
           
           // Показываем подсказку
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Автопрокрутка к цитате выполнена'),
-                duration: const Duration(seconds: 3),
-                behavior: SnackBarBehavior.floating,
-                action: SnackBarAction(
-                  label: 'К началу',
-                  onPressed: () {
-                    _scrollController.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 800),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                ),
-              ),
-            );
+          
           }
         }
       }
@@ -411,7 +395,7 @@ class _FullTextPageState extends State<FullTextPage>
               ),
               const SizedBox(width: 16),
               TextButton.icon(
-                onPressed: _autoScrolled ? null : _scrollToQuote,
+                onPressed: _scrollToQuote,
                 icon: const Icon(Icons.my_location),
                 label: const Text('К цитате'),
               ),
@@ -435,7 +419,7 @@ class _FullTextPageState extends State<FullTextPage>
       child: SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.all(24.0),
-        physics: const ClampingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         child: _buildFormattedText(),
       ),
     );
@@ -450,33 +434,35 @@ class _FullTextPageState extends State<FullTextPage>
         final isQuoteParagraph = paragraph['position'] == widget.context.quote.position;
         
         return Container(
-          key: isQuoteParagraph ? _targetKey : null,
-          margin: const EdgeInsets.only(bottom: 16.0),
-          padding: isQuoteParagraph ? const EdgeInsets.all(16.0) : EdgeInsets.zero,
-          decoration: isQuoteParagraph 
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  border: Border.all(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
-                    width: 2,
-                  ),
-                )
-              : null,
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeight,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: isQuoteParagraph ? FontWeight.w500 : FontWeight.w400,
-              ),
-              children: isQuoteParagraph 
-                  ? _highlightQuoteInParagraph(paragraph['content'] as String)
-                  : [TextSpan(text: paragraph['content'] as String)],
-            )
+  key: isQuoteParagraph ? _targetKey : null,
+  margin: const EdgeInsets.only(bottom: 16.0),
+  padding: isQuoteParagraph ? const EdgeInsets.all(16.0) : EdgeInsets.zero,
+  decoration: isQuoteParagraph
+      ? BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white.withOpacity(0.05), // Более тонкое выделение контекста
+          border: Border(
+            left: BorderSide(
+              color: Colors.white.withOpacity(0.3),
+              width: 3,
+            ),
           ),
-        );
+        )
+      : null,
+  child: RichText(
+    text: TextSpan(
+      style: TextStyle(
+        fontSize: _fontSize,
+        height: _lineHeight,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+        fontWeight: isQuoteParagraph ? FontWeight.w500 : FontWeight.w400,
+      ),
+      children: isQuoteParagraph
+          ? _highlightQuoteInParagraph(paragraph['content'] as String)
+          : [TextSpan(text: paragraph['content'] as String)],
+    ),
+  ),
+);
       }).toList(),
     );
   }

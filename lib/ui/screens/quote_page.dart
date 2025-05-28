@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'package:just_audio/just_audio.dart';
 
 import '../../models/daily_quote.dart';
 import '../../models/quote.dart';
@@ -39,7 +40,11 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
   bool _isFavorite = false;
   String? _error;
   Color _textColor = Colors.white;
-
+  AudioPlayer? _ambientPlayer;
+  String? _currentTheme;
+  String _dateToString(DateTime date) {
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
   @override
   void initState() {
     super.initState();
@@ -110,7 +115,14 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
 
   Future<void> _setupQuoteDisplay(DailyQuote dailyQuote) async {
     // Получаем случайное изображение для категории цитаты
-    final imageUrl = ImagePickerService.getRandomImage(dailyQuote.quote.category);
+     String imageUrl;
+  final cachedImageUrl = _cache.getSetting('daily_image_${_dateToString(DateTime.now())}');
+  if (cachedImageUrl != null) {
+    imageUrl = cachedImageUrl;
+  } else {
+    imageUrl = ImagePickerService.getRandomImage(dailyQuote.quote.category);
+    await _cache.setSetting('daily_image_${_dateToString(DateTime.now())}', imageUrl);
+  }
     
     // Определяем цвет текста (можно улучшить анализом изображения)
     final textColor = _determineTextColor(dailyQuote.quote.category);
@@ -128,7 +140,24 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
     });
     
     _startAnimations();
+    _playAmbientSound(dailyQuote.quote.category); // ДОБАВИТЬ ЭТУ СТРОКУ
   }
+  Future<void> _playAmbientSound(String themeId) async {
+  if (_currentTheme == themeId) return; // Уже играет эта тема
+  
+  _ambientPlayer?.stop();
+  _ambientPlayer?.dispose();
+  
+  try {
+    _ambientPlayer = AudioPlayer();
+    await _ambientPlayer!.setAsset('assets/sounds/theme_${themeId}_ambient.mp3');
+    _ambientPlayer!.setLoopMode(LoopMode.one);
+    await _ambientPlayer!.play();
+    _currentTheme = themeId;
+  } catch (e) {
+    print('Ambient sound not available: $e');
+  }
+}
     
 
   Color _determineTextColor(String category) {
@@ -595,6 +624,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
+    _ambientPlayer?.dispose();
     super.dispose();
   }
 }

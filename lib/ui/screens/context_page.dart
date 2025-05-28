@@ -177,25 +177,29 @@ class _ContextPageState extends State<ContextPage>
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
             FullTextPage(context: _context!),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Анимация расширения из центра экрана
-          return ScaleTransition(
-            scale: Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOutCubic,
-            )),
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 500),
+        // ЗАМЕНИТЬ НА (более легкая анимация):
+transitionsBuilder: (context, animation, secondaryAnimation, child) {
+  return SlideTransition(
+    position: Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+    )),
+    child: FadeTransition(
+      opacity: animation,
+      child: child,
+    ),
+  );
+},
+        transitionDuration: const Duration(milliseconds: 300),
       ),
+    ).then((_) {
+      _startCandleSound();
+    }
     );
+
   }
 
   @override
@@ -550,7 +554,7 @@ class _ContextPageState extends State<ContextPage>
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
                 color: Colors.white,
-                backgroundColor: Colors.orange.withOpacity(0.3),
+                
               ),
             ),
             if (afterQuote.isNotEmpty)
