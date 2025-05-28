@@ -4,172 +4,18 @@
     "description": "Древнегреческие философы и мыслители",
     "books": [
       {
-        "id": "plato_republic",
-        "title": "Государство",
-        "author": "Платон",
+        "id": "aristotle_metaphysics",
+        "title": "Метафизика",
+        "author": "Аристотель",
         "language": "ru",
-        "translator": "А.Н. Егунов",
-        "rawFilePath": "assets/full_texts/greece/plato/republic_raw.txt",
-        "cleanedFilePath": "assets/full_texts/greece/plato/republic_cleaned.txt",
+        "translator": "А.В. Кубицкий",
+        "rawFilePath": "assets/full_texts/greece/aristotle/metaphysics_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/aristotle/metaphysics_cleaned.txt",
         "dateAdded": "2025-01-15T00:00:00Z",
         "metadata": {
-          "originalTitle": "Πολιτεία",
-          "writtenPeriod": "380 BC",
-          "genre": "dialogue"
-        }
-      },
-      {
-        "id": "aristotle_ethics",
-        "title": "Никомахова этика",
-        "author": "Аристотель", 
-        "language": "ru",
-        "translator": "Н.В. Брагинская",
-        "rawFilePath": "assets/full_texts/greece/aristotle/ethics_raw.txt",
-        "cleanedFilePath": "assets/full_texts/greece/aristotle/ethics_cleaned.txt",
-        "dateAdded": "2025-01-20T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Ἠθικὰ Νικομάχεια",
-          "writtenPeriod": "340 BC",
+          "originalTitle": "Μετὰ τὰ φυσικά",
+          "writtenPeriod": "350 BC",
           "genre": "treatise"
-        }
-      },
-      {
-        "id": "marcus_meditations",
-        "title": "Размышления",
-        "author": "Марк Аврелий",
-        "language": "ru",
-        "translator": "А.К. Гаврилов",
-        "rawFilePath": "assets/full_texts/greece/marcus/meditations_raw.txt",
-        "cleanedFilePath": "assets/full_texts/greece/marcus/meditations_cleaned.txt",
-        "dateAdded": "2025-01-25T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Τὰ εἰς ἑαυτόν",
-          "writtenPeriod": "170-180 AD",
-          "genre": "personal_notes"
-        }
-      }
-    ]
-  },
-  "nordic": {
-    "name": "Скандинавские источники",
-    "description": "Древнескандинавская литература и мифология",
-    "books": [
-      {
-        "id": "elder_edda",
-        "title": "Старшая Эдда",
-        "author": "Неизвестно",
-        "language": "ru",
-        "translator": "А.И. Корсун",
-        "rawFilePath": "assets/full_texts/nordic/elder_eddas/elder_edda_raw.txt",
-        "cleanedFilePath": "assets/full_texts/nordic/elder_eddas/elder_edda_cleaned.txt",
-        "dateAdded": "2025-01-30T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Sæmundar Edda",
-          "writtenPeriod": "900-1200 AD",
-          "genre": "poetry",
-          "region": "Iceland"
-        }
-      },
-      {
-        "id": "younger_edda",
-        "title": "Младшая Эдда",
-        "author": "Снорри Стурлусон",
-        "language": "ru",
-        "translator": "О.А. Смирницкая",
-        "rawFilePath": "assets/full_texts/nordic/snorri/younger_edda_raw.txt",
-        "cleanedFilePath": "assets/full_texts/nordic/snorri/younger_edda_cleaned.txt",
-        "dateAdded": "2025-02-05T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Snorra Edda",
-          "writtenPeriod": "1220 AD",
-          "genre": "prose",
-          "region": "Iceland"
-        }
-      },
-      {
-        "id": "havamal",
-        "title": "Речи Высокого",
-        "author": "Неизвестно",
-        "language": "ru", 
-        "translator": "А.И. Корсун",
-        "rawFilePath": "assets/full_texts/nordic/havamal/havamal_raw.txt",
-        "cleanedFilePath": "assets/full_texts/nordic/havamal/havamal_cleaned.txt",
-        "dateAdded": "2025-02-10T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Hávamál",
-          "writtenPeriod": "800-1100 AD",
-          "genre": "wisdom_poetry",
-          "region": "Iceland"
-        }
-      }
-    ]
-  },
-  "philosophy": {
-    "name": "Философия",
-    "description": "Классические философские произведения",
-    "books": [
-      {
-        "id": "nietzsche_zarathustra",
-        "title": "Так говорил Заратустра",
-        "author": "Фридрих Ницше",
-        "language": "ru",
-        "translator": "Ю.М. Антоновский",
-        "rawFilePath": "assets/full_texts/philosophy/nietzsche/zarathustra_raw.txt",
-        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/zarathustra_cleaned.txt",
-        "dateAdded": "2025-02-15T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Also sprach Zarathustra",
-          "writtenPeriod": "1883-1885",
-          "genre": "philosophical_novel",
-          "originalLanguage": "German"
-        }
-      },
-      {
-        "id": "nietzsche_beyond_good_evil",
-        "title": "По ту сторону добра и зла",
-        "author": "Фридрих Ницше",
-        "language": "ru",
-        "translator": "Н.Н. Полилов",
-        "rawFilePath": "assets/full_texts/philosophy/nietzsche/beyond_good_evil_raw.txt",
-        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/beyond_good_evil_cleaned.txt",
-        "dateAdded": "2025-02-20T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Jenseits von Gut und Böse",
-          "writtenPeriod": "1886",
-          "genre": "aphorisms",
-          "originalLanguage": "German"
-        }
-      },
-      {
-        "id": "heraclitus_fragments",
-        "title": "Фрагменты",
-        "author": "Гераклит Эфесский",
-        "language": "ru",
-        "translator": "А.В. Лебедев",
-        "rawFilePath": "assets/full_texts/philosophy/heraclitus/fragments_raw.txt",
-        "cleanedFilePath": "assets/full_texts/philosophy/heraclitus/fragments_cleaned.txt",
-        "dateAdded": "2025-02-25T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Fragmenta",
-          "writtenPeriod": "500 BC",
-          "genre": "fragments",
-          "originalLanguage": "Ancient Greek"
-        }
-      },
-      {
-        "id": "epictetus_discourses",
-        "title": "Беседы",
-        "author": "Эпиктет",
-        "language": "ru",
-        "translator": "Г.А. Тароян",
-        "rawFilePath": "assets/full_texts/philosophy/epictetus/discourses_raw.txt",
-        "cleanedFilePath": "assets/full_texts/philosophy/epictetus/discourses_cleaned.txt",
-        "dateAdded": "2025-03-01T00:00:00Z",
-        "metadata": {
-          "originalTitle": "Διατριβαί",
-          "writtenPeriod": "100 AD",
-          "genre": "philosophical_dialogues",
-          "originalLanguage": "Ancient Greek"
         }
       }
     ]

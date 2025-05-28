@@ -48,7 +48,7 @@ flutter:
     - assets/animations/nordic.json
     - assets/animations/pagan.json
     - assets/animations/philosophy.json
-    
+    - assets/source_files/
 
 
 flutter_launcher_icons:

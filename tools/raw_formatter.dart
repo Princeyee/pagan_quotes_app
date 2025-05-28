@@ -120,35 +120,27 @@ class RawTextFormatter {
   static String _removeTechnicalJunk(String text) {
     print('🗑️ Удаляем технический мусор...');
     
-    final patterns = [
-      // Служебные символы
-      RegExp(r'[^\w\s\.,!?;:()\-""''«»\n]', unicode: true),
-      
-      // Множественные пробелы
-      RegExp(r'[ \t]+'),
-      
-      // Строки только из символов разделителей
-      RegExp(r'\n\s*[-=_*]{3,}\s*\n', multiLine: true),
-      
-      // Строки с служебной информацией
-      RegExp(r'\n\s*(ISBN|Copyright|©|\(c\)).*\n', multiLine: true, caseSensitive: false),
-      
-      // Пустые скобки и кавычки
-      RegExp(r'\(\s*\)|\[\s*\]|""\s*|''\s*'),
-      
-      // Множественные знаки препинания
-      RegExp(r'[.]{3,}'),
-    ];
+    // ИСПРАВЛЕНО: Менее агрессивная очистка
     
-    text = text.replaceAll(patterns[0], ''); // Служебные символы
-    text = text.replaceAll(patterns[1], ' '); // Множественные пробелы
+    // 1. Убираем только действительно проблемные служебные символы
+    text = text.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '');
     
-    for (int i = 2; i < patterns.length - 1; i++) {
-      text = text.replaceAll(patterns[i], '\n\n');
-    }
+    // 2. Множественные пробелы в одну строку
+    text = text.replaceAll(RegExp(r'[ \t]+'), ' ');
     
-    text = text.replaceAll(patterns.last, '...'); // Множественные точки в многоточие
+    // 3. Строки только из символов разделителей
+    text = text.replaceAll(RegExp(r'\n\s*[-=_*]{3,}\s*\n', multiLine: true), '\n\n');
     
+    // 4. Строки с служебной информацией
+    text = text.replaceAll(RegExp(r'\n\s*(ISBN|Copyright|©|\(c\)).*\n', multiLine: true, caseSensitive: false), '\n\n');
+    
+    // 5. Пустые скобки и кавычки
+    text = text.replaceAll(RegExp(r'\(\s*\)|\[\s*\]'), '');
+    
+    // 6. Множественные точки в многоточие
+    text = text.replaceAll(RegExp(r'[.]{4,}'), '...');
+    
+    print('🔍 После очистки осталось символов: ${text.length}');
     return text;
   }
   
@@ -226,8 +218,12 @@ class RawTextFormatter {
       paragraphs.add(currentParagraph.join(' ').trim());
     }
     
-    // Фильтруем слишком короткие абзацы
-    final filteredParagraphs = paragraphs.where((p) => p.length > 20).toList();
+    print('📊 Всего абзацев до фильтрации: ${paragraphs.length}');
+    
+    // Фильтруем слишком короткие абзацы (ИСПРАВЛЕНО: менее строгий фильтр)
+    final filteredParagraphs = paragraphs.where((p) => p.length > 10).toList(); // Было > 20
+    
+    print('📊 Абзацев после фильтрации: ${filteredParagraphs.length}');
     
     return filteredParagraphs.join('\n\n');
   }
