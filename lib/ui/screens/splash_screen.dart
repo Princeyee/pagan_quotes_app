@@ -120,67 +120,91 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: AnimatedOpacity(
-          opacity: _visible ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 600),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Иконка или анимация
-              Image.asset(
-                'assets/animations/fire.gif',
-                width: 120,
-                height: 120,
-               errorBuilder: (context, error, stackTrace) {
-               return Container(
-                 width: 120,
-                 height: 120,
-                 decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                       gradient: LinearGradient(colors: [Colors.orange.withOpacity(0.8), Colors.red.withOpacity(0.6)]),
-                      ),
-                   child: const Icon(Icons.local_fire_department, color: Colors.white, size: 60),
-             );
-  },
-),
-              
-              const SizedBox(height: 24),
-              
-              // Название приложения
-              const Text(
-                'SACRAL',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 3,
-                ),
-              ),
-              
-              const SizedBox(height: 8),
-              
-              // Подзаголовок
-              Text(
-                'Цитаты дня',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: 16,
-                  letterSpacing: 1,
-                ),
-              ),
-              
-              const SizedBox(height: 48),
-              
-              // Индикатор загрузки
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.black,
+    body: AnimatedOpacity(
+      opacity: _visible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 600),
+      child: Column(
+        children: [
+          // Верхняя треть - пустая
+          const Expanded(flex: 1, child: SizedBox()),
           
-            ],
+          // Средняя треть - огонь
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: Image.asset(
+                'assets/animations/fire.gif',
+                width: 140,
+                height: 140,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.orange.withOpacity(0.8),
+                          Colors.red.withOpacity(0.6),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.local_fire_department, 
+                      color: Colors.white, 
+                      size: 70
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
-        ),
+          
+          // Нижняя треть - название
+          Expanded(
+            flex: 1,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(height: 40),
+                
+                // Главное название
+                const Text(
+                  'SACRAL',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 4,
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Элегантная линия
+                Container(
+                  width: 100,
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.white.withOpacity(0.6),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+ }
 }

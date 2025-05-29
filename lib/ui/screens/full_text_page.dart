@@ -138,7 +138,14 @@ showDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset('assets/animations/fire.gif', width: 50, height: 50),
+          const SizedBox(
+            width: 50,
+            height: 50,
+            child: CircularProgressIndicator(
+              color: Colors.orange,
+              strokeWidth: 3,
+            ),
+          ),
           const SizedBox(height: 10),
           const Text('Ищем цитату...', style: TextStyle(color: Colors.white)),
         ],
@@ -146,7 +153,6 @@ showDialog(
     ),
   ),
 );
-
 // Плавная прокрутка
 await _scrollController.animateTo(
   targetScroll - (MediaQuery.of(context).size.height * 0.35),

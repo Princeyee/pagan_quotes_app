@@ -22,22 +22,27 @@ class StrikeThroughPainter extends CustomPainter {
   StrikeThroughPainter(this.progress);
   
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    
-    final startX = size.width * 0.2;
-    final endX = size.width * 0.8;
-    final y = size.height * 0.5;
-    
-    canvas.drawLine(
-      Offset(startX, y),
-      Offset(startX + (endX - startX) * progress, y),
-      paint,
-    );
-  }
+void paint(Canvas canvas, Size size) {
+  final paint = Paint()
+    ..color = Colors.white // ИЗМЕНЕНО: был Colors.red
+    ..strokeWidth = 2
+    ..strokeCap = StrokeCap.round;
+  
+  // ИЗМЕНЕНО: диагональная линия вместо горизонтальной
+  final startX = size.width * 0.15;
+  final startY = size.height * 0.15;
+  final endX = size.width * 0.85;
+  final endY = size.height * 0.85;
+  
+  final currentEndX = startX + (endX - startX) * progress;
+  final currentEndY = startY + (endY - startY) * progress;
+  
+  canvas.drawLine(
+    Offset(startX, startY),
+    Offset(currentEndX, currentEndY),
+    paint,
+  );
+}
   
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
@@ -205,6 +210,15 @@ Future<void> _fadeInAmbient() async {
     
     _startAnimations();
     _playAmbientSound(dailyQuote.quote.category); // ДОБАВИТЬ ЭТУ СТРОКУ
+    // ДОБАВИТЬ:
+final soundMuted = await _cache.getSetting('sound_muted', false) ?? false;
+setState(() {
+  _isSoundMuted = soundMuted;
+});
+if (_isSoundMuted) {
+  _soundButtonController.forward();
+  _ambientPlayer?.pause();
+}
   }
   Future<void> _playAmbientSound(String themeId) async {
   if (_currentTheme == themeId) return; // Уже играет эта тема
@@ -380,7 +394,13 @@ Future<void> _fadeInAmbient() async {
           },
           transitionDuration: const Duration(milliseconds: 400),
         ),
-      );
+        ).then((_) {
+  // ДОБАВИТЬ: возобновляем фоновый звук после возврата из контекста
+  if (!_isSoundMuted) {
+    _fadeInAmbient();
+  }
+});
+      ;
     }
   }
 

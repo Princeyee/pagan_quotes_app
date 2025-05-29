@@ -17,8 +17,10 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
 final Map<String, AudioPlayer> _audioPlayers = {};
 
 Future<void> _playThemeSound(String themeId) async {
-  // Останавливаем все предыдущие звуки
+  // Останавливаем все предыдущие звуки с затуханием
   for (final player in _audioPlayers.values) {
+    await player.setVolume(0.0);
+    await Future.delayed(const Duration(milliseconds: 100));
     player.stop();
     player.dispose();
   }
@@ -27,6 +29,7 @@ Future<void> _playThemeSound(String themeId) async {
   try {
     final player = AudioPlayer();
     await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
+    await player.setVolume(1.0);
     await player.play();
     _audioPlayers[themeId] = player;
   } catch (e) {
