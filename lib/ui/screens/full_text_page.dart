@@ -5,6 +5,164 @@ import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
 
+
+class _SearchProgressWidget extends StatefulWidget {
+  const _SearchProgressWidget();
+
+  @override
+  State<_SearchProgressWidget> createState() => _SearchProgressWidgetState();
+}
+
+class _SearchProgressWidgetState extends State<_SearchProgressWidget>
+    with TickerProviderStateMixin {
+  late AnimationController _scanController;
+  late AnimationController _progressController;
+  late Animation<double> _scanAnimation;
+  late Animation<double> _progressAnimation;
+
+  final List<String> _searchSteps = [
+    'Загрузка документа',
+    'Анализ структуры',
+    'Поиск совпадений',
+    'Определение позиции',
+    'Готово',
+  ];
+
+  int _currentStep = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _scanController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    
+    _progressController = AnimationController(
+      duration: const Duration(milliseconds: 1800),
+      vsync: this,
+    );
+    
+    _scanAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _scanController, curve: Curves.easeInOut),
+    );
+    
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _progressController, curve: Curves.easeOut),
+    );
+    
+    _startAnimation();
+  }
+
+  void _startAnimation() async {
+    _scanController.repeat();
+    
+    for (int i = 0; i < _searchSteps.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (mounted) {
+        setState(() => _currentStep = i);
+      }
+    }
+    
+    _progressController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scanController.dispose();
+    _progressController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Прогресс-бар
+          Container(
+            height: 2,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(1),
+            ),
+            child: AnimatedBuilder(
+              animation: _progressAnimation,
+              builder: (context, child) {
+                return FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: _progressAnimation.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Текущий статус
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Text(
+              _currentStep < _searchSteps.length ? _searchSteps[_currentStep] : 'Завершено',
+              key: ValueKey(_currentStep),
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Сканирующая линия
+          AnimatedBuilder(
+            animation: _scanAnimation,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  Container(
+                    height: 1,
+                    width: double.infinity,
+                    color: Colors.white.withOpacity(0.05),
+                  ),
+                  Positioned(
+                    left: _scanAnimation.value * 200,
+                    child: Container(
+                      height: 1,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.
+transparent,
+                            Colors.white.withOpacity(0.6),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 class FullTextPage extends StatefulWidget {
   final QuoteContext context; // ← ИСПРАВЛЕНО: правильный тип
 
@@ -122,7 +280,7 @@ class _FullTextPageState extends State<FullTextPage>
           final totalLength = fullTextClean.length;
           final progress = index / totalLength;
           final maxScroll = _scrollController.position.maxScrollExtent;
-          final targetScroll = (maxScroll * progress) - (MediaQuery.of(context).size.height * 0.4);
+          final targetScroll = (maxScroll * progress) - (MediaQuery.of(context).size.height * 0.5);
 
           // Показываем плавный индикатор поиска
 showDialog(
@@ -130,24 +288,59 @@ showDialog(
   barrierDismissible: false,
   builder: (context) => Center(
     child: Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(15),
+        color: Colors.black.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.8),
+            blurRadius: 24,
+            spreadRadius: 8,
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
-            width: 50,
-            height: 50,
-            child: CircularProgressIndicator(
-              color: Colors.orange,
-              strokeWidth: 3,
+          // Заголовок
+          Text(
+            'Поиск по тексту',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 10),
-          const Text('Ищем цитату...', style: TextStyle(color: Colors.white)),
+          
+          const SizedBox(height: 24),
+          
+          // Анимированная панель поиска
+          Container(
+            height: 80,
+            width: 240,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: const _SearchProgressWidget(),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Статус
+          Text(
+            'Анализ структуры документа...',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.6),
+              fontSize: 13,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
         ],
       ),
     ),

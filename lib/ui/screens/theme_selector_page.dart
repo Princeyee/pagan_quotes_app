@@ -16,21 +16,29 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   // В класс _ThemeSelectorPageState добавить:
 final Map<String, AudioPlayer> _audioPlayers = {};
 
-Future<void> _playThemeSound(String themeId) async {
-  // Останавливаем все предыдущие звуки с затуханием
+Future<void> _stopAllSounds() async {
   for (final player in _audioPlayers.values) {
-    await player.setVolume(0.0);
-    await Future.delayed(const Duration(milliseconds: 100));
-    player.stop();
-    player.dispose();
+    try {
+      // Плавное затухание
+      await player.setVolume(0.0);
+      await Future.delayed(const Duration(milliseconds: 200));
+      await player.stop();
+      await player.dispose();
+    } catch (e) {
+      print('Error stopping theme sound: $e');
+    }
   }
   _audioPlayers.clear();
+}
+
+Future<void> _playThemeSound(String themeId) async {
+  // Останавливаем все предыдущие звуки с затуханием
+  await _stopAllSounds();
   
   try {
     final player = AudioPlayer();
     await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
-    await player.setVolume(1.0);
-    await player.play();
+    await player.play(); // УБРАТЬ setVolume(0.0) перед play
     _audioPlayers[themeId] = player;
   } catch (e) {
     print('Theme sound not available: $e');
@@ -85,11 +93,20 @@ Future<void> _playThemeSound(String themeId) async {
             ),
             child: InkWell(
               onTap: () {
-                _playThemeSound(theme.id);
-                setState(() {
-                  _expandedTheme = isExpanded ? null : theme;
-                });
-              },
+  if (isExpanded) {
+    // Если контейнер уже открыт - закрываем и останавливаем звук
+    _stopAllSounds();
+    setState(() {
+      _expandedTheme = null;
+    });
+  } else {
+    // Если открываем новый контейнер - играем звук
+    _playThemeSound(theme.id);
+    setState(() {
+      _expandedTheme = theme;
+    });
+  }
+},
               child: AnimatedCrossFade(
                 firstChild: _buildCollapsedCard(theme, isSelected),
                 secondChild: _buildExpandedCard(theme, isSelected),

@@ -169,9 +169,12 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   }
   Future<void> _fadeOutAmbient() async {
   if (_ambientPlayer != null) {
-    await _ambientPlayer!.setVolume(0.0);
-    await Future.delayed(const Duration(milliseconds: 300));
-    _ambientPlayer!.pause();
+    // Плавное затухание за 500мс
+    for (double volume = 1.0; volume >= 0.0; volume -= 0.1) {
+      await _ambientPlayer!.setVolume(volume);
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+    await _ambientPlayer!.pause();
   }
 }
 
