@@ -21,7 +21,6 @@ class _FullTextPageState extends State<FullTextPage>
     with TickerProviderStateMixin {
   final TextFileService _textService = TextFileService();
   final ScrollController _scrollController = ScrollController();
-  
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -72,7 +71,7 @@ class _FullTextPageState extends State<FullTextPage>
         orElse: () => throw Exception('Book source not found'),
       );
 
-      // Загружаем полный текст (используем raw версию для поиска)
+      // Загружаем полный текст
       final rawText = await _textService.loadTextFile(source.rawFilePath);
 
       setState(() {
@@ -81,11 +80,8 @@ class _FullTextPageState extends State<FullTextPage>
         _isLoading = false;
       });
 
-     _fadeController.forward();
-
-WidgetsBinding.instance.addPostFrameCallback((_) {
-  _scheduleAutoScroll();
-});
+      _fadeController.forward();
+      _scheduleAutoScroll();
       
     } catch (e) {
       setState(() {
@@ -96,7 +92,6 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
   }
 
   void _scheduleAutoScroll() {
-    // Автопрокрутка к цитате через небольшую задержку
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted && !_autoScrolled) {
         _scrollToQuote();
@@ -153,7 +148,6 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
         ),
       );
 
-      // Ждем завершения анимации
       await Future.delayed(const Duration(milliseconds: 2500));
 
       // Ищем позицию цитаты
@@ -163,10 +157,9 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
       final quoteIndex = normalizedFullText.indexOf(normalizedQuote);
       
       if (quoteIndex != -1) {
-        // Вычисляем примерную позицию скролла
         final progress = quoteIndex / normalizedFullText.length;
         final maxScroll = _scrollController.position.maxScrollExtent;
-        final targetScroll = (maxScroll * progress) - 200; // Отступ от верха
+        final targetScroll = (maxScroll * progress) - 200;
         
         await _scrollController.animateTo(
           targetScroll.clamp(0.0, maxScroll),
@@ -203,7 +196,7 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: _isLoading 
             ? _buildLoadingState()
@@ -219,13 +212,14 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
+          CircularProgressIndicator(color: Colors.white),
           SizedBox(height: 16),
           Text(
             'Загружаем полный текст...',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w300,
+              color: Colors.white,
             ),
           ),
         ],
@@ -243,13 +237,13 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
             Icon(
               Icons.error_outline,
               size: 64,
-              color: Theme.of(context).colorScheme.error,
+              color: Colors.red,
             ),
             const SizedBox(height: 16),
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
             const SizedBox(height: 24),
             Row(
@@ -257,11 +251,15 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
               children: [
                 TextButton(
                   onPressed: _goBack,
-                  child: const Text('Назад'),
+                  child: const Text('Назад', style: TextStyle(color: Colors.white70)),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _loadFullText,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                  ),
                   child: const Text('Попробовать снова'),
                 ),
               ],
@@ -296,60 +294,55 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: Colors.black,
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: _goBack,
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Назад',
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _bookSource?.title ?? 'Полный текст',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      _bookSource?.author ?? '',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+          IconButton(
+            onPressed: _goBack,
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            tooltip: 'Назад',
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _bookSource?.title ?? 'Полный текст',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _showSettings = !_showSettings;
-                  });
-                },
-                icon: Icon(_showSettings ? Icons.close : Icons.settings),
-                tooltip: 'Настройки чтения',
-              ),
-            ],
+                Text(
+                  _bookSource?.author ?? '',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _showSettings = !_showSettings;
+              });
+            },
+            icon: Icon(
+              _showSettings ? Icons.close : Icons.settings,
+              color: Colors.white,
+            ),
+            tooltip: 'Настройки чтения',
           ),
         ],
       ),
@@ -361,12 +354,9 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Colors.grey[900],
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 1,
-          ),
+          top: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
       ),
       child: Column(
@@ -377,6 +367,7 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 16),
@@ -384,18 +375,18 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
           // Размер шрифта
           Row(
             children: [
-              const Text('Размер шрифта: '),
+              const Text('Размер шрифта: ', style: TextStyle(color: Colors.white)),
               IconButton(
                 onPressed: () => _adjustFontSize(-1),
-                icon: const Icon(Icons.remove_circle_outline),
+                icon: const Icon(Icons.remove_circle_outline, color: Colors.white),
               ),
               Text(
                 '${_fontSize.toInt()}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
               ),
               IconButton(
                 onPressed: () => _adjustFontSize(1),
-                icon: const Icon(Icons.add_circle_outline),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.white),
               ),
             ],
           ),
@@ -403,18 +394,18 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
           // Междустрочный интервал
           Row(
             children: [
-              const Text('Интервал: '),
+              const Text('Интервал: ', style: TextStyle(color: Colors.white)),
               IconButton(
                 onPressed: () => _adjustLineHeight(-0.1),
-                icon: const Icon(Icons.compress),
+                icon: const Icon(Icons.compress, color: Colors.white),
               ),
               Text(
                 _lineHeight.toStringAsFixed(1),
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
               ),
               IconButton(
                 onPressed: () => _adjustLineHeight(0.1),
-                icon: const Icon(Icons.expand),
+                icon: const Icon(Icons.expand, color: Colors.white),
               ),
             ],
           ),
@@ -430,14 +421,14 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
                     curve: Curves.easeInOut,
                   );
                 },
-                icon: const Icon(Icons.vertical_align_top),
-                label: const Text('К началу'),
+                icon: const Icon(Icons.vertical_align_top, color: Colors.white70),
+                label: const Text('К началу', style: TextStyle(color: Colors.white70)),
               ),
               const SizedBox(width: 16),
               TextButton.icon(
                 onPressed: _scrollToQuote,
-                icon: const Icon(Icons.my_location),
-                label: const Text('К цитате'),
+                icon: const Icon(Icons.my_location, color: Colors.white70),
+                label: const Text('К цитате', style: TextStyle(color: Colors.white70)),
               ),
             ],
           ),
@@ -451,7 +442,6 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
 
     return GestureDetector(
       onVerticalDragEnd: (details) {
-        // Свайп вниз для возврата
         if (details.primaryVelocity != null && details.primaryVelocity! > 500) {
           _goBack();
         }
@@ -469,122 +459,90 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
     final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
     
     print('📊 Total paragraphs found: ${paragraphs.length}');
-    print('📝 Quote to find: "${widget.context.quote.text}"');
-    print('📋 Context paragraphs: ${widget.context.contextParagraphs.length}');
-    
-    // Проверяем, темная ли тема
-    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     
     if (paragraphs.isEmpty) {
       return Center(
         child: Text(
           'Текст не найден или не содержит абзацев',
           style: TextStyle(
-            color: isDarkTheme ? Colors.white : Colors.black,
+            color: Colors.white,
             fontSize: 16,
           ),
         ),
       );
     }
     
-    return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: paragraphs.map((paragraph) {
-          final paragraphText = paragraph['content'] as String;
-          final paragraphPosition = paragraph['position'] as int;
-          
-          // Проверяем, содержит ли абзац нашу цитату
-          final containsQuote = _paragraphContainsQuote(paragraphText);
-          
-          // Проверяем, является ли это частью контекста (до или после цитаты)
-          final isContextParagraph = widget.context.contextParagraphs.any((contextPar) => 
-            _normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
-            _normalizeText(paragraphText).contains(_normalizeText(contextPar))
-          );
-          
-          if (containsQuote) {
-            print('✅ Found quote in paragraph at position $paragraphPosition');
-          }
-          if (isContextParagraph) {
-            print('📄 Found context paragraph at position $paragraphPosition');
-          }
-          
-          // Определяем стиль оформления
-          BoxDecoration? decoration;
-          EdgeInsets padding = EdgeInsets.zero;
-          Color textColor = isDarkTheme ? Colors.white : Colors.black;
-          
-          if (containsQuote) {
-            // Это абзац с цитатой - самое яркое выделение
-            decoration = BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: isDarkTheme ? Colors.orange.withOpacity(0.15) : Colors.orange.withOpacity(0.1),
-              border: Border.all(
-                color: Colors.orange,
-                width: 3,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.orange.withOpacity(0.3),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                ),
-              ],
-            );
-            padding = const EdgeInsets.all(20.0);
-            textColor = isDarkTheme ? Colors.white : Colors.black;
-          } else if (isContextParagraph) {
-            // Это контекстный абзац - легкое выделение
-            decoration = BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: isDarkTheme 
-                  ? Colors.white.withOpacity(0.08) 
-                  : Colors.grey.withOpacity(0.1),
-              border: Border.all(
-                color: isDarkTheme 
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.3),
-                width: 1,
-              ),
-            );
-            padding = const EdgeInsets.all(12.0);
-          }
-          
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16.0),
-            padding: padding,
-            decoration: decoration,
-            child: RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: _fontSize,
-                  height: _lineHeight,
-                  color: textColor,
-                  fontWeight: containsQuote ? FontWeight.w600 : FontWeight.w400,
-                ),
-                children: containsQuote
-                    ? _highlightQuoteInParagraph(paragraphText, isDarkTheme: isDarkTheme)
-                    : [TextSpan(text: paragraphText)],
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: paragraphs.map((paragraph) {
+        final paragraphText = paragraph['content'] as String;
+        
+        // Проверяем, содержит ли абзац нашу цитату
+        final containsQuote = _paragraphContainsQuote(paragraphText);
+        
+        // Проверяем, является ли это частью контекста
+        final isContextParagraph = widget.context.contextParagraphs.any((contextPar) => 
+          _normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
+          _normalizeText(paragraphText).contains(_normalizeText(contextPar))
+        );
+        
+        // Определяем стиль оформления
+        BoxDecoration? decoration;
+        EdgeInsets padding = EdgeInsets.zero;
+        Color textColor = Colors.white;
+        
+        if (containsQuote) {
+          // Абзац с цитатой - яркое выделение
+          decoration = BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.orange.withOpacity(0.2),
+            border: Border.all(
+              color: Colors.orange,
+              width: 3,
             ),
           );
-        }).toList(),
-      ),
+          padding = const EdgeInsets.all(20.0);
+          textColor = Colors.white;
+        } else if (isContextParagraph) {
+          // Контекстный абзац - легкое выделение
+          decoration = BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white.withOpacity(0.05),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+          );
+          padding = const EdgeInsets.all(12.0);
+        }
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16.0),
+          padding: padding,
+          decoration: decoration,
+          child: Text(
+            paragraphText,
+            style: TextStyle(
+              fontSize: _fontSize,
+              height: _lineHeight,
+              color: textColor,
+              fontWeight: containsQuote ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
-  // Вспомогательный метод для проверки наличия цитаты
   bool _paragraphContainsQuote(String paragraphText) {
     final normalizedParagraph = _normalizeText(paragraphText);
     final normalizedQuote = _normalizeText(widget.context.quote.text);
     
-    // Пробуем найти полную цитату
     if (normalizedParagraph.contains(normalizedQuote)) {
       return true;
     }
     
-    // Пробуем найти по первым словам (если цитата длинная)
+    // Пробуем найти по первым словам
     final quoteWords = normalizedQuote.split(' ');
     if (quoteWords.length > 5) {
       final firstWords = quoteWords.take(5).join(' ');
@@ -594,91 +552,11 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
     return false;
   }
   
-  // Нормализация текста для сравнения
   String _normalizeText(String text) {
     return text.toLowerCase()
         .replaceAll(RegExp(r'[^\w\s]'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
-  }
-
-  List<TextSpan> _highlightQuoteInParagraph(String text, {bool isDarkTheme = true}) {
-    final quoteText = widget.context.quote.text;
-    
-    // Пробуем найти точное совпадение
-    int index = text.indexOf(quoteText);
-    
-    if (index == -1) {
-      // Если не нашли, пробуем без знаков препинания
-      final cleanQuote = quoteText.replaceAll(RegExp(r'[^\w\s]'), '');
-      final cleanText = text.replaceAll(RegExp(r'[^\w\s]'), '');
-      final cleanIndex = cleanText.indexOf(cleanQuote);
-      
-      if (cleanIndex != -1) {
-        // Находим приблизительную позицию в оригинальном тексте
-        index = cleanIndex;
-      }
-    }
-    
-    if (index == -1) {
-      // Последняя попытка - по первым словам
-      final firstWords = quoteText.split(' ').take(3).join(' ');
-      index = text.indexOf(firstWords);
-      
-      if (index != -1) {
-        final spans = <TextSpan>[];
-        
-        if (index > 0) {
-          spans.add(TextSpan(text: text.substring(0, index)));
-        }
-        
-        spans.add(TextSpan(
-          text: text.substring(index, index + firstWords.length),
-          style: TextStyle(
-            backgroundColor: Colors.orange.withOpacity(0.3),
-            fontWeight: FontWeight.w900,
-            fontSize: _fontSize + 2,
-            color: isDarkTheme ? Colors.white : Colors.black,
-            decoration: TextDecoration.underline,
-            decorationColor: Colors.orange,
-            decorationThickness: 2,
-          ),
-        ));
-        
-        if (index + firstWords.length < text.length) {
-          spans.add(TextSpan(text: text.substring(index + firstWords.length)));
-        }
-        
-        return spans;
-      }
-      
-      return [TextSpan(text: text)];
-    }
-
-    final spans = <TextSpan>[];
-    
-    if (index > 0) {
-      spans.add(TextSpan(text: text.substring(0, index)));
-    }
-    
-    spans.add(TextSpan(
-      text: text.substring(index, index + quoteText.length),
-      style: TextStyle(
-        backgroundColor: Colors.orange.withOpacity(0.3),
-        fontWeight: FontWeight.w900,
-        fontSize: _fontSize + 2,
-        color: isDarkTheme ? Colors.white : Colors.black,
-        decoration: TextDecoration.underline,
-        decorationColor: Colors.orange,
-        decorationThickness: 2,
-      ),
-    ));
-    
-    if (index + quoteText.length < text.length) {
-      spans.add(TextSpan(text: text.substring(index + quoteText.length)));
-    }
-    
-    return spans;
   }
 
   @override
@@ -712,7 +590,6 @@ class _SearchProgressWidgetState extends State<_SearchProgressWidget>
   void initState() {
     super.initState();
     
-    // Генерируем шаги от общего к частному
     _searchSteps = [
       widget.context.quote.category == 'greece' ? 'Греция' : 
       widget.context.quote.category == 'nordic' ? 'Север' : 
@@ -720,11 +597,8 @@ class _SearchProgressWidgetState extends State<_SearchProgressWidget>
       widget.context.quote.category == 'pagan' ? 'Язычество' : 'Неизвестная тема',
       
       widget.context.quote.author,
-      
       widget.context.quote.source,
-      
       'Локализация фрагмента',
-      
       'Найдено',
     ];
     
@@ -776,7 +650,6 @@ class _SearchProgressWidgetState extends State<_SearchProgressWidget>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Прогресс-бар
           Container(
             height: 2,
             decoration: BoxDecoration(
@@ -802,7 +675,6 @@ class _SearchProgressWidgetState extends State<_SearchProgressWidget>
           
           const SizedBox(height: 16),
           
-          // Текущий статус
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: Container(
@@ -821,7 +693,6 @@ class _SearchProgressWidgetState extends State<_SearchProgressWidget>
           
           const SizedBox(height: 12),
           
-          // Сканирующая линия
           AnimatedBuilder(
             animation: _scanAnimation,
             builder: (context, child) {
