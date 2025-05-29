@@ -124,12 +124,38 @@ class _FullTextPageState extends State<FullTextPage>
           final maxScroll = _scrollController.position.maxScrollExtent;
           final targetScroll = (maxScroll * progress) - (MediaQuery.of(context).size.height * 0.4);
 
-          // Плавная прокрутка
-          await _scrollController.animateTo(
-             targetScroll - (MediaQuery.of(context).size.height * 0.3),
-              duration: const Duration(milliseconds: 2500),
-              curve: Curves.easeInOutQuart,
-            );
+          // Показываем плавный индикатор поиска
+showDialog(
+  context: context,
+  barrierDismissible: false,
+  builder: (context) => Center(
+    child: Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset('assets/animations/fire.gif', width: 50, height: 50),
+          const SizedBox(height: 10),
+          const Text('Ищем цитату...', style: TextStyle(color: Colors.white)),
+        ],
+      ),
+    ),
+  ),
+);
+
+// Плавная прокрутка
+await _scrollController.animateTo(
+  targetScroll - (MediaQuery.of(context).size.height * 0.35),
+  duration: const Duration(milliseconds: 1800),
+  curve: Curves.easeInOutCubic,
+);
+
+// Закрываем диалог
+if (mounted) Navigator.of(context).pop();
 
           _autoScrolled = true;
           
@@ -426,46 +452,48 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildFormattedText() {
-    final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
-    
-    return Column(
+  final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
+  
+  return RepaintBoundary( // ДОБАВИТЬ
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: paragraphs.map((paragraph) {
         final isQuoteParagraph = paragraph['position'] == widget.context.quote.position;
         
         return Container(
-  key: isQuoteParagraph ? _targetKey : null,
-  margin: const EdgeInsets.only(bottom: 16.0),
-  padding: isQuoteParagraph ? const EdgeInsets.all(16.0) : EdgeInsets.zero,
-  decoration: isQuoteParagraph
-      ? BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white.withOpacity(0.05), // Более тонкое выделение контекста
-          border: Border(
-            left: BorderSide(
-              color: Colors.white.withOpacity(0.3),
-              width: 3,
+          key: isQuoteParagraph ? _targetKey : null,
+          margin: const EdgeInsets.only(bottom: 16.0),
+          padding: isQuoteParagraph ? const EdgeInsets.all(16.0) : EdgeInsets.zero,
+          decoration: isQuoteParagraph
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white.withOpacity(0.05),
+                  border: Border(
+                    left: BorderSide(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 3,
+                    ),
+                  ),
+                )
+              : null,
+          child: RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: _fontSize,
+                height: _lineHeight,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                fontWeight: isQuoteParagraph ? FontWeight.w500 : FontWeight.w400,
+              ),
+              children: isQuoteParagraph
+                  ? _highlightQuoteInParagraph(paragraph['content'] as String)
+                  : [TextSpan(text: paragraph['content'] as String)],
             ),
           ),
-        )
-      : null,
-  child: RichText(
-    text: TextSpan(
-      style: TextStyle(
-        fontSize: _fontSize,
-        height: _lineHeight,
-        color: Theme.of(context).textTheme.bodyLarge?.color,
-        fontWeight: isQuoteParagraph ? FontWeight.w500 : FontWeight.w400,
-      ),
-      children: isQuoteParagraph
-          ? _highlightQuoteInParagraph(paragraph['content'] as String)
-          : [TextSpan(text: paragraph['content'] as String)],
-    ),
-  ),
-);
+        );
       }).toList(),
-    );
-  }
+    ), // ДОБАВИТЬ закрывающую скобку RepaintBoundary
+  );
+}
 
   List<TextSpan> _highlightQuoteInParagraph(String text) {
     final quoteText = widget.context.quote.text.toLowerCase();
@@ -485,13 +513,21 @@ class _FullTextPageState extends State<FullTextPage>
     
     // Сама цитата (сильно выделенная)
     spans.add(TextSpan(
-      text: text.substring(index, index + quoteText.length),
-      style: TextStyle(
-        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.3),
-        fontWeight: FontWeight.w700,
-        color: Theme.of(context).primaryColor,
+  text: text.substring(index, index + quoteText.length),
+  style: TextStyle(
+    backgroundColor: Colors.orange.withOpacity(0.4),
+    fontWeight: FontWeight.w800,
+    fontSize: _fontSize + 3, // Больше размер
+    color: Colors.white,
+    shadows: [
+      Shadow(
+        color: Colors.orange.withOpacity(0.8),
+        blurRadius: 8,
+        offset: const Offset(0, 0),
       ),
-    ));
+    ],
+  ),
+));
     
     // Текст после цитаты
     if (index + quoteText.length < text.length) {

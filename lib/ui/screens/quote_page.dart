@@ -112,6 +112,20 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
       });
     }
   }
+  Future<void> _fadeOutAmbient() async {
+  if (_ambientPlayer != null) {
+    await _ambientPlayer!.setVolume(0.0);
+    await Future.delayed(const Duration(milliseconds: 300));
+    _ambientPlayer!.pause();
+  }
+}
+
+Future<void> _fadeInAmbient() async {
+  if (_ambientPlayer != null) {
+    _ambientPlayer!.play();
+    await _ambientPlayer!.setVolume(1.0);
+  }
+}
 
   Future<void> _setupQuoteDisplay(DailyQuote dailyQuote) async {
     // Получаем случайное изображение для категории цитаты
@@ -289,6 +303,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
 
   void _navigateToContext() async {
     if (_currentDailyQuote == null) return;
+    _fadeOutAmbient();
 
     // Отмечаем цитату как просмотренную
     await _cache.markQuoteAsViewed(_currentDailyQuote!.quote.id);
@@ -324,6 +339,13 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: Colors.black,
       drawer: const NavDrawer(),
+       onDrawerChanged: (isOpened) { // ДОБАВИТЬ
+    if (isOpened) {
+      _fadeOutAmbient();
+    } else {
+      _fadeInAmbient();
+    }
+  },
       body: SafeArea(
         child: _isLoading 
             ? _buildLoadingState()
@@ -488,26 +510,55 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
         ),
         
         // Дата
-        Column(
-          children: [
-            Text(
-              'Сегодня',
-              style: TextStyle(
-                fontSize: 14,
-                color: _textColor.withOpacity(0.8),
-                fontWeight: FontWeight.w300,
-              ),
-            ),
-            Text(
-              _currentDailyQuote!.formattedDate,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: _textColor,
-              ),
-            ),
-          ],
+        // ЗАМЕНИТЬ НА:
+Row(
+  children: [
+    Column(
+      children: [
+        Text(
+          'Сегодня',
+          style: TextStyle(
+            fontSize: 14,
+            color: _textColor.withOpacity(0.8),
+            fontWeight: FontWeight.w300,
+          ),
         ),
+        Text(
+          _currentDailyQuote!.formattedDate,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: _textColor,
+          ),
+        ),
+      ],
+    ),
+    const SizedBox(width: 16),
+    // Кнопка звука
+    GestureDetector(
+      onTap: () {
+        if (_ambientPlayer?.playing == true) {
+          _fadeOutAmbient();
+        } else {
+          _fadeInAmbient();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withOpacity(0.3),
+        ),
+        child: Icon(
+          _ambientPlayer?.playing == true ? Icons.volume_up : Icons.volume_off,
+          color: _textColor,
+          size: 20,
+        ),
+      ),
+    ),
+  ],
+),
+
         
         // Пустое место для симметрии
         const SizedBox(width: 48),
