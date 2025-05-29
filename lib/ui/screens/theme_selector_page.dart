@@ -17,6 +17,13 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
 final Map<String, AudioPlayer> _audioPlayers = {};
 
 Future<void> _playThemeSound(String themeId) async {
+  // Останавливаем все предыдущие звуки
+  for (final player in _audioPlayers.values) {
+    player.stop();
+    player.dispose();
+  }
+  _audioPlayers.clear();
+  
   try {
     final player = AudioPlayer();
     await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
@@ -25,7 +32,6 @@ Future<void> _playThemeSound(String themeId) async {
   } catch (e) {
     print('Theme sound not available: $e');
   }
-
 }
 
   @override

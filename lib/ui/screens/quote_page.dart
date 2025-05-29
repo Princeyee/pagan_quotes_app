@@ -16,6 +16,32 @@ import '../../services/image_picker_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/nav_drawer.dart';
 import 'context_page.dart';
+class StrikeThroughPainter extends CustomPainter {
+  final double progress;
+  
+  StrikeThroughPainter(this.progress);
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.red
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    
+    final startX = size.width * 0.2;
+    final endX = size.width * 0.8;
+    final y = size.height * 0.5;
+    
+    canvas.drawLine(
+      Offset(startX, y),
+      Offset(startX + (endX - startX) * progress, y),
+      paint,
+    );
+  }
+  
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
 
 class QuotePage extends StatefulWidget {
   const QuotePage({super.key});
@@ -33,11 +59,15 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late AnimationController _soundButtonController;
+  late Animation<double> _soundButtonAnimation;
 
   DailyQuote? _currentDailyQuote;
   String? _backgroundImageUrl;
   bool _isLoading = true;
   bool _isFavorite = false;
+  bool _isSoundMuted = false;
+
   String? _error;
   Color _textColor = Colors.white;
   AudioPlayer? _ambientPlayer;
@@ -48,15 +78,28 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+     WidgetsBinding.instance.addObserver(this); // ДОБАВИТЬ
     _initializeAnimations();
     _loadTodayQuote();
   }
-
+ 
   void _initializeAnimations() {
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+    _soundButtonController = AnimationController(
+    duration: const Duration(milliseconds: 300),
+   vsync: this,
+     );
+
+     _soundButtonAnimation = Tween<double>(
+      begin: 0.0,
+     end: 1.0,
+      ).animate(CurvedAnimation(
+      parent: _soundButtonController,
+      curve: Curves.easeInOut,
+    ));
     
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -535,27 +578,51 @@ Row(
     ),
     const SizedBox(width: 16),
     // Кнопка звука
-    GestureDetector(
-      onTap: () {
-        if (_ambientPlayer?.playing == true) {
-          _fadeOutAmbient();
-        } else {
-          _fadeInAmbient();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.3),
-        ),
-        child: Icon(
-          _ambientPlayer?.playing == true ? Icons.volume_up : Icons.volume_off,
-          color: _textColor,
-          size: 20,
-        ),
-      ),
+    // ЗАМЕНИТЬ кнопку звука на:
+GestureDetector(
+  onTap: () async {
+    setState(() {
+      _isSoundMuted = !_isSoundMuted;
+    });
+    
+    if (_isSoundMuted) {
+      _soundButtonController.forward();
+      await _fadeOutAmbient();
+      await _cache.setSetting('sound_muted', true);
+    } else {
+      _soundButtonController.reverse();
+      await _fadeInAmbient();
+      await _cache.setSetting('sound_muted', false);
+    }
+  },
+  child: Container(
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.black.withOpacity(0.3),
     ),
+    child: AnimatedBuilder(
+      animation: _soundButtonAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            Icon(
+              Icons.volume_up,
+              color: _textColor,
+              size: 20,
+            ),
+            if (_soundButtonAnimation.value > 0)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: StrikeThroughPainter(_soundButtonAnimation.value),
+                ),
+              ),
+          ],
+        );
+      },
+    ),
+  ),
+),
   ],
 ),
 
@@ -673,6 +740,7 @@ Row(
 
   @override
   void dispose() {
+     WidgetsBinding.instance.removeObserver(this); // ДОБАВИТЬ
     _fadeController.dispose();
     _slideController.dispose();
     _ambientPlayer?.dispose();
