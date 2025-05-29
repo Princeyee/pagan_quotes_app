@@ -1,0 +1,64 @@
+name: flutter_application
+description: Ежедневные цитаты — красиво и легко
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_spinkit: ^5.2.0
+  cached_network_image: ^3.2.3
+  share_plus: ^7.0.0
+  shared_preferences: ^2.1.1
+  palette_generator: ^0.3.2
+  google_fonts: ^5.0.0
+  flutter_cache_manager: ^3.3.1
+  url_launcher: ^6.3.1
+  just_audio: ^0.9.36
+  lottie: ^3.3.1
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+ 
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icon/app_icon.png
+    - assets/sounds/candle.mp3
+    - assets/sounds/chime.mp3
+    - assets/sounds/fire.mp3
+    - assets/sounds/page_turn.mp3
+    - assets/sounds/theme_greece_ambient.mp3
+    - assets/sounds/theme_nordic_ambient.mp3
+    - assets/sounds/theme_pagan_ambient.mp3
+    - assets/sounds/theme_philosophy_ambient.mp3
+    - assets/sounds/theme_philosophy_open.mp3
+    - assets/sounds/theme_nordic_open.mp3
+    - assets/sounds/theme_greece_open.mp3
+    - assets/sounds/theme_pagan_open.mp3
+    - assets/images/book_background.jpg
+    - assets/images/greece.jpg
+    - assets/images/nordic.jpg
+    - assets/images/pagan.jpg
+    - assets/images/philosophy.jpg
+    - assets/animations/fire.gif
+    - assets/animations/greece.json
+    - assets/animations/nordic.json
+    - assets/animations/pagan.json
+    - assets/animations/philosophy.json
+    - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
+    - assets/full_texts/greece/aristotle/metaphysics_raw.txt
+    - assets/config/book_sources.json
+
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"  # путь к твоей PNG-иконке

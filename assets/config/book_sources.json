@@ -1,0 +1,23 @@
+{
+  "greece": {
+    "name": "Античная философия",
+    "description": "Древнегреческие философы и мыслители",
+    "books": [
+      {
+        "id": "aristotle_metaphysics",
+        "title": "Метафизика",
+        "author": "Аристотель",
+        "language": "ru",
+        "translator": "А.В. Кубицкий",
+        "rawFilePath": "assets/full_texts/greece/aristotle/metaphysics_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/aristotle/metaphysics_cleaned.txt",
+        "dateAdded": "2025-01-15T00:00:00Z",
+        "metadata": {
+          "originalTitle": "Μετὰ τὰ φυσικά",
+          "writtenPeriod": "350 BC",
+          "genre": "treatise"
+        }
+      }
+    ]
+  }
+}
