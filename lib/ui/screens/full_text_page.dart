@@ -72,7 +72,7 @@ class _FullTextPageState extends State<FullTextPage>
         orElse: () => throw Exception('Book source not found'),
       );
 
-      // Загружаем полный текст
+      // Загружаем полный текст (используем raw версию для поиска)
       final rawText = await _textService.loadTextFile(source.rawFilePath);
 
       setState(() {
@@ -102,93 +102,84 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   void _scrollToQuote() async {
-  if (_fullText == null || _autoScrolled) return;
+    if (_fullText == null || _autoScrolled) return;
 
-  try {
-    // Показываем диалог поиска
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Material(
-        color: Colors.transparent,
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.all(40),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.95),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Поиск по тексту',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.none,
+    try {
+      // Показываем диалог поиска
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Material(
+          color: Colors.transparent,
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.all(40),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.95),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.08)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Поиск по тексту',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.none,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  height: 80,
-                  width: 240,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.03),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  const SizedBox(height: 24),
+                  Container(
+                    height: 80,
+                    width: 240,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    ),
+                    child: _SearchProgressWidget(context: widget.context),
                   ),
-                  child: _SearchProgressWidget(context: widget.context),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-
-    // Ждем завершения анимации
-     await Future.delayed(const Duration(milliseconds: 2500));
-
-    // ПРАВИЛЬНЫЙ поиск позиции
-    final lines = _fullText!.split('\n');
-    int targetLineIndex = -1;
-    
-    // Ищем строку содержащую цитату
-    for (int i = 0; i < lines.length; i++) {
-      if (lines[i].toLowerCase().contains(
-        widget.context.quote.text.toLowerCase().substring(0, 30)
-      )) {
-        targetLineIndex = i;
-        break;
-      }
-    }
-    
-    if (targetLineIndex != -1) {
-      // Примерно вычисляем позицию скролла
-      final progress = targetLineIndex / lines.length;
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final targetScroll = (maxScroll * progress) - 200; // Отступ от верха
-      
-      await _scrollController.animateTo(
-        targetScroll.clamp(0.0, maxScroll),
-        duration: const Duration(milliseconds: 1200),
-        curve: Curves.easeInOutCubic,
       );
+
+      // Ждем завершения анимации
+      await Future.delayed(const Duration(milliseconds: 2500));
+
+      // Ищем позицию цитаты
+      final normalizedQuote = _normalizeText(widget.context.quote.text);
+      final normalizedFullText = _normalizeText(_fullText!);
+      
+      final quoteIndex = normalizedFullText.indexOf(normalizedQuote);
+      
+      if (quoteIndex != -1) {
+        // Вычисляем примерную позицию скролла
+        final progress = quoteIndex / normalizedFullText.length;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final targetScroll = (maxScroll * progress) - 200; // Отступ от верха
+        
+        await _scrollController.animateTo(
+          targetScroll.clamp(0.0, maxScroll),
+          duration: const Duration(milliseconds: 1200),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+
+      if (mounted) Navigator.of(context).pop();
+      _autoScrolled = true;
+
+    } catch (e) {
+      print('Scroll error: $e');
+      if (mounted) Navigator.of(context).pop();
     }
-
-    if (mounted) Navigator.of(context).pop();
-    _autoScrolled = true;
-
-  } catch (e) {
-    print('Scroll error: $e');
-    if (mounted) Navigator.of(context).pop();
   }
-}
-
 
   void _adjustFontSize(double delta) {
     setState(() {
@@ -472,127 +463,188 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildFormattedText() {
-  final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
-  
-  return RepaintBoundary(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: paragraphs.map((paragraph) {
-        final paragraphText = paragraph['content'] as String;
-        final paragraphPosition = paragraph['position'] as int;
-        
-        // ПРОБЛЕМА: сравниваю позицию вместо поиска по тексту
-        // ПРАВИЛЬНО: ищем цитату по содержимому
-        final containsQuote = paragraphText.toLowerCase().contains(
-          widget.context.quote.text.toLowerCase().substring(0, 
-            widget.context.quote.text.length > 50 ? 50 : widget.context.quote.text.length
-          )
-        );
-        
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16.0),
-          padding: containsQuote ? const EdgeInsets.all(16.0) : EdgeInsets.zero,
-          decoration: containsQuote
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.orange.withOpacity(0.1), // ВИДИМЫЙ цвет
-                  border: Border.all(
-                    color: Colors.orange.withOpacity(0.5),
-                    width: 2,
-                  ),
-                )
-              : null,
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeight,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: containsQuote ? FontWeight.w600 : FontWeight.w400,
+    final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
+    
+    return RepaintBoundary(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: paragraphs.map((paragraph) {
+          final paragraphText = paragraph['content'] as String;
+          final paragraphPosition = paragraph['position'] as int;
+          
+          // Проверяем, содержит ли абзац нашу цитату
+          final containsQuote = _paragraphContainsQuote(paragraphText);
+          
+          // Проверяем, является ли это частью контекста (до или после цитаты)
+          final isContextParagraph = widget.context.contextParagraphs.any((contextPar) => 
+            _normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
+            _normalizeText(paragraphText).contains(_normalizeText(contextPar))
+          );
+          
+          // Определяем стиль оформления
+          BoxDecoration? decoration;
+          EdgeInsets padding = EdgeInsets.zero;
+          
+          if (containsQuote) {
+            // Это абзац с цитатой - самое яркое выделение
+            decoration = BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              border: Border.all(
+                color: Colors.orange,
+                width: 3,
               ),
-              children: containsQuote
-                  ? _highlightQuoteInParagraph(paragraphText)
-                  : [TextSpan(text: paragraphText)],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.orange.withOpacity(0.3),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                ),
+              ],
+            );
+            padding = const EdgeInsets.all(20.0);
+          } else if (isContextParagraph) {
+            // Это контекстный абзац - легкое выделение
+            decoration = BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.white.withOpacity(0.05),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            );
+            padding = const EdgeInsets.all(12.0);
+          }
+          
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16.0),
+            padding: padding,
+            decoration: decoration,
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: _fontSize,
+                  height: _lineHeight,
+                  color: containsQuote ? Colors.black : Theme.of(context).textTheme.bodyLarge?.color,
+                  fontWeight: containsQuote ? FontWeight.w600 : FontWeight.w400,
+                ),
+                children: containsQuote
+                    ? _highlightQuoteInParagraph(paragraphText, useBlackText: true)
+                    : [TextSpan(text: paragraphText)],
+              ),
             ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // Вспомогательный метод для проверки наличия цитаты
+  bool _paragraphContainsQuote(String paragraphText) {
+    final normalizedParagraph = _normalizeText(paragraphText);
+    final normalizedQuote = _normalizeText(widget.context.quote.text);
+    
+    // Пробуем найти полную цитату
+    if (normalizedParagraph.contains(normalizedQuote)) {
+      return true;
+    }
+    
+    // Пробуем найти по первым словам (если цитата длинная)
+    final quoteWords = normalizedQuote.split(' ');
+    if (quoteWords.length > 5) {
+      final firstWords = quoteWords.take(5).join(' ');
+      return normalizedParagraph.contains(firstWords);
+    }
+    
+    return false;
+  }
+  
+  // Нормализация текста для сравнения
+  String _normalizeText(String text) {
+    return text.toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  List<TextSpan> _highlightQuoteInParagraph(String text, {bool useBlackText = false}) {
+    final quoteText = widget.context.quote.text;
+    
+    // Пробуем найти точное совпадение
+    int index = text.indexOf(quoteText);
+    
+    if (index == -1) {
+      // Если не нашли, пробуем без знаков препинания
+      final cleanQuote = quoteText.replaceAll(RegExp(r'[^\w\s]'), '');
+      final cleanText = text.replaceAll(RegExp(r'[^\w\s]'), '');
+      final cleanIndex = cleanText.indexOf(cleanQuote);
+      
+      if (cleanIndex != -1) {
+        // Находим приблизительную позицию в оригинальном тексте
+        index = cleanIndex;
+      }
+    }
+    
+    if (index == -1) {
+      // Последняя попытка - по первым словам
+      final firstWords = quoteText.split(' ').take(3).join(' ');
+      index = text.indexOf(firstWords);
+      
+      if (index != -1) {
+        final spans = <TextSpan>[];
+        
+        if (index > 0) {
+          spans.add(TextSpan(text: text.substring(0, index)));
+        }
+        
+        spans.add(TextSpan(
+          text: text.substring(index, index + firstWords.length),
+          style: TextStyle(
+            backgroundColor: Colors.orange.withOpacity(0.3),
+            fontWeight: FontWeight.w900,
+            fontSize: _fontSize + 2,
+            color: useBlackText ? Colors.black : Colors.white,
+            decoration: TextDecoration.underline,
+            decorationColor: Colors.orange,
+            decorationThickness: 2,
           ),
-        );
-      }).toList(),
-    ),
-  );
-}
-
-  List<TextSpan> _highlightQuoteInParagraph(String text) {
-  final quoteText = widget.context.quote.text;
-  
-  // Пробуем найти точное совпадение
-  int index = text.indexOf(quoteText);
-  
-  if (index == -1) {
-    // Если не нашли, пробуем без знаков препинания
-    final cleanQuote = quoteText.replaceAll(RegExp(r'[^\w\s]'), '');
-    final cleanText = text.replaceAll(RegExp(r'[^\w\s]'), '');
-    final cleanIndex = cleanText.indexOf(cleanQuote);
-    
-    if (cleanIndex != -1) {
-      // Находим приблизительную позицию в оригинальном тексте
-      index = cleanIndex;
-    }
-  }
-  
-  if (index == -1) {
-    // Последняя попытка - по первым словам
-    final firstWords = quoteText.split(' ').take(3).join(' ');
-    index = text.indexOf(firstWords);
-    
-    if (index != -1) {
-      final spans = <TextSpan>[];
-      
-      if (index > 0) {
-        spans.add(TextSpan(text: text.substring(0, index)));
+        ));
+        
+        if (index + firstWords.length < text.length) {
+          spans.add(TextSpan(text: text.substring(index + firstWords.length)));
+        }
+        
+        return spans;
       }
       
-      spans.add(TextSpan(
-        text: text.substring(index, index + firstWords.length),
-        style: TextStyle(
-          backgroundColor: Colors.orange.withOpacity(0.6),
-          fontWeight: FontWeight.w800,
-          fontSize: _fontSize + 2,
-          color: Colors.white,
-        ),
-      ));
-      
-      if (index + firstWords.length < text.length) {
-        spans.add(TextSpan(text: text.substring(index + firstWords.length)));
-      }
-      
-      return spans;
+      return [TextSpan(text: text)];
+    }
+
+    final spans = <TextSpan>[];
+    
+    if (index > 0) {
+      spans.add(TextSpan(text: text.substring(0, index)));
     }
     
-    return [TextSpan(text: text)];
+    spans.add(TextSpan(
+      text: text.substring(index, index + quoteText.length),
+      style: TextStyle(
+        backgroundColor: Colors.orange.withOpacity(0.3),
+        fontWeight: FontWeight.w900,
+        fontSize: _fontSize + 2,
+        color: useBlackText ? Colors.black : Colors.white,
+        decoration: TextDecoration.underline,
+        decorationColor: Colors.orange,
+        decorationThickness: 2,
+      ),
+    ));
+    
+    if (index + quoteText.length < text.length) {
+      spans.add(TextSpan(text: text.substring(index + quoteText.length)));
+    }
+    
+    return spans;
   }
-
-  final spans = <TextSpan>[];
-  
-  if (index > 0) {
-    spans.add(TextSpan(text: text.substring(0, index)));
-  }
-  
-  spans.add(TextSpan(
-    text: text.substring(index, index + quoteText.length),
-    style: TextStyle(
-      backgroundColor: Colors.orange.withOpacity(0.6),
-      fontWeight: FontWeight.w800,
-      fontSize: _fontSize + 2,
-      color: Colors.white,
-    ),
-  ));
-  
-  if (index + quoteText.length < text.length) {
-    spans.add(TextSpan(text: text.substring(index + quoteText.length)));
-  }
-  
-  return spans;
-}
 
   @override
   void dispose() {

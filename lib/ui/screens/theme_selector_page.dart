@@ -13,7 +13,7 @@ class ThemeSelectorPage extends StatefulWidget {
 class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   late List<String> _enabledThemes;
   ThemeInfo? _expandedTheme;
-  final Map<String, AudioPlayer> _audioPlayers = {};
+  AudioPlayer? _currentPlayer;
 
   @override
   void initState() {
@@ -31,38 +31,36 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
     await _loadEnabledThemes();
   }
 
- Future<void> _stopAllSounds() async {
-  // ПРОБЛЕМА: цикл не ждет завершения каждого stop/dispose
-  final futures = <Future>[];
-  
-  for (final player in _audioPlayers.values) {
-    futures.add(player.stop().then((_) => player.dispose()).catchError((e) {
-      print('Error stopping player: $e');
-    }));
+  Future<void> _stopCurrentSound() async {
+    if (_currentPlayer != null) {
+      try {
+        await _currentPlayer!.stop();
+        await _currentPlayer!.dispose();
+        _currentPlayer = null;
+      } catch (e) {
+        print('Error stopping sound: $e');
+      }
+    }
   }
-  
-  await Future.wait(futures); // ЖДЕМ все операции
-  _audioPlayers.clear();
-}
 
-Future<void> _playThemeSound(String themeId) async {
-  await _stopAllSounds(); // ОБЯЗАТЕЛЬНО await
-  
-  try {
-    final player = AudioPlayer();
-    await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
-    await player.play();
-    _audioPlayers[themeId] = player;
-  } catch (e) {
-    print('Theme sound error: $e');
+  Future<void> _playThemeSound(String themeId) async {
+    // Сначала останавливаем текущий звук
+    await _stopCurrentSound();
+    
+    try {
+      _currentPlayer = AudioPlayer();
+      await _currentPlayer!.setAsset('assets/sounds/theme_${themeId}_open.mp3');
+      await _currentPlayer!.play();
+    } catch (e) {
+      print('Theme sound error: $e');
+      _currentPlayer?.dispose();
+      _currentPlayer = null;
+    }
   }
-}
 
   @override
   void dispose() {
-    for (final player in _audioPlayers.values) {
-      player.dispose();
-    }
+    _stopCurrentSound();
     super.dispose();
   }
 
@@ -90,19 +88,21 @@ Future<void> _playThemeSound(String themeId) async {
               color: isSelected ? Colors.white10 : Colors.white12,
             ),
             child: InkWell(
-              onTap: () {
+              onTap: () async {
                 if (isExpanded) {
-                  // Если контейнер уже открыт - закрываем и останавливаем звук
-                  _stopAllSounds();
+                  // Закрываем текущий контейнер и останавливаем звук
+                  await _stopCurrentSound();
                   setState(() {
                     _expandedTheme = null;
                   });
                 } else {
-                  // Если открываем новый контейнер - играем звук
-                  _playThemeSound(theme.id);
+                  // Закрываем предыдущий и открываем новый
+                  await _stopCurrentSound();
                   setState(() {
                     _expandedTheme = theme;
                   });
+                  // Играем звук нового контейнера
+                  await _playThemeSound(theme.id);
                 }
               },
               child: AnimatedCrossFade(
@@ -129,7 +129,8 @@ Future<void> _playThemeSound(String themeId) async {
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              Text(theme.name, style: const TextStyle(fontSize: 20, color: Colors.white)),
+              Text(theme.
+name, style: const TextStyle(fontSize: 20, color: Colors.white)),
               const SizedBox(height: 6),
               Icon(
                 isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
