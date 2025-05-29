@@ -50,7 +50,7 @@ class QuotePage extends StatefulWidget {
   State<QuotePage> createState() => _QuotePageState();
 }
 
-class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
+class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, WidgetsBindingObserver {
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final CustomCachePrefs _cache = CustomCache.prefs;
   final GlobalKey _quoteCardKey = GlobalKey();
@@ -81,6 +81,13 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin {
      WidgetsBinding.instance.addObserver(this); // ДОБАВИТЬ
     _initializeAnimations();
     _loadTodayQuote();
+  }
+    @override
+  void didChangeAppLifecycleState(AppLifecycleState state) { // ДОБАВИТЬ ВЕСЬ МЕТОД
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      _ambientPlayer?.stop();
+    }
   }
  
   void _initializeAnimations() {
