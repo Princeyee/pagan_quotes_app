@@ -13,43 +13,12 @@ class ThemeSelectorPage extends StatefulWidget {
 class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   late List<String> _enabledThemes;
   ThemeInfo? _expandedTheme;
-  // В класс _ThemeSelectorPageState добавить:
-final Map<String, AudioPlayer> _audioPlayers = {};
-
-Future<void> _stopAllSounds() async {
-  for (final player in _audioPlayers.values) {
-    try {
-      // Плавное затухание
-      await player.setVolume(0.0);
-      await Future.delayed(const Duration(milliseconds: 200));
-      await player.stop();
-      await player.dispose();
-    } catch (e) {
-      print('Error stopping theme sound: $e');
-    }
-  }
-  _audioPlayers.clear();
-}
-
-Future<void> _playThemeSound(String themeId) async {
-  // Останавливаем все предыдущие звуки с затуханием
-  await _stopAllSounds();
-  
-  try {
-    final player = AudioPlayer();
-    await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
-    await player.play(); // УБРАТЬ setVolume(0.0) перед play
-    _audioPlayers[themeId] = player;
-  } catch (e) {
-    print('Theme sound not available: $e');
-  }
-}
+  final Map<String, AudioPlayer> _audioPlayers = {};
 
   @override
   void initState() {
     super.initState();
     _loadEnabledThemes();
-    
   }
 
   Future<void> _loadEnabledThemes() async {
@@ -62,13 +31,42 @@ Future<void> _playThemeSound(String themeId) async {
     await _loadEnabledThemes();
   }
 
-  @override
-   void dispose() {
+ Future<void> _stopAllSounds() async {
+  // ПРОБЛЕМА: цикл не ждет завершения каждого stop/dispose
+  final futures = <Future>[];
+  
   for (final player in _audioPlayers.values) {
-    player.dispose();
+    futures.add(player.stop().then((_) => player.dispose()).catchError((e) {
+      print('Error stopping player: $e');
+    }));
   }
-  super.dispose();
+  
+  await Future.wait(futures); // ЖДЕМ все операции
+  _audioPlayers.clear();
 }
+
+Future<void> _playThemeSound(String themeId) async {
+  await _stopAllSounds(); // ОБЯЗАТЕЛЬНО await
+  
+  try {
+    final player = AudioPlayer();
+    await player.setAsset('assets/sounds/theme_${themeId}_open.mp3');
+    await player.play();
+    _audioPlayers[themeId] = player;
+  } catch (e) {
+    print('Theme sound error: $e');
+  }
+}
+
+  @override
+  void dispose() {
+    for (final player in _audioPlayers.values) {
+      player.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
@@ -93,20 +91,20 @@ Future<void> _playThemeSound(String themeId) async {
             ),
             child: InkWell(
               onTap: () {
-  if (isExpanded) {
-    // Если контейнер уже открыт - закрываем и останавливаем звук
-    _stopAllSounds();
-    setState(() {
-      _expandedTheme = null;
-    });
-  } else {
-    // Если открываем новый контейнер - играем звук
-    _playThemeSound(theme.id);
-    setState(() {
-      _expandedTheme = theme;
-    });
-  }
-},
+                if (isExpanded) {
+                  // Если контейнер уже открыт - закрываем и останавливаем звук
+                  _stopAllSounds();
+                  setState(() {
+                    _expandedTheme = null;
+                  });
+                } else {
+                  // Если открываем новый контейнер - играем звук
+                  _playThemeSound(theme.id);
+                  setState(() {
+                    _expandedTheme = theme;
+                  });
+                }
+              },
               child: AnimatedCrossFade(
                 firstChild: _buildCollapsedCard(theme, isSelected),
                 secondChild: _buildExpandedCard(theme, isSelected),
@@ -118,7 +116,6 @@ Future<void> _playThemeSound(String themeId) async {
         },
       ),
     );
-    
   }
 
   Widget _buildCollapsedCard(ThemeInfo theme, bool isSelected) {

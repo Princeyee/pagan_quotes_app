@@ -81,12 +81,23 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }
   @override
-  void initState() {
-    super.initState();
-     WidgetsBinding.instance.addObserver(this); // ДОБАВИТЬ
-    _initializeAnimations();
-    _loadTodayQuote();
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addObserver(this);
+  _initializeAnimations();
+  _loadSoundSettings(); // ДОБАВИТЬ
+  _loadTodayQuote();
+}
+
+Future<void> _loadSoundSettings() async {
+  final soundMuted = await _cache.getSetting<bool>('sound_muted') ?? false;
+  setState(() {
+    _isSoundMuted = soundMuted;
+  });
+  if (_isSoundMuted) {
+    _soundButtonController.forward();
   }
+}
     @override
   void didChangeAppLifecycleState(AppLifecycleState state) { // ДОБАВИТЬ ВЕСЬ МЕТОД
     super.didChangeAppLifecycleState(state);
