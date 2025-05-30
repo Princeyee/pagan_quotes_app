@@ -1,6 +1,5 @@
 // lib/ui/screens/full_text_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
@@ -21,7 +20,6 @@ class _FullTextPageState extends State<FullTextPage>
     with TickerProviderStateMixin {
   final TextFileService _textService = TextFileService();
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _targetKey = GlobalKey();
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -30,15 +28,28 @@ class _FullTextPageState extends State<FullTextPage>
   BookSource? _bookSource;
   bool _isLoading = true;
   String? _error;
+  String? _debugInfo; // Добавляем отладочную информацию
   bool _autoScrolled = false;
   double _fontSize = 16.0;
   double _lineHeight = 1.6;
   bool _showSettings = false;
+  bool _showDebugInfo = false; // Добавляем флаг для отладки
 
-  // Цветовая схема для темной темы
-  static const Color _highlightColor = Color(0xFF64B5F6); // Современный синий
-  static const Color _accentColor = Color(0xFF90CAF9); // Светлее синий для акцентов
-  static const Color _contextColor = Color(0xFF1E3A8A); // Темно-синий для контекста
+  // Определяем цвета в зависимости от темы
+  Color get _highlightColor {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white : const Color(0xFF64B5F6); // Белый в темной, синий в светлой
+  }
+  
+  Color get _accentColor {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white : const Color(0xFF90CAF9);
+  }
+  
+  Color get _contextColor {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? Colors.white : const Color(0xFF1E3A8A);
+  }
 
   @override
   void initState() {
@@ -66,24 +77,33 @@ class _FullTextPageState extends State<FullTextPage>
     setState(() {
       _isLoading = true;
       _error = null;
+      _debugInfo = "Начинаем загрузку...";
     });
 
     try {
+      setState(() => _debugInfo = "Загружаем источники книг...");
       // Находим источник книги
       final sources = await _textService.loadBookSources();
+      
+      setState(() => _debugInfo = "Найдено источников: ${sources.length}. Ищем: ${widget.context.quote.author} - ${widget.context.quote.source}");
       final source = sources.firstWhere(
         (s) => s.author == widget.context.quote.author && 
                s.title == widget.context.quote.source,
         orElse: () => throw Exception('Book source not found'),
       );
+      
+      setState(() => _debugInfo = "Источник найден: ${source.title}. Загружаем файл: ${source.cleanedFilePath}");
 
-      // Загружаем полный текст (используем raw версию для поиска)
-      final rawText = await _textService.loadTextFile(source.rawFilePath);
+      // Загружаем cleaned версию для отображения (без маркеров)
+      final cleanedText = await _textService.loadTextFile(source.cleanedFilePath);
+      
+      setState(() => _debugInfo = "Текст загружен, длина: ${cleanedText.length} символов");
 
       setState(() {
         _bookSource = source;
-        _fullText = rawText;
+        _fullText = cleanedText; // Используем cleaned версию
         _isLoading = false;
+        _debugInfo = null; // Убираем отладку после успешной загрузки
       });
 
       _fadeController.forward();
@@ -92,6 +112,7 @@ class _FullTextPageState extends State<FullTextPage>
     } catch (e) {
       setState(() {
         _error = 'Ошибка загрузки полного текста: $e';
+        _debugInfo = 'ОШИБКА: $e';
         _isLoading = false;
       });
     }
@@ -158,24 +179,20 @@ class _FullTextPageState extends State<FullTextPage>
       // Ждем завершения анимации
       await Future.delayed(const Duration(milliseconds: 2500));
 
-      // Ищем позицию цитаты более точно
-      final quotePosition = _findQuotePosition();
+      // Ищем позицию цитаты
+      final normalizedQuote = _normalizeText(widget.context.quote.text);
+      final normalizedFullText = _normalizeText(_fullText!);
       
-      if (quotePosition != -1) {
-        // Подсчитываем количество символов до позиции цитаты
-        final textBeforeQuote = _fullText!.substring(0, quotePosition);
-        final lines = textBeforeQuote.split('\n').length;
-        
-        // Приблизительная высота одной строки с учетом размера шрифта и интервала
-        final lineHeight = _fontSize * _lineHeight;
-        final approximateScrollPosition = (lines * lineHeight) - (MediaQuery.of(context).size.height * 0.4);
-        
-        // Ограничиваем скролл в допустимых пределах
+      final quoteIndex = normalizedFullText.indexOf(normalizedQuote);
+      
+      if (quoteIndex != -1) {
+        // Вычисляем примерную позицию скролла
+        final progress = quoteIndex / normalizedFullText.length;
         final maxScroll = _scrollController.position.maxScrollExtent;
-        final targetScroll = approximateScrollPosition.clamp(0.0, maxScroll);
+        final targetScroll = (maxScroll * progress) - 200; // Отступ от верха
         
         await _scrollController.animateTo(
-          targetScroll,
+          targetScroll.clamp(0.0, maxScroll),
           duration: const Duration(milliseconds: 1200),
           curve: Curves.easeInOutCubic,
         );
@@ -188,34 +205,6 @@ class _FullTextPageState extends State<FullTextPage>
       print('Scroll error: $e');
       if (mounted) Navigator.of(context).pop();
     }
-  }
-
-  int _findQuotePosition() {
-    if (_fullText == null) return -1;
-    
-    final normalizedQuote = _normalizeText(widget.context.quote.text);
-    final normalizedFullText = _normalizeText(_fullText!);
-    
-    // Пробуем найти полную цитату
-    int position = normalizedFullText.indexOf(normalizedQuote);
-    
-    if (position == -1) {
-      // Пробуем найти по первым 5 словам
-      final quoteWords = normalizedQuote.split(' ');
-      if (quoteWords.length > 3) {
-        final firstWords = quoteWords.take(5).join(' ');
-        position = normalizedFullText.indexOf(firstWords);
-      }
-    }
-    
-    // Конвертируем позицию из нормализованного текста в оригинальный
-    if (position != -1) {
-      // Это приблизительная конвертация, но для скролла достаточно точная
-      final ratio = position / normalizedFullText.length;
-      return (ratio * _fullText!.length).round();
-    }
-    
-    return -1;
   }
 
   void _adjustFontSize(double delta) {
@@ -249,19 +238,38 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text(
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          const Text(
             'Загружаем полный текст...',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w300,
             ),
           ),
+          if (_debugInfo != null) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _debugInfo!,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -314,6 +322,9 @@ class _FullTextPageState extends State<FullTextPage>
         
         // Настройки чтения (если открыты)
         if (_showSettings) _buildReadingSettings(),
+        
+        // Отладочная информация (только если включена)
+        if (_showDebugInfo) _buildDebugInfo(),
         
         // Полный текст
         Expanded(
@@ -374,6 +385,16 @@ class _FullTextPageState extends State<FullTextPage>
                   ],
                 ),
               ),
+              // Кнопка отладки
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _showDebugInfo = !_showDebugInfo;
+                  });
+                },
+                icon: Icon(_showDebugInfo ? Icons.bug_report : Icons.bug_report_outlined),
+                tooltip: 'Отладка',
+              ),
               IconButton(
                 onPressed: () {
                   setState(() {
@@ -385,6 +406,100 @@ class _FullTextPageState extends State<FullTextPage>
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDebugInfo() {
+    if (_fullText == null) return const SizedBox.shrink();
+    
+    final quoteToFind = widget.context.quote.text;
+    final normalizedQuote = _normalizeText(quoteToFind);
+    final normalizedFullText = _normalizeText(_fullText!);
+    final foundIndex = normalizedFullText.indexOf(normalizedQuote);
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.blue.withOpacity(0.1),
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bug_report, size: 16),
+              const SizedBox(width: 8),
+              const Text(
+                'Отладочная информация',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          Text(
+            'ФАЙЛ: ${_bookSource?.cleanedFilePath ?? "неизвестно"}',
+            style: const TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ПЕРВЫЕ 200 СИМВОЛОВ ФАЙЛА:\n"${_fullText!.substring(0, (_fullText!.length > 200 ? 200 : _fullText!.length))}"',
+            style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+          ),
+          const SizedBox(height: 8),
+          
+          Text(
+            'ИЩЕМ ЦИТАТУ:\n"${quoteToFind.length > 100 ? quoteToFind.substring(0, 100) + "..." : quoteToFind}"',
+            style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'НОРМАЛИЗОВАННАЯ ЦИТАТА:\n"${normalizedQuote.length > 100 ? normalizedQuote.substring(0, 100) + "..." : normalizedQuote}"',
+            style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'РЕЗУЛЬТАТ ПОИСКА: ${foundIndex != -1 ? "НАЙДЕНО на позиции $foundIndex" : "НЕ НАЙДЕНО"}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: foundIndex != -1 ? Colors.green : Colors.red,
+            ),
+          ),
+          if (foundIndex != -1) ...[
+            const SizedBox(height: 8),
+            Text(
+              'КОНТЕКСТ НАЙДЕННОГО:\n"${_fullText!.substring(
+                (foundIndex - 50).clamp(0, _fullText!.length),
+                (foundIndex + quoteToFind.length + 50).clamp(0, _fullText!.length)
+              )}"',
+              style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Text(
+            'КОНТЕКСТНЫЕ АБЗАЦЫ: ${widget.context.contextParagraphs.length}',
+            style: const TextStyle(fontSize: 12),
+          ),
+          if (widget.context.contextParagraphs.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              'ПЕРВЫЙ КОНТЕКСТ:\n"${widget.context.contextParagraphs.first.length > 80 ? widget.context.contextParagraphs.first.substring(0, 80) + "..." : widget.context.contextParagraphs.first}"',
+              style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+            ),
+          ],
         ],
       ),
     );
@@ -470,7 +585,7 @@ class _FullTextPageState extends State<FullTextPage>
               const SizedBox(width: 16),
               TextButton.icon(
                 onPressed: () {
-                  _autoScrolled = false;
+                  _autoScrolled = false; // Сбрасываем флаг
                   _scrollToQuote();
                 },
                 icon: const Icon(Icons.my_location),
@@ -503,97 +618,179 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildFormattedText() {
-    final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
+    if (_fullText == null) return const SizedBox.shrink();
     
-    return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: paragraphs.map((paragraph) {
-          final paragraphText = paragraph['content'] as String;
-          final paragraphPosition = paragraph['position'] as int;
-          
-          // Проверяем, содержит ли абзац нашу цитату
-          final containsQuote = _paragraphContainsQuote(paragraphText);
-          
-          // Проверяем контекстные абзацы более точно
-          final isContextParagraph = !containsQuote && _isRealContextParagraph(paragraphs, paragraph);
-          
-          // Определяем стиль оформления только для специальных абзацев
-          BoxDecoration? decoration;
-          EdgeInsets padding = EdgeInsets.zero;
-          
-          if (containsQuote) {
-            // Это абзац с цитатой - яркое выделение
-            decoration = BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: _highlightColor.withOpacity(0.15),
-              border: Border.all(
-                color: _highlightColor,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: _highlightColor.withOpacity(0.2),
-                  blurRadius: 8,
-                  spreadRadius: 1,
+    try {
+      final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
+      
+      if (paragraphs.isEmpty) {
+        // Fallback - простое разделение на абзацы
+        final simpleParagraphs = _fullText!.split('\n\n').where((p) => p.trim().isNotEmpty).toList();
+        
+        return RepaintBoundary(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Показываем предупреждение только в режиме отладки
+              if (_showDebugInfo)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'ОТЛАДКА: extractParagraphsWithPositions вернул пустой массив. Используем простое разделение. Найдено абзацев: ${simpleParagraphs.length}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 ),
-              ],
-            );
-            padding = const EdgeInsets.all(20.0);
-          } else if (isContextParagraph) {
-            // Это контекстный абзац - легкое выделение
-            decoration = BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: _contextColor.withOpacity(0.1),
-              border: Border.all(
-                color: _contextColor.withOpacity(0.3),
-                width: 1,
-              ),
-            );
-            padding = const EdgeInsets.all(12.0);
-          }
-          
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16.0),
-            padding: padding,
-            decoration: decoration,
-            child: RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: _fontSize,
-                  height: _lineHeight,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontWeight: containsQuote ? FontWeight.w600 : FontWeight.w400,
-                ),
-                children: containsQuote
-                    ? _highlightQuoteInParagraph(paragraphText)
-                    : [TextSpan(text: paragraphText)],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // Более точная проверка контекстных абзацев
-  bool _isRealContextParagraph(List<Map<String, dynamic>> allParagraphs, Map<String, dynamic> currentParagraph) {
-    final currentIndex = allParagraphs.indexOf(currentParagraph);
-    
-    // Ищем абзац с цитатой
-    int quoteIndex = -1;
-    for (int i = 0; i < allParagraphs.length; i++) {
-      if (_paragraphContainsQuote(allParagraphs[i]['content'] as String)) {
-        quoteIndex = i;
-        break;
+              ...simpleParagraphs.map((paragraphText) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    paragraphText.trim(),
+                    style: TextStyle(
+                      fontSize: _fontSize,
+                      height: _lineHeight,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        );
       }
+      
+      return RepaintBoundary(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: paragraphs.map((paragraph) {
+            final paragraphText = paragraph['content'] as String;
+            
+            // Проверяем, содержит ли абзац нашу цитату
+            final containsQuote = _paragraphContainsQuote(paragraphText);
+            
+            // Проверяем контекст только если нет цитаты И контекст не пустой
+            final isContextParagraph = !containsQuote && 
+                widget.context.contextParagraphs.isNotEmpty &&
+                widget.context.contextParagraphs.any((contextPar) => 
+                  contextPar.trim().isNotEmpty &&
+                  (_normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
+                   _normalizeText(paragraphText).contains(_normalizeText(contextPar)))
+                );
+            
+            // Определяем стиль оформления
+            BoxDecoration? decoration;
+            EdgeInsets padding = EdgeInsets.zero;
+            
+            if (containsQuote) {
+              // Это абзац с цитатой - самое яркое выделение
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              decoration = BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: _highlightColor.withOpacity(isDark ? 0.08 : 0.15),
+                border: Border.all(
+                  color: _highlightColor.withOpacity(isDark ? 0.3 : 1.0),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: _highlightColor.withOpacity(isDark ? 0.1 : 0.2),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              );
+              padding = const EdgeInsets.all(20.0);
+            } else if (isContextParagraph) {
+              // Это контекстный абзац - легкое выделение
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              decoration = BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: _contextColor.withOpacity(isDark ? 0.04 : 0.1),
+                border: Border.all(
+                  color: _contextColor.withOpacity(isDark ? 0.15 : 0.3),
+                  width: 1,
+                ),
+              );
+              padding = const EdgeInsets.all(12.0);
+            }
+            
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16.0),
+              padding: padding,
+              decoration: decoration,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Показываем отладку для каждого абзаца только в режиме отладки
+                  if (_showDebugInfo && (containsQuote || isContextParagraph))
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: containsQuote ? Colors.green.withOpacity(0.1) : Colors.yellow.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        containsQuote ? '✅ ЦИТАТА НАЙДЕНА' : '📝 КОНТЕКСТНЫЙ АБЗАЦ',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: containsQuote ? Colors.green : Colors.orange,
+                        ),
+                      ),
+                    ),
+                  
+                  // Сам текст абзаца
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: _fontSize,
+                        height: _lineHeight,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                        fontWeight: containsQuote ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                      children: containsQuote
+                          ? _highlightQuoteInParagraph(paragraphText)
+                          : [TextSpan(text: paragraphText)],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      );
+      
+    } catch (e) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'ОШИБКА В _buildFormattedText:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$e',
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
-    
-    if (quoteIndex == -1) return false;
-    
-    // Контекстными считаем только ближайшие 1-2 абзаца до и после цитаты
-    final distance = (currentIndex - quoteIndex).abs();
-    return distance <= 2 && distance > 0;
   }
 
   // Вспомогательный метод для проверки наличия цитаты
@@ -601,24 +798,19 @@ class _FullTextPageState extends State<FullTextPage>
     final normalizedParagraph = _normalizeText(paragraphText);
     final normalizedQuote = _normalizeText(widget.context.quote.text);
     
+    // Проверяем минимальную длину
+    if (normalizedQuote.length < 10) return false;
+    
     // Пробуем найти полную цитату
     if (normalizedParagraph.contains(normalizedQuote)) {
       return true;
     }
     
-    // Пробуем найти по первым словам (если цитата длинная)
+    // Пробуем найти по первым 5+ словам (если цитата длинная)
     final quoteWords = normalizedQuote.split(' ');
-    if (quoteWords.length > 5) {
+    if (quoteWords.length >= 5) {
       final firstWords = quoteWords.take(5).join(' ');
-      if (normalizedParagraph.contains(firstWords)) {
-        return true;
-      }
-    }
-    
-    // Проверяем по последним словам тоже
-    if (quoteWords.length > 5) {
-      final lastWords = quoteWords.skip(quoteWords.length - 5).join(' ');
-      if (normalizedParagraph.contains(lastWords)) {
+      if (firstWords.length > 15 && normalizedParagraph.contains(firstWords)) {
         return true;
       }
     }
@@ -626,10 +818,20 @@ class _FullTextPageState extends State<FullTextPage>
     return false;
   }
   
-  // Нормализация текста для сравнения
+  // Нормализация текста для сравнения (менее агрессивная)
   String _normalizeText(String text) {
     return text.toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .replaceAll('«', '"')
+        .replaceAll('»', '"')
+        .replaceAll('"', '"')
+        .replaceAll('"', '"')
+        .replaceAll('„', '"')
+        .replaceAll("'", '"')
+        .replaceAll('`', '"')
+        .replaceAll('—', '-')
+        .replaceAll('–', '-')
+        .replaceAll('−', '-')
+        .replaceAll('…', '...')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
@@ -637,34 +839,43 @@ class _FullTextPageState extends State<FullTextPage>
   List<TextSpan> _highlightQuoteInParagraph(String text) {
     final quoteText = widget.context.quote.text;
     
-    // Пробуем найти точное совпадение
+    // Сначала пробуем точное совпадение
     int index = text.indexOf(quoteText);
     
-    if (index == -1) {
-      // Пробуем найти без знаков препинания
-      final cleanQuote = quoteText.replaceAll(RegExp(r'[^\w\s]'), '');
-      final cleanText = text.replaceAll(RegExp(r'[^\w\s]'), '');
-      final cleanIndex = cleanText.indexOf(cleanQuote);
+    if (index != -1) {
+      return _createHighlightedSpans(text, index, quoteText.length);
+    }
+    
+    // Пробуем нормализованный поиск
+    final normalizedText = _normalizeText(text);
+    final normalizedQuote = _normalizeText(quoteText);
+    
+    final normalizedIndex = normalizedText.indexOf(normalizedQuote);
+    if (normalizedIndex != -1) {
+      // Пытаемся найти соответствующую позицию в оригинальном тексте
+      // Это приблизительная конвертация
+      final ratio = normalizedIndex / normalizedText.length;
+      final approximateIndex = (ratio * text.length).round();
       
-      if (cleanIndex != -1) {
-        // Находим приблизительную позицию в оригинальном тексте
-        index = cleanIndex;
+      // Ищем ближайшее слово
+      final words = text.split(' ');
+      int currentPos = 0;
+      for (int i = 0; i < words.length; i++) {
+        if (currentPos >= approximateIndex) {
+          // Берем несколько слов начиная с этой позиции
+          final wordsToHighlight = words.skip(i).take(5).join(' ');
+          final wordIndex = text.indexOf(wordsToHighlight, currentPos);
+          if (wordIndex != -1) {
+            return _createHighlightedSpans(text, wordIndex, wordsToHighlight.length);
+          }
+          break;
+        }
+        currentPos += words[i].length + 1; // +1 для пробела
       }
     }
     
-    if (index == -1) {
-      // Последняя попытка - по первым словам
-      final firstWords = quoteText.split(' ').take(3).join(' ');
-      index = text.indexOf(firstWords);
-      
-      if (index != -1) {
-        return _createHighlightedSpans(text, index, firstWords.length);
-      }
-      
-      return [TextSpan(text: text)];
-    }
-
-    return _createHighlightedSpans(text, index, quoteText.length);
+    // Если ничего не нашли, возвращаем текст без выделения
+    return [TextSpan(text: text)];
   }
 
   List<TextSpan> _createHighlightedSpans(String text, int startIndex, int length) {
@@ -677,12 +888,12 @@ class _FullTextPageState extends State<FullTextPage>
     spans.add(TextSpan(
       text: text.substring(startIndex, startIndex + length),
       style: TextStyle(
-        backgroundColor: _accentColor.withOpacity(0.3),
+        backgroundColor: _accentColor.withOpacity(0.15),
         fontWeight: FontWeight.w900,
         fontSize: _fontSize + 2,
-        color: _accentColor,
+        color: _accentColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.9 : 1.0),
         decoration: TextDecoration.underline,
-        decorationColor: _accentColor,
+        decorationColor: _accentColor.withOpacity(0.6),
         decorationThickness: 2,
       ),
     ));

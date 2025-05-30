@@ -11,10 +11,9 @@ class ThemeSelectorPage extends StatefulWidget {
 }
 
 class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
-  late List<String> _enabledThemes = [];
+  late List<String> _enabledThemes;
   ThemeInfo? _expandedTheme;
   AudioPlayer? _currentPlayer;
-  String? _currentPlayingThemeId;
 
   @override
   void initState() {
@@ -33,71 +32,35 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   }
 
   Future<void> _stopCurrentSound() async {
-    if (_currentPlayer == null) return;
-    
-    try {
-      // Плавное затухание
-      final currentVolume = _currentPlayer!.volume;
-      const steps = 10;
-      const stepDuration = Duration(milliseconds: 50);
-      
-      for (int i = steps; i >= 0; i--) {
-        if (_currentPlayer != null) {
-          await _currentPlayer!.setVolume(currentVolume * i / steps);
-          await Future.delayed(stepDuration);
-        }
+    if (_currentPlayer != null) {
+      try {
+        await _currentPlayer!.stop();
+        await _currentPlayer!.dispose();
+        _currentPlayer = null;
+      } catch (e) {
+        print('Error stopping sound: $e');
       }
-      
-      await _currentPlayer!.stop();
-      await _currentPlayer!.dispose();
-    } catch (e) {
-      print('Error stopping sound: $e');
-    } finally {
-      _currentPlayer = null;
-      _currentPlayingThemeId = null;
     }
   }
 
   Future<void> _playThemeSound(String themeId) async {
-    // Если пытаемся играть тот же звук, игнорируем
-    if (_currentPlayingThemeId == themeId && _currentPlayer != null) {
-      return;
-    }
-    
-    // Останавливаем текущий звук
+    // Полностью останавливаем и очищаем предыдущий плеер
     await _stopCurrentSound();
     
     try {
       _currentPlayer = AudioPlayer();
-      _currentPlayingThemeId = themeId;
-      
       await _currentPlayer!.setAsset('assets/sounds/theme_${themeId}_open.mp3');
-      await _currentPlayer!.setVolume(0.0);
       await _currentPlayer!.play();
-      
-      // Плавное нарастание
-      const steps = 10;
-      const stepDuration = Duration(milliseconds: 50);
-      
-      for (int i = 0; i <= steps; i++) {
-        if (_currentPlayer != null) {
-          await _currentPlayer!.setVolume(i / steps);
-          await Future.delayed(stepDuration);
-        }
-      }
-      
     } catch (e) {
-      print('Error playing theme sound: $e');
+      print('Theme sound error: $e');
       _currentPlayer?.dispose();
       _currentPlayer = null;
-      _currentPlayingThemeId = null;
     }
   }
 
   @override
   void dispose() {
-    _currentPlayer?.stop();
-    _currentPlayer?.dispose();
+    _stopCurrentSound();
     super.dispose();
   }
 
@@ -108,13 +71,6 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Text('Темы'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            await _stopCurrentSound();
-            Navigator.of(context).pop();
-          },
-        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(12),
@@ -130,32 +86,20 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               color: isSelected ? Colors.white10 : Colors.white12,
-              boxShadow: isExpanded ? [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.1),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ] : [],
             ),
             child: InkWell(
-              borderRadius: BorderRadius.circular(20),
               onTap: () async {
                 if (isExpanded) {
-                  // Закрываем текущий
-                  setState(() => _expandedTheme = null);
+                  // Закрываем контейнер и останавливаем звук
                   await _stopCurrentSound();
+                  setState(() {
+                    _expandedTheme = null;
+                  });
                 } else {
-                  // Открываем новый
-                  final previousTheme = _expandedTheme;
-                  setState(() => _expandedTheme = theme);
-                  
-                  // Если был открыт другой - останавливаем его звук
-                  if (previousTheme != null && previousTheme.id != theme.id) {
-                    await _stopCurrentSound();
-                  }
-                  
-                  // Играем новый звук
+                  // Открываем контейнер и играем звук
+                  setState(() {
+                    _expandedTheme = theme;
+                  });
                   await _playThemeSound(theme.id);
                 }
               },
@@ -177,21 +121,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Image.asset(
-            theme.image, 
-            height: 160, 
-            width: double.infinity, 
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 160,
-                color: Colors.grey[900],
-                child: const Center(
-                  child: Icon(Icons.image_not_supported, color: Colors.white54),
-                ),
-              );
-            },
-          ),
+          child: Image.asset(theme.image, height: 160, width: double.infinity, fit: BoxFit.cover),
         ),
         Padding(
           padding: const EdgeInsets.all(12),
@@ -199,7 +129,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
             children: [
               Text(theme.name, style: const TextStyle(fontSize: 20, color: Colors.white)),
               const SizedBox(height: 6),
-              Icon(
+Icon(
                 isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
                 color: isSelected ? Colors.greenAccent : Colors.grey,
               ),
@@ -215,50 +145,20 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Image.asset(
-            theme.image, 
-            height: 240, 
-            width: double.infinity, 
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 240,
-                color: Colors.grey[900],
-                child: const Center(
-                  child: Icon(Icons.image_not_supported, color: Colors.white54),
-                ),
-              );
-            },
-          ),
+          child: Image.asset(theme.image, height: 240, width: double.infinity, fit: BoxFit.cover),
         ),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                theme.name, 
-                style: const TextStyle(
-                  fontSize: 22, 
-                  color: Colors.white, 
-                  fontWeight: FontWeight.bold
-                )
-              ),
+              Text(theme.name, style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text(
-                theme.authors.join(', '),
-                textAlign: TextAlign.center, 
-                style: const TextStyle(color: Colors.white70)
-              ),
+              Text(theme.authors.join(', '),
+                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 12),
-              Text(
-                theme.description,
-                textAlign: TextAlign.center, 
-                style: const TextStyle(
-                  color: Colors.white54, 
-                  height: 1.4
-                )
-              ),
+              Text(theme.description,
+                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, height: 1.4)),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: Icon(isSelected ? Icons.check_circle : Icons.add_circle_outline),
