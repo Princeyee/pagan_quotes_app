@@ -279,37 +279,41 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Future<void> _scrollToQuoteWidget() async {
-    // ИСПРАВЛЕНО: сначала находим примерную позицию в тексте
+    // ПРОСТОЙ ПОДХОД: ищем позицию в тексте и прокручиваем
     final normalizedQuote = _normalizeText(widget.context.quote.text);
     final normalizedFullText = _normalizeText(_fullText!);
     
     final quoteIndex = normalizedFullText.indexOf(normalizedQuote);
     
     if (quoteIndex != -1) {
-      // Вычисляем примерную позицию скролла
+      // Ждем пока ScrollController будет готов
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       final progress = quoteIndex / normalizedFullText.length;
       final maxScroll = _scrollController.position.maxScrollExtent;
       final screenHeight = MediaQuery.of(context).size.height;
       final targetScroll = (maxScroll * progress) - (screenHeight / 2);
       
-      // Прокручиваем к примерной позиции
       await _scrollController.animateTo(
         targetScroll.clamp(0.0, maxScroll),
-        duration: const Duration(milliseconds: 800),
+        duration: const Duration(milliseconds: 1000),
         curve: Curves.easeInOutCubic,
       );
       
-      // Ждем, пока ListView создаст нужные виджеты
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      // Теперь ищем точный виджет с цитатой
+      // Попытка точного позиционирования, если виджет существует
+      await Future.delayed(const Duration(milliseconds: 200));
       if (_quoteKey.currentContext != null) {
-        await Scrollable.ensureVisible(
-          _quoteKey.currentContext!,
-          alignment: 0.5, // Центрируем на экране
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOutCubic,
-        );
+        try {
+          await Scrollable.ensureVisible(
+            _quoteKey.currentContext!,
+            alignment: 0.5,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        } catch (e) {
+          print('Fine positioning failed: $e');
+          // Ничего страшного, основное позиционирование уже сработало
+        }
       }
     }
   }
@@ -745,26 +749,29 @@ class _FullTextPageState extends State<FullTextPage>
           _goBack();
         }
       },
-      child: _buildLazyTextView(), // ЛЕНИВАЯ ЗАГРУЗКА
-    );
-  }
-
-  // НОВЫЙ МЕТОД: Ленивая загрузка с ListView.builder
-  Widget _buildLazyTextView() {
-    if (_cachedParagraphs == null || _cachedParagraphs!.isEmpty) {
-      // Fallback для простых абзацев
-      final simpleParagraphs = _fullText!.split('\n\n').where((p) => p.trim().isNotEmpty).toList();
-      
-      return ListView.builder(
+      child: SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.all(24.0),
         physics: const BouncingScrollPhysics(),
-        itemCount: simpleParagraphs.length,
-        itemBuilder: (context, index) {
+        child: _buildFormattedText(),
+      ),
+    );
+  }
+
+  // ВОЗВРАЩАЕМ обычное построение, но с оптимизацией
+  Widget _buildFormattedText() {
+    if (_cachedParagraphs == null) return const SizedBox.shrink();
+    
+    if (_cachedParagraphs!.isEmpty) {
+      final simpleParagraphs = _fullText!.split('\n\n').where((p) => p.trim().isNotEmpty).toList();
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: simpleParagraphs.map((paragraphText) {
           return Container(
             margin: const EdgeInsets.only(bottom: 16.0),
             child: Text(
-              simpleParagraphs[index].trim(),
+              paragraphText.trim(),
               style: TextStyle(
                 fontSize: _fontSize,
                 height: _lineHeight,
@@ -772,25 +779,22 @@ class _FullTextPageState extends State<FullTextPage>
               ),
             ),
           );
-        },
+        }).toList(),
       );
     }
-
-    // Ленивая загрузка для обработанных абзацев
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(24.0),
-      physics: const BouncingScrollPhysics(),
-      itemCount: _getItemCount(),
-      itemBuilder: (context, index) => _buildLazyItem(index),
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: _buildOptimizedParagraphs(),
     );
   }
 
-  int _getItemCount() {
-    int count = 0;
-    bool contextBlockAdded = false;
+  List<Widget> _buildOptimizedParagraphs() {
+    final widgets = <Widget>[];
+    bool contextBlockBuilt = false;
     
-    for (final paragraph in _cachedParagraphs!) {
+    for (int i = 0; i < _cachedParagraphs!.length; i++) {
+      final paragraph = _cachedParagraphs![i];
       final paragraphText = paragraph['content'] as String;
       final containsQuote = _paragraphContainsQuote(paragraphText);
       final isContext = !containsQuote && 
@@ -801,54 +805,36 @@ class _FullTextPageState extends State<FullTextPage>
              _normalizeText(paragraphText).contains(_normalizeText(contextPar)))
           );
       
-      if ((containsQuote || isContext) && !contextBlockAdded) {
-        count++; // Единый контекстный блок
-        contextBlockAdded = true;
+      if ((containsQuote || isContext) && !contextBlockBuilt) {
+        widgets.add(_buildUnifiedContextBlock());
+        contextBlockBuilt = true;
       } else if (!containsQuote && !isContext) {
-        count++; // Обычный абзац
+        widgets.add(_buildNormalParagraph(paragraphText));
       }
     }
     
-    return count;
+    return widgets;
   }
 
-  Widget _buildLazyItem(int index) {
-    int currentIndex = 0;
-    bool contextBlockAdded = false;
-    
-    for (final paragraph in _cachedParagraphs!) {
-      final paragraphText = paragraph['content'] as String;
-      final containsQuote = _paragraphContainsQuote(paragraphText);
-      final isContext = !containsQuote && 
-          widget.context.contextParagraphs.isNotEmpty &&
-          widget.context.contextParagraphs.any((contextPar) => 
-            contextPar.trim().isNotEmpty &&
-            (_normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
-             _normalizeText(paragraphText).contains(_normalizeText(contextPar)))
-          );
-      
-      if ((containsQuote || isContext) && !contextBlockAdded) {
-        if (currentIndex == index) {
-          return _buildUnifiedContextBlock(); // Контекстный блок
-        }
-        currentIndex++;
-        contextBlockAdded = true;
-      } else if (!containsQuote && !isContext) {
-        if (currentIndex == index) {
-          return _buildNormalParagraph(paragraphText); // Обычный абзац
-        }
-        currentIndex++;
-      }
-    }
-    
-    return const SizedBox.shrink();
+  Widget _buildNormalParagraph(String text) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: _fontSize,
+          height: _lineHeight,
+          color: _currentTheme.textColor,
+        ),
+      ),
+    );
   }
 
-  // Убираем старый метод, заменен на ленивую загрузку
-  // Widget _buildFormattedText() - теперь не нужен
+  // Убираем неиспользуемые методы ленивой загрузки
+  // int _getItemCount() и Widget _buildLazyItem() больше не нужны
 
-  // Убираем старый метод, заменен на ленивую загрузку
-  // List<Widget> _buildOptimizedParagraphs() - теперь не нужен
+  // Убираем неиспользуемые методы ленивой загрузки
+  // List<Widget> _buildOptimizedParagraphs() теперь используется снова
 
   Widget _buildNormalParagraph(String text) {
     return Container(
