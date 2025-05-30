@@ -1,4 +1,5 @@
 // lib/ui/screens/full_text_page.dart
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/quote_context.dart';
@@ -6,12 +7,24 @@ import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
 import '../../services/text_file_service.dart';
 
+class PreloadedFullTextData {
+  final String fullText;
+  final BookSource bookSource;
+  
+  PreloadedFullTextData({
+    required this.fullText,
+    required this.bookSource,
+  });
+}
+
 class FullTextPage extends StatefulWidget {
   final QuoteContext context;
+  final PreloadedFullTextData? preloadedData;
 
   const FullTextPage({
     super.key,
     required this.context,
+    this.preloadedData,
   });
 
   @override
@@ -22,7 +35,6 @@ class _FullTextPageState extends State<FullTextPage>
     with TickerProviderStateMixin {
   final TextFileService _textService = TextFileService();
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _quoteKey = GlobalKey(); // Ключ для поиска позиции цитаты
 
   late AnimationController _fadeController;
   late AnimationController _themeController;
@@ -34,16 +46,27 @@ class _FullTextPageState extends State<FullTextPage>
   BookSource? _bookSource;
   bool _isLoading = true;
   String? _error;
-  String? _debugInfo;
   bool _autoScrolled = false;
-  double _fontSize = 16.0;
-  double _lineHeight = 1.6;
+  double _fontSize = 17.0;
+  double _lineHeight = 1.5;
   bool _showSettings = false;
   ReadingTheme _currentTheme = ReadingTheme.dark;
 
-  // Для оптимизации рендера
-  List<Map<String, dynamic>>? _cachedParagraphs;
-  List<Map<String, dynamic>>? _cachedContextParagraphs;
+  Color? _customTextColor;
+  Color? _customBackgroundColor;
+  bool _useCustomColors = false;
+
+  double _initialScrollPosition = 0.0;
+
+  Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
+      ? _customTextColor! 
+      : _currentTheme.textColor;
+      
+  Color get _effectiveBackgroundColor => _useCustomColors && _customBackgroundColor != null 
+      ? _customBackgroundColor! 
+      : _currentTheme.backgroundColor;
+
+  Color get _uiTextColor => _currentTheme.textColor;
 
   @override
   void initState() {
@@ -91,21 +114,40 @@ class _FullTextPageState extends State<FullTextPage>
     final themeType = ReadingTheme.fromString(
       prefs.getString('reading_theme') ?? 'dark'
     );
+    
+    final useCustom = prefs.getBool('use_custom_colors') ?? false;
+    final textColorValue = prefs.getInt('custom_text_color');
+    final bgColorValue = prefs.getInt('custom_background_color');
+    final fontSize = prefs.getDouble('font_size') ?? 17.0;
+    final lineHeight = prefs.getDouble('line_height') ?? 1.5;
+    
     setState(() {
       _currentTheme = ReadingTheme.fromType(themeType);
+      _useCustomColors = useCustom;
+      _customTextColor = textColorValue != null ? Color(textColorValue) : null;
+      _customBackgroundColor = bgColorValue != null ? Color(bgColorValue) : null;
+      _fontSize = fontSize;
+      _lineHeight = lineHeight;
     });
   }
 
-  Future<void> _saveTheme() async {
+  Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('reading_theme', _currentTheme.typeString);
+    await prefs.setBool('use_custom_colors', _useCustomColors);
+    await prefs.setDouble('font_size', _fontSize);
+    await prefs.setDouble('line_height', _lineHeight);
+    
+    if (_customTextColor != null) {
+      await prefs.setInt('custom_text_color', _customTextColor!.value);
+    }
+    if (_customBackgroundColor != null) {
+      await prefs.setInt('custom_background_color', _customBackgroundColor!.value);
+    }
   }
 
-  // КРАСИВАЯ смена темы с анимацией (теперь быстро благодаря ленивой загрузке)
   Future<void> _changeTheme() async {
-    _themeController.forward();
-    
-    await Future.delayed(const Duration(milliseconds: 200));
+    await _themeController.forward();
     
     final currentIndex = ReadingTheme.allThemes.indexOf(_currentTheme);
     final nextIndex = (currentIndex + 1) % ReadingTheme.allThemes.length;
@@ -114,226 +156,274 @@ class _FullTextPageState extends State<FullTextPage>
       _currentTheme = ReadingTheme.allThemes[nextIndex];
     });
     
-    await _saveTheme();
-    
-    _themeController.reverse();
+    await _saveSettings();
+    await _themeController.reverse();
   }
 
   Future<void> _loadFullText() async {
     setState(() {
       _isLoading = true;
       _error = null;
-      _debugInfo = "Начинаем загрузку...";
     });
 
     try {
-      setState(() => _debugInfo = "Загружаем источники книг...");
+      if (widget.preloadedData != null) {
+        setState(() {
+          _bookSource = widget.preloadedData!.bookSource;
+          _fullText = widget.preloadedData!.fullText;
+          _isLoading = false;
+        });
+
+        _fadeController.forward();
+        
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _findQuotePositionFast();
+            _scheduleAutoScroll();
+          }
+        });
+        
+        return;
+      }
+
       final sources = await _textService.loadBookSources();
       
-      setState(() => _debugInfo = "Найдено источников: ${sources.length}. Ищем: ${widget.context.quote.author} - ${widget.context.quote.source}");
       final source = sources.firstWhere(
         (s) => s.author == widget.context.quote.author && 
                s.title == widget.context.quote.source,
         orElse: () => throw Exception('Book source not found'),
       );
-      
-      setState(() => _debugInfo = "Источник найден: ${source.title}. Загружаем файл: ${source.cleanedFilePath}");
 
       final cleanedText = await _textService.loadTextFile(source.cleanedFilePath);
       
-      setState(() => _debugInfo = "Текст загружен, длина: ${cleanedText.length} символов");
-
       setState(() {
         _bookSource = source;
         _fullText = cleanedText;
         _isLoading = false;
-        _debugInfo = null;
       });
 
-      // Кэшируем обработанные абзацы
-      _cacheParagraphs();
-
       _fadeController.forward();
-      _scheduleAutoScroll();
+      
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          _findQuotePositionFast();
+          _scheduleAutoScroll();
+        }
+      });
       
     } catch (e) {
       setState(() {
         _error = 'Ошибка загрузки полного текста: $e';
-        _debugInfo = 'ОШИБКА: $e';
         _isLoading = false;
       });
     }
   }
 
-  void _cacheParagraphs() {
+  void _findQuotePositionFast() {
     if (_fullText == null) return;
     
-    final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
-    _cachedParagraphs = paragraphs;
+    // ИСПОЛЬЗУЕМ ГОТОВЫЕ ДАННЫЕ из QuoteContext вместо поиска!
+    final startPos = widget.context.startPosition;
+    final endPos = widget.context.endPosition;
     
-    // Кэшируем контекстные абзацы
-    final contextParagraphs = <Map<String, dynamic>>[];
+    print('🎯 Используем готовые позиции из QuoteContext:');
+    print('   startPosition: $startPos');
+    print('   endPosition: $endPos');
+    print('   contextParagraphs: ${widget.context.contextParagraphs.length}');
     
-    for (final paragraph in paragraphs) {
-      final paragraphText = paragraph['content'] as String;
-      final containsQuote = _paragraphContainsQuote(paragraphText);
-      final isContext = !containsQuote && 
-          widget.context.contextParagraphs.isNotEmpty &&
-          widget.context.contextParagraphs.any((contextPar) => 
-            contextPar.trim().isNotEmpty &&
-            (_normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
-             _normalizeText(paragraphText).contains(_normalizeText(contextPar)))
-          );
+    // Разбиваем текст по параграфам для подсчета общего количества
+    final parts = _fullText!.split(RegExp(r'\[pos:\d+\]'));
+    final paragraphs = parts.where((p) => p.trim().isNotEmpty).toList();
+    
+    // Вычисляем позицию для скролла на основе startPosition
+    // startPosition - это номер позиции в файле, нужно найти соответствующий параграф
+    
+    double progress = 0.0;
+    
+    if (startPos > 0 && startPos <= paragraphs.length) {
+      // Скроллим к началу контекстного блока
+      progress = (startPos - 1) / paragraphs.length; // -1 потому что позиции с 1, а индексы с 0
+      print('✅ Вычислена позиция скролла: ${(progress * 100).toStringAsFixed(1)}% (параграф ${startPos - 1})');
+    } else {
+      // Fallback: ищем по тексту как раньше
+      print('⚠️ startPosition вне диапазона, ищем по тексту...');
+      _findQuoteByTextSearch();
+      return;
+    }
+    
+    _initialScrollPosition = progress;
+    print('📍 ИТОГ: Используем позицию $startPos-$endPos, скролл: ${(progress * 100).toStringAsFixed(1)}%');
+  }
+  
+  // Fallback метод поиска по тексту (если позиции не работают)
+  void _findQuoteByTextSearch() {
+    final quoteText = widget.context.quote.text;
+    final parts = _fullText!.split(RegExp(r'\[pos:\d+\]'));
+    final paragraphs = parts.where((p) => p.trim().isNotEmpty).toList();
+    
+    final normalizedQuote = _normalizeText(quoteText);
+    
+    for (int i = 0; i < paragraphs.length; i++) {
+      final normalizedParagraph = _normalizeText(paragraphs[i].trim());
       
-      if (containsQuote || isContext) {
-        contextParagraphs.add({
-          ...paragraph,
-          'containsQuote': containsQuote,
-          'isContext': isContext,
-        });
+      if (normalizedParagraph.contains(normalizedQuote)) {
+        final progress = i / paragraphs.length;
+        _initialScrollPosition = progress;
+        print('✅ Fallback: найдено в параграфе $i, позиция: ${(progress * 100).toStringAsFixed(1)}%');
+        return;
       }
     }
     
-    _cachedContextParagraphs = contextParagraphs;
+    print('❌ Fallback: цитата не найдена');
+    _initialScrollPosition = 0.0;
+  }
+  
+  // НОВЫЙ метод для вычисления схожести текстов
+  double _calculateSimilarity(String text1, String text2) {
+    final words1 = text1.split(' ').where((w) => w.length > 3).toSet();
+    final words2 = text2.split(' ').where((w) => w.length > 3).toSet();
+    
+    final intersection = words1.intersection(words2).length;
+    final union = words1.union(words2).length;
+    
+    return union > 0 ? intersection / union : 0.0;
   }
 
   void _scheduleAutoScroll() {
-    // ОПТИМИЗИРОВАНО: быстрее запускаем автоскролл
-    Future.delayed(const Duration(milliseconds: 500), () {
+    // СРАЗУ показываем анимацию поиска
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _showSearchAnimation();
+      }
+    });
+    
+    // ПАРАЛЛЕЛЬНО делаем скролл в фоне
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted && !_autoScrolled) {
-        _scrollToQuote();
+        _scrollToQuoteSmooth();
       }
     });
   }
 
-  void _scrollToQuote() async {
-    if (_fullText == null || _autoScrolled) return;
-
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Material(
-          color: Colors.transparent,
-          child: Center(
-            child: Container(
-              margin: const EdgeInsets.all(40),
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: _currentTheme.backgroundColor.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _currentTheme.borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Поиск по тексту',
-                    style: TextStyle(
-                      color: _currentTheme.textColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    height: 80,
-                    width: 240,
-                    decoration: BoxDecoration(
-                      color: _currentTheme.highlightColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _currentTheme.borderColor),
-                    ),
-                    child: _SearchProgressWidget(
-                      context: widget.context,
-                      theme: _currentTheme,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await Future.delayed(const Duration(milliseconds: 2000)); // Быстрее
-
-      // ИСПРАВЛЕНО: двухэтапный поиск цитаты
-      await _scrollToQuoteWidget();
-
-      if (mounted) Navigator.of(context).pop();
-      _autoScrolled = true;
-
-    } catch (e) {
-      print('Scroll error: $e');
-      if (mounted) Navigator.of(context).pop();
-    }
-  }
-
-  Future<void> _scrollToQuoteWidget() async {
-    // ПРОСТОЙ ПОДХОД: ищем позицию в тексте и прокручиваем
-    final normalizedQuote = _normalizeText(widget.context.quote.text);
-    final normalizedFullText = _normalizeText(_fullText!);
-    
-    final quoteIndex = normalizedFullText.indexOf(normalizedQuote);
-    
-    if (quoteIndex != -1) {
-      // Ждем пока ScrollController будет готов
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      final progress = quoteIndex / normalizedFullText.length;
+  void _scrollToQuoteSmooth() {
+    if (_initialScrollPosition > 0 && _scrollController.hasClients) {
       final maxScroll = _scrollController.position.maxScrollExtent;
-      final screenHeight = MediaQuery.of(context).size.height;
-      final targetScroll = (maxScroll * progress) - (screenHeight / 2);
       
-      await _scrollController.animateTo(
-        targetScroll.clamp(0.0, maxScroll),
-        duration: const Duration(milliseconds: 1000),
-        curve: Curves.easeInOutCubic,
-      );
-      
-      // Попытка точного позиционирования, если виджет существует
-      await Future.delayed(const Duration(milliseconds: 200));
-      if (_quoteKey.currentContext != null) {
-        try {
-          await Scrollable.ensureVisible(
-            _quoteKey.currentContext!,
-            alignment: 0.5,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        } catch (e) {
-          print('Fine positioning failed: $e');
-          // Ничего страшного, основное позиционирование уже сработало
-        }
+      if (maxScroll > 0) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        final targetScroll = (maxScroll * _initialScrollPosition) - (screenHeight * 0.3);
+        final clampedScroll = targetScroll.clamp(0.0, maxScroll);
+        
+        print('📍 Скроллим к позиции: ${clampedScroll.toStringAsFixed(0)} из ${maxScroll.toStringAsFixed(0)}');
+        
+        // ПЛАВНЫЙ скролл БЕЗ показа анимации
+        _scrollController.animateTo(
+          clampedScroll,
+          duration: const Duration(milliseconds: 1200), // Увеличил время чтобы анимация успела
+          curve: Curves.easeInOutCubic,
+        );
+        
+        _autoScrolled = true;
       }
     }
   }
 
-  // ОПТИМИЗИРОВАННЫЕ МЕТОДЫ для плавности
+  void _showSearchAnimation() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Material(
+        color: Colors.transparent,
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.all(40),
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: _currentTheme.backgroundColor.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _currentTheme.borderColor.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Поиск цитаты в тексте',
+                  style: TextStyle(
+                    color: _effectiveTextColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  height: 60,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: _currentTheme.highlightColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _SearchProgressWidget(
+                    context: widget.context,
+                    theme: _currentTheme,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Закрываем анимацию через 2 секунды (достаточно времени для скролла)
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
   void _adjustFontSize(double delta) {
     setState(() {
       _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
     });
-    // Не перестраиваем весь список, только обновляем стили
+    _saveSettings();
   }
 
   void _adjustLineHeight(double delta) {
     setState(() {
       _lineHeight = (_lineHeight + delta).clamp(1.2, 2.0);
     });
+    _saveSettings();
   }
 
   void _goBack() {
     Navigator.of(context).pop();
+  }
+
+  String _normalizeText(String text) {
+    return text.toLowerCase()
+        .replaceAll('«', '"')
+        .replaceAll('»', '"')
+        .replaceAll('"', '"')
+        .replaceAll('"', '"')
+        .replaceAll('„', '"')
+        .replaceAll("'", '"')
+        .replaceAll('`', '"')
+        .replaceAll('—', '-')
+        .replaceAll('–', '-')
+        .replaceAll('−', '-')
+        .replaceAll('…', '...')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   @override
@@ -343,16 +433,36 @@ class _FullTextPageState extends State<FullTextPage>
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Color.lerp(
-            _currentTheme.backgroundColor,
+            _effectiveBackgroundColor,
             _currentTheme.highlightColor,
-            _themeAnimation.value * 0.1,
+            _themeAnimation.value * 0.3,
           ),
           body: SafeArea(
-            child: _isLoading 
-                ? _buildLoadingState()
-                : _error != null 
-                    ? _buildErrorState()
-                    : _buildFullTextContent(),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 600),
+              switchInCurve: Curves.easeInOutCubic,
+              switchOutCurve: Curves.easeInOutCubic,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.0, 0.1),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeInOutCubic,
+                    )),
+                    child: child,
+                  ),
+                );
+              },
+              child: _isLoading 
+                  ? _buildLoadingState()
+                  : _error != null 
+                      ? _buildErrorState()
+                      : _buildFullTextContent(),
+            ),
           ),
         );
       },
@@ -364,9 +474,7 @@ class _FullTextPageState extends State<FullTextPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: _currentTheme.quoteHighlightColor,
-          ),
+          CircularProgressIndicator(color: _currentTheme.quoteHighlightColor),
           const SizedBox(height: 16),
           Text(
             'Загружаем полный текст...',
@@ -376,27 +484,6 @@ class _FullTextPageState extends State<FullTextPage>
               color: _currentTheme.textColor,
             ),
           ),
-          if (_debugInfo != null) ...[
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: _currentTheme.highlightColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _currentTheme.borderColor),
-              ),
-              child: Text(
-                _debugInfo!,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                  color: _currentTheme.textColor.withOpacity(0.8),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -409,30 +496,16 @@ class _FullTextPageState extends State<FullTextPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: _currentTheme.quoteHighlightColor,
-            ),
+            Icon(Icons.error_outline, size: 64, color: _currentTheme.quoteHighlightColor),
             const SizedBox(height: 16),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: _currentTheme.textColor,
-              ),
-            ),
+            Text(_error!, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: _effectiveTextColor)),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
                   onPressed: _goBack,
-                  child: Text(
-                    'Назад',
-                    style: TextStyle(color: _currentTheme.textColor.withOpacity(0.7)),
-                  ),
+                  child: Text('Назад', style: TextStyle(color: _effectiveTextColor.withOpacity(0.7))),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
@@ -471,28 +544,14 @@ class _FullTextPageState extends State<FullTextPage>
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: _currentTheme.cardColor,
-        border: Border(
-          bottom: BorderSide(
-            color: _currentTheme.borderColor,
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: _currentTheme.borderColor, width: 1)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
           IconButton(
             onPressed: _goBack,
-            icon: Icon(
-              Icons.arrow_back,
-              color: _currentTheme.textColor,
-            ),
+            icon: Icon(Icons.arrow_back, color: _effectiveTextColor),
             tooltip: 'Назад',
           ),
           Expanded(
@@ -501,78 +560,30 @@ class _FullTextPageState extends State<FullTextPage>
               children: [
                 Text(
                   _bookSource?.title ?? 'Полный текст',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: _currentTheme.textColor,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _effectiveTextColor),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   _bookSource?.author ?? '',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _currentTheme.textColor.withOpacity(0.7),
-                  ),
+                  style: TextStyle(fontSize: 14, color: _effectiveTextColor.withOpacity(0.7)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          // Красивая кнопка смены темы с анимацией
-          AnimatedBuilder(
-            animation: _themeAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: 1.0 - (_themeAnimation.value * 0.1),
-                child: IconButton(
-                  onPressed: _changeTheme,
-                  icon: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: _currentTheme.highlightColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: _currentTheme.borderColor),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _currentTheme.quoteHighlightColor.withOpacity(0.2),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      _currentTheme.letter,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _currentTheme.textColor,
-                      ),
-                    ),
-                  ),
-                  tooltip: 'Сменить тему: ${_currentTheme.displayName}',
-                ),
-              );
-            },
-          ),
+          // Убираем отдельную кнопку смены темы - оставляем только в настройках
           IconButton(
             onPressed: () {
-              setState(() {
-                _showSettings = !_showSettings;
-              });
+              setState(() => _showSettings = !_showSettings);
               if (_showSettings) {
                 _settingsController.forward();
               } else {
                 _settingsController.reverse();
               }
             },
-            icon: Icon(
-              _showSettings ? Icons.close : Icons.settings,
-              color: _currentTheme.textColor,
-            ),
+            icon: Icon(_showSettings ? Icons.close : Icons.settings, color: _effectiveTextColor),
             tooltip: 'Настройки чтения',
           ),
         ],
@@ -582,161 +593,304 @@ class _FullTextPageState extends State<FullTextPage>
 
   Widget _buildReadingSettings() {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.all(16.0),
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: _currentTheme.cardColor,
-        border: Border(
-          bottom: BorderSide(
-            color: _currentTheme.borderColor,
-            width: 1,
-          ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Настройки чтения',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: _currentTheme.textColor,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _currentTheme.highlightColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.tune, size: 20, color: _effectiveTextColor.withOpacity(0.8)),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Настройки чтения',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _currentTheme.textColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildModernSettingCard(
+            'Размер текста',
+            Icons.format_size,
+            Row(
+              children: [
+                _buildModernButton(Icons.remove, () => _adjustFontSize(-1), _fontSize > 12),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _currentTheme.highlightColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    '${_fontSize.toInt()}px',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: _effectiveTextColor, fontSize: 16),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _buildModernButton(Icons.add, () => _adjustFontSize(1), _fontSize < 24),
+              ],
             ),
           ),
           const SizedBox(height: 16),
-          
-          Row(
-            children: [
-              Text(
-                'Размер шрифта: ',
-                style: TextStyle(color: _currentTheme.textColor),
-              ),
-              IconButton(
-                onPressed: () => _adjustFontSize(-1),
-                icon: Icon(
-                  Icons.remove_circle_outline,
-                  color: _currentTheme.textColor,
+          _buildModernSettingCard(
+            'Межстрочный интервал',
+            Icons.format_line_spacing,
+            Row(
+              children: [
+                _buildModernButton(Icons.compress, () => _adjustLineHeight(-0.1), _lineHeight > 1.2),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _currentTheme.highlightColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    '${_lineHeight.toStringAsFixed(1)}x',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: _effectiveTextColor, fontSize: 16),
+                  ),
                 ),
-              ),
-              // Анимация только для настроек (не влияет на смену темы)
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 150),
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: _currentTheme.textColor,
-                  fontSize: 16,
-                ),
-                child: Text('${_fontSize.toInt()}'),
-              ),
-              IconButton(
-                onPressed: () => _adjustFontSize(1),
-                icon: Icon(
-                  Icons.add_circle_outline,
-                  color: _currentTheme.textColor,
-                ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                _buildModernButton(Icons.expand, () => _adjustLineHeight(0.1), _lineHeight < 2.0),
+              ],
+            ),
           ),
-          
-          Row(
-            children: [
-              Text(
-                'Интервал: ',
-                style: TextStyle(color: _currentTheme.textColor),
-              ),
-              IconButton(
-                onPressed: () => _adjustLineHeight(-0.1),
-                icon: Icon(
-                  Icons.compress,
-                  color: _currentTheme.textColor,
-                ),
-              ),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 150),
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: _currentTheme.textColor,
-                  fontSize: 16,
-                ),
-                child: Text(_lineHeight.toStringAsFixed(1)),
-              ),
-              IconButton(
-                onPressed: () => _adjustLineHeight(0.1),
-                icon: Icon(
-                  Icons.expand,
-                  color: _currentTheme.textColor,
-                ),
-              ),
-            ],
+          const SizedBox(height: 16),
+          _buildModernSettingCard(
+            'Готовые темы',
+            Icons.palette_outlined,
+            Wrap(
+              spacing: 12,
+              children: ReadingTheme.allThemes.map((theme) {
+                final isSelected = theme.type == _currentTheme.type && !_useCustomColors;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _currentTheme = theme;
+                      _useCustomColors = false;
+                    });
+                    _saveSettings();
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: theme.backgroundColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected 
+                            ? theme.quoteHighlightColor 
+                            : theme.borderColor.withOpacity(0.3),
+                        width: isSelected ? 3 : 1,
+                      ),
+                      boxShadow: isSelected ? [
+                        BoxShadow(
+                          color: theme.quoteHighlightColor.withOpacity(0.3),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ] : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        theme.letter,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.textColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-          
-          Row(
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  _scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 800),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                icon: Icon(
-                  Icons.vertical_align_top,
-                  color: _currentTheme.textColor,
+          const SizedBox(height: 16),
+          _buildModernSettingCard(
+            'Кастомные цвета',
+            Icons.color_lens,
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Цвет текста',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _currentTheme.textColor.withOpacity(0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildColorPicker(
+                            _customTextColor ?? _currentTheme.textColor,
+                            (color) {
+                              setState(() {
+                                _customTextColor = color;
+                                _useCustomColors = true;
+                              });
+                              _saveSettings();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Цвет фона',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _currentTheme.textColor.withOpacity(0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildColorPicker(
+                            _customBackgroundColor ?? _currentTheme.backgroundColor,
+                            (color) {
+                              setState(() {
+                                _customBackgroundColor = color;
+                                _useCustomColors = true;
+                              });
+                              _saveSettings();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                label: Text(
-                  'К началу',
-                  style: TextStyle(color: _currentTheme.textColor),
-                ),
-              ),
-              const SizedBox(width: 16),
-              TextButton.icon(
-                onPressed: () async {
-                  _autoScrolled = false;
-                  // Используем тот же оптимизированный поиск
-                  final normalizedQuote = _normalizeText(widget.context.quote.text);
-                  final normalizedFullText = _normalizeText(_fullText!);
-                  
-                  final quoteIndex = normalizedFullText.indexOf(normalizedQuote);
-                  
-                  if (quoteIndex != -1) {
-                    final progress = quoteIndex / normalizedFullText.length;
-                    final maxScroll = _scrollController.position.maxScrollExtent;
-                    final screenHeight = MediaQuery.of(context).size.height;
-                    final targetScroll = (maxScroll * progress) - (screenHeight / 2);
-                    
-                    await _scrollController.animateTo(
-                      targetScroll.clamp(0.0, maxScroll),
-                      duration: const Duration(milliseconds: 800),
-                      curve: Curves.easeInOutCubic,
-                    );
-                    
-                    // Дожидаемся создания виджета и точно позиционируемся
-                    await Future.delayed(const Duration(milliseconds: 200));
-                    if (_quoteKey.currentContext != null) {
-                      await Scrollable.ensureVisible(
-                        _quoteKey.currentContext!,
-                        alignment: 0.5,
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeInOutCubic,
-                      );
-                    }
-                  }
-                },
-                icon: Icon(
-                  Icons.my_location,
-                  color: _currentTheme.textColor,
-                ),
-                label: Text(
-                  'К цитате',
-                  style: TextStyle(color: _currentTheme.textColor),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildModernSettingCard(String title, IconData icon, Widget content) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _currentTheme.highlightColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: _uiTextColor.withOpacity(0.7)),
+              const SizedBox(width: 8),
+              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _uiTextColor.withOpacity(0.8))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          content,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernButton(IconData icon, VoidCallback onTap, bool enabled) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: enabled 
+              ? _currentTheme.highlightColor.withOpacity(0.8)
+              : _currentTheme.highlightColor.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+          boxShadow: enabled ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))] : null,
+        ),
+        child: Icon(icon, size: 18, color: enabled ? _uiTextColor : _uiTextColor.withOpacity(0.4)),
+      ),
+    );
+  }
+
+  Widget _buildColorPicker(Color currentColor, Function(Color) onColorChanged, [Color? selectedColor]) {
+    final colors = [
+      Colors.black,
+      Colors.white,
+      Colors.grey[800]!,
+      Colors.grey[200]!,
+      Colors.brown[800]!,
+      Colors.brown[100]!,
+      Colors.blue[900]!,
+      Colors.blue[50]!,
+      Colors.green[900]!,
+      Colors.green[50]!,
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: colors.map((color) {
+        final isSelected = selectedColor != null && color.value == selectedColor.value;
+        return GestureDetector(
+          onTap: () => onColorChanged(color),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected 
+                    ? _currentTheme.quoteHighlightColor 
+                    : Colors.grey.withOpacity(0.3),
+                width: isSelected ? 3 : 1,
+              ),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+            ),
+            child: isSelected
+                ? Icon(
+                    Icons.check,
+                    size: 16,
+                    color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                  )
+                : null,
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -749,500 +903,352 @@ class _FullTextPageState extends State<FullTextPage>
           _goBack();
         }
       },
-      child: SingleChildScrollView(
+      child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(24.0),
-        physics: const BouncingScrollPhysics(),
-        child: _buildFormattedText(),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        cacheExtent: 1000,
+        itemCount: _getItemCount(),
+        itemBuilder: (context, index) => _buildLazyItem(index),
       ),
     );
   }
 
-  // ВОЗВРАЩАЕМ обычное построение, но с оптимизацией
-  Widget _buildFormattedText() {
-    if (_cachedParagraphs == null) return const SizedBox.shrink();
+  int _getItemCount() {
+    if (_fullText == null) return 0;
+    return _fullText!.split(RegExp(r'\[pos:\d+\]')).where((p) => p.trim().isNotEmpty).length;
+  }
+
+  Widget _buildLazyItem(int index) {
+    final paragraphs = _fullText!.split(RegExp(r'\[pos:\d+\]')).where((p) => p.trim().isNotEmpty).toList();
     
-    if (_cachedParagraphs!.isEmpty) {
-      final simpleParagraphs = _fullText!.split('\n\n').where((p) => p.trim().isNotEmpty).toList();
-      
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: simpleParagraphs.map((paragraphText) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16.0),
-            child: Text(
-              paragraphText.trim(),
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeight,
-                color: _currentTheme.textColor,
-              ),
-            ),
-          );
-        }).toList(),
-      );
+    if (index >= paragraphs.length) return const SizedBox.shrink();
+    
+    final text = paragraphs[index].trim();
+    if (text.isEmpty) return const SizedBox.shrink();
+    
+    final isQuote = _simpleQuoteCheck(text);
+    
+    // НОВОЕ: Если это цитата, строим КОНТЕКСТНЫЙ БЛОК
+    if (isQuote) {
+      return _buildContextBlock(paragraphs, index);
     }
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: _buildOptimizedParagraphs(),
-    );
-  }
-
-  List<Widget> _buildOptimizedParagraphs() {
-    final widgets = <Widget>[];
-    bool contextBlockBuilt = false;
-    
-    for (int i = 0; i < _cachedParagraphs!.length; i++) {
-      final paragraph = _cachedParagraphs![i];
-      final paragraphText = paragraph['content'] as String;
-      final containsQuote = _paragraphContainsQuote(paragraphText);
-      final isContext = !containsQuote && 
-          widget.context.contextParagraphs.isNotEmpty &&
-          widget.context.contextParagraphs.any((contextPar) => 
-            contextPar.trim().isNotEmpty &&
-            (_normalizeText(contextPar).contains(_normalizeText(paragraphText)) ||
-             _normalizeText(paragraphText).contains(_normalizeText(contextPar)))
-          );
-      
-      if ((containsQuote || isContext) && !contextBlockBuilt) {
-        widgets.add(_buildUnifiedContextBlock());
-        contextBlockBuilt = true;
-      } else if (!containsQuote && !isContext) {
-        widgets.add(_buildNormalParagraph(paragraphText));
-      }
-    }
-    
-    return widgets;
-  }
-
-  Widget _buildNormalParagraph(String text) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: _fontSize,
-          height: _lineHeight,
-          color: _currentTheme.textColor,
-        ),
-      ),
-    );
-  }
-
-  // Убираем неиспользуемые методы ленивой загрузки
-  // int _getItemCount() и Widget _buildLazyItem() больше не нужны
-
-  // Убираем неиспользуемые методы ленивой загрузки
-  // List<Widget> _buildOptimizedParagraphs() теперь используется снова
-
- 
-
-  Widget _buildUnifiedContextBlock() {
-    if (_cachedContextParagraphs == null || _cachedContextParagraphs!.isEmpty) {
+    // НОВОЕ: Если это контекст рядом с цитатой, не показываем отдельно
+    if (_isPartOfContextBlock(paragraphs, index)) {
       return const SizedBox.shrink();
     }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24.0),
-      decoration: _getContextBlockDecoration(),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildContextHeader(),
-              const SizedBox(height: 20),
-              ..._cachedContextParagraphs!.map((paragraph) {
-                final paragraphText = paragraph['content'] as String;
-                final containsQuote = paragraph['containsQuote'] as bool;
-                
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: containsQuote 
-                      ? _buildQuoteParagraph(paragraphText)
-                      : _buildContextParagraph(paragraphText),
-                );
-              }).toList(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _getContextBlockDecoration() {
-    // Красивые стили для каждой темы
-    switch (_currentTheme.type) {
-      case ReadingThemeType.dark:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF2A2A2A).withOpacity(0.9),
-              const Color(0xFF1A1A1A).withOpacity(0.7),
-            ],
-          ),
-          border: Border.all(
-            color: Colors.grey.withOpacity(0.3),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 12,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        );
-        
-      case ReadingThemeType.light:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFFFAFAFA),
-              const Color(0xFFF0F0F0),
-            ],
-          ),
-          border: Border.all(
-            color: const Color(0xFFE0E0E0),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.15),
-              blurRadius: 12,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        );
-        
-      case ReadingThemeType.sepia:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFFF5F1E8),
-              const Color(0xFFEDE6D3),
-            ],
-          ),
-          border: Border.all(
-            color: const Color(0xFFD4C4A8),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFD4C4A8).withOpacity(0.3),
-              blurRadius: 12,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        );
-    }
-  }
-
-  Widget _buildContextHeader() {
-    IconData icon;
-    Color color;
     
-    switch (_currentTheme.type) {
-      case ReadingThemeType.dark:
-        icon = Icons.auto_stories;
-        color = Colors.orange.withOpacity(0.8);
-        break;
-      case ReadingThemeType.light:
-        icon = Icons.article_outlined;
-        color = const Color(0xFF4A90E2);
-        break;
-      case ReadingThemeType.sepia:
-        icon = Icons.menu_book;
-        color = const Color(0xFFB8860B);
-        break;
-    }
-
+    // Обычный параграф
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 4,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: color,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Контекст цитаты',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContextParagraph(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: _fontSize,
-        height: _lineHeight,
-        color: _currentTheme.textColor.withOpacity(0.8),
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
-
-  Widget _buildQuoteParagraph(String text) {
-    return Container(
-      key: _quoteKey, // КЛЮЧ ДЛЯ ТОЧНОГО АВТОСКРОЛЛА
-      padding: const EdgeInsets.all(20),
-      decoration: _getQuoteDecoration(),
+      margin: const EdgeInsets.only(bottom: 16.0),
       child: RichText(
         text: TextSpan(
           style: TextStyle(
-            fontSize: _fontSize + 1,
+            fontSize: _fontSize,
             height: _lineHeight,
-            color: _currentTheme.textColor,
-            fontWeight: FontWeight.w500,
+            color: _effectiveTextColor,
+            fontWeight: FontWeight.normal,
           ),
-          children: _highlightQuoteInParagraph(text),
+          children: [TextSpan(text: text)],
         ),
       ),
     );
   }
 
-  BoxDecoration _getQuoteDecoration() {
-    // КРАСИВОЕ выделение цитаты для каждой темы
-    switch (_currentTheme.type) {
-      case ReadingThemeType.dark:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.orange.withOpacity(0.12),
-              Colors.deepOrange.withOpacity(0.08),
-            ],
-          ),
-          border: Border.all(
-            color: Colors.orange.withOpacity(0.4),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.orange.withOpacity(0.2),
-              blurRadius: 12,
-              spreadRadius: 1,
-              offset: const Offset(0, 4),
+  // НОВЫЙ метод: Строим контекстный блок ИЗ ГОТОВЫХ ДАННЫХ QuoteContext
+  Widget _buildContextBlock(List<String> paragraphs, int quoteIndex) {
+    List<Widget> contextItems = [];
+    
+    // Заголовок контекстного блока
+    contextItems.add(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: _currentTheme.quoteHighlightColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.format_quote,
+              size: 14,
+              color: _currentTheme.quoteHighlightColor,
             ),
-            BoxShadow(
-              color: Colors.orange.withOpacity(0.1),
-              blurRadius: 24,
-              spreadRadius: 2,
-              offset: const Offset(0, 8),
+            const SizedBox(width: 6),
+            Text(
+              'Контекст цитаты',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _currentTheme.quoteHighlightColor,
+              ),
             ),
           ],
-        );
-        
-      case ReadingThemeType.light:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF4A90E2).withOpacity(0.10),
-              const Color(0xFF64B5F6).withOpacity(0.06),
-            ],
-          ),
-          border: Border.all(
-            color: const Color(0xFF4A90E2).withOpacity(0.5),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF4A90E2).withOpacity(0.15),
-              blurRadius: 12,
-              spreadRadius: 1,
-              offset: const Offset(0, 4),
+        ),
+      ),
+    );
+    
+    contextItems.add(const SizedBox(height: 16));
+    
+    // ИСПОЛЬЗУЕМ ГОТОВЫЕ ДАННЫЕ из QuoteContext
+    
+    // Контекст ДО цитаты
+    for (final paragraph in widget.context.beforeContext) {
+      contextItems.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: _fontSize,
+                height: _lineHeight,
+                color: _effectiveTextColor.withOpacity(0.8),
+                fontWeight: FontWeight.normal,
+              ),
+              children: [TextSpan(text: paragraph)],
             ),
-          ],
-        );
-        
-      case ReadingThemeType.sepia:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFFB8860B).withOpacity(0.10),
-              const Color(0xFFDAA520).withOpacity(0.06),
-            ],
           ),
+        ),
+      );
+    }
+    
+    // САМА ЦИТАТА (используем quoteParagraph)
+    contextItems.add(
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _getQuoteHighlightBackgroundColor(),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: const Color(0xFFB8860B).withOpacity(0.5),
-            width: 2,
+            color: _getQuoteHighlightBorderColor(),
+            width: 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFB8860B).withOpacity(0.15),
-              blurRadius: 12,
-              spreadRadius: 1,
-              offset: const Offset(0, 4),
+        ),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: _fontSize + 1,
+              height: _lineHeight,
+              color: _effectiveTextColor,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        );
+            children: _highlightQuoteInParagraph(widget.context.quoteParagraph),
+          ),
+        ),
+      ),
+    );
+    
+    // Контекст ПОСЛЕ цитаты
+    for (final paragraph in widget.context.afterContext) {
+      contextItems.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: _fontSize,
+                height: _lineHeight,
+                color: _effectiveTextColor.withOpacity(0.8),
+                fontWeight: FontWeight.normal,
+              ),
+              children: [TextSpan(text: paragraph)],
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // Возвращаем весь контекстный блок с улучшенным оформлением
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24.0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _getContextBlockBackgroundColor(),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _getContextBlockBorderColor(),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: contextItems,
+      ),
+    );
+  }
+
+  // Цвет фона контекстного блока
+  Color _getContextBlockBackgroundColor() {
+    if (_currentTheme.type == ReadingThemeType.dark) {
+      return Colors.orange.withOpacity(0.08); // Оранжевый оттенок для тёмной темы
+    } else {
+      return _currentTheme.highlightColor.withOpacity(0.1);
     }
   }
 
-  bool _paragraphContainsQuote(String paragraphText) {
-    final normalizedParagraph = _normalizeText(paragraphText);
+  // Цвета для выделения цитаты
+  Color _getQuoteHighlightBackgroundColor() {
+    if (_currentTheme.type == ReadingThemeType.dark) {
+      return Colors.orange.withOpacity(0.12); // Оранжевый фон для цитаты в тёмной теме
+    } else {
+      return _currentTheme.quoteHighlightColor.withOpacity(0.08);
+    }
+  }
+
+  Color _getQuoteHighlightBorderColor() {
+    if (_currentTheme.type == ReadingThemeType.dark) {
+      return Colors.orange.withOpacity(0.4); // Оранжевая рамка для цитаты в тёмной теме
+    } else {
+      return _currentTheme.quoteHighlightColor.withOpacity(0.2);
+    }
+  }
+
+  Color _getQuoteHighlightTextColor() {
+    if (_currentTheme.type == ReadingThemeType.dark) {
+      return Colors.orange; // Оранжевый текст цитаты в тёмной теме
+    } else {
+      return _currentTheme.quoteHighlightColor;
+    }
+  }
+
+  // Метод для выделения цитаты в параграфе (как на ContextPage)
+  List<TextSpan> _highlightQuoteInParagraph(String paragraphText) {
+    final quoteText = widget.context.quote.text;
+    
+    // Ищем позицию цитаты в параграфе
+    final quoteLower = quoteText.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
+    final paragraphLower = paragraphText.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
+    
+    int quoteIndex = paragraphLower.indexOf(quoteLower);
+    
+    if (quoteIndex == -1) {
+      // Если точное совпадение не найдено, ищем по первым словам
+      final quoteWords = quoteLower.split(' ').take(5).join(' ');
+      quoteIndex = paragraphLower.indexOf(quoteWords);
+    }
+    
+    if (quoteIndex != -1) {
+      // Выделяем цитату в контексте
+      final beforeQuote = paragraphText.substring(0, quoteIndex);
+      final afterQuoteStart = quoteIndex + quoteText.length;
+      final afterQuote = afterQuoteStart < paragraphText.length 
+          ? paragraphText.substring(afterQuoteStart)
+          : '';
+      
+      return [
+        if (beforeQuote.isNotEmpty) TextSpan(text: beforeQuote),
+        TextSpan(
+          text: quoteText,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: _getQuoteHighlightTextColor(),
+          ),
+        ),
+        if (afterQuote.isNotEmpty) TextSpan(text: afterQuote),
+      ];
+    }
+    
+    // Если не нашли цитату, возвращаем весь текст
+    return [TextSpan(text: paragraphText)];
+  }
+
+  // НОВЫЙ метод: Проверяем является ли параграф частью уже показанного контекстного блока
+  bool _isPartOfContextBlock(List<String> paragraphs, int index) {
+    // Ищем ближайшую цитату
+    for (int i = max(0, index - 2); i <= min(paragraphs.length - 1, index + 2); i++) {
+      if (_simpleQuoteCheck(paragraphs[i].trim())) {
+        // Если рядом есть цитата, этот параграф будет показан в контекстном блоке
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _simpleQuoteCheck(String text) {
+    final normalizedText = _normalizeText(text);
     final normalizedQuote = _normalizeText(widget.context.quote.text);
     
     if (normalizedQuote.length < 10) return false;
     
-    if (normalizedParagraph.contains(normalizedQuote)) {
-      return true;
-    }
-    
-    final quoteWords = normalizedQuote.split(' ');
-    if (quoteWords.length >= 5) {
-      final firstWords = quoteWords.take(5).join(' ');
-      if (firstWords.length > 15 && normalizedParagraph.contains(firstWords)) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-  
-  String _normalizeText(String text) {
-    return text.toLowerCase()
-        .replaceAll('«', '"')
-        .replaceAll('»', '"')
-        .replaceAll('"', '"')
-        .replaceAll('"', '"')
-        .replaceAll('„', '"')
-        .replaceAll("'", '"')
-        .replaceAll('`', '"')
-        .replaceAll('—', '-')
-        .replaceAll('–', '-')
-        .replaceAll('−', '-')
-        .replaceAll('…', '...')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+    final quoteStart = normalizedQuote.substring(0, min(30, normalizedQuote.length));
+    return normalizedText.contains(quoteStart);
   }
 
-  List<TextSpan> _highlightQuoteInParagraph(String text) {
+  List<TextSpan> _highlightQuoteInText(String text) {
     final quoteText = widget.context.quote.text;
-    
-    int index = text.indexOf(quoteText);
-    
-    if (index != -1) {
-      return _createHighlightedSpans(text, index, quoteText.length);
-    }
-    
     final normalizedText = _normalizeText(text);
     final normalizedQuote = _normalizeText(quoteText);
     
-    final normalizedIndex = normalizedText.indexOf(normalizedQuote);
-    if (normalizedIndex != -1) {
-      final ratio = normalizedIndex / normalizedText.length;
-      final approximateIndex = (ratio * text.length).round();
+    print('🎨 Выделяем цитату в тексте: "${quoteText.substring(0, min(50, quoteText.length))}..."');
+    
+    // Ищем ТОЧНОЕ совпадение полной цитаты
+    final quoteIndex = normalizedText.indexOf(normalizedQuote);
+    
+    if (quoteIndex != -1) {
+      print('✅ Найдено точное совпадение для выделения на позиции $quoteIndex');
       
+      // Находим точные границы в оригинальном тексте
+      int realStartIndex = 0;
+      int realEndIndex = text.length;
+      
+      // Пытаемся найти точное начало цитаты в оригинальном тексте
       final words = text.split(' ');
-      int currentPos = 0;
-      for (int i = 0; i < words.length; i++) {
-        if (currentPos >= approximateIndex) {
-          final wordsToHighlight = words.skip(i).take(5).join(' ');
-          final wordIndex = text.indexOf(wordsToHighlight, currentPos);
-          if (wordIndex != -1) {
-            return _createHighlightedSpans(text, wordIndex, wordsToHighlight.length);
+      final quoteWords = quoteText.split(' ');
+      
+      // Ищем последовательность слов из цитаты в тексте
+      for (int i = 0; i <= words.length - quoteWords.length; i++) {
+        bool matches = true;
+        for (int j = 0; j < quoteWords.length; j++) {
+          if (_normalizeText(words[i + j]) != _normalizeText(quoteWords[j])) {
+            matches = false;
+            break;
           }
-          break;
         }
-        currentPos += words[i].length + 1;
+        
+        if (matches) {
+          // Нашли точное совпадение
+          realStartIndex = words.take(i).join(' ').length + (i > 0 ? 1 : 0);
+          final quotePart = words.skip(i).take(quoteWords.length).join(' ');
+          realEndIndex = realStartIndex + quotePart.length;
+          
+          print('✅ Точные границы: $realStartIndex - $realEndIndex');
+          print('✅ Выделяемый текст: "${quotePart}"');
+          
+          final beforeQuote = realStartIndex > 0 ? text.substring(0, realStartIndex) : '';
+          final afterQuote = realEndIndex < text.length ? text.substring(realEndIndex) : '';
+          
+          return [
+            if (beforeQuote.isNotEmpty) TextSpan(text: beforeQuote),
+            TextSpan(
+              text: quotePart,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                backgroundColor: _currentTheme.quoteHighlightColor.withOpacity(0.3),
+                color: _currentTheme.quoteHighlightColor,
+              ),
+            ),
+            if (afterQuote.isNotEmpty) TextSpan(text: afterQuote),
+          ];
+        }
       }
+      
+      print('⚠️ Не удалось найти точные границы, используем приблизительное выделение');
     }
     
-    return [TextSpan(text: text)];
-  }
-
-  List<TextSpan> _createHighlightedSpans(String text, int startIndex, int length) {
-    final spans = <TextSpan>[];
-    
-    if (startIndex > 0) {
-      spans.add(TextSpan(text: text.substring(0, startIndex)));
-    }
-    
-    // КРАСИВОЕ выделение цитаты с эффектами
-    Color highlightColor;
-    switch (_currentTheme.type) {
-      case ReadingThemeType.dark:
-        highlightColor = Colors.orange;
-        break;
-      case ReadingThemeType.light:
-        highlightColor = const Color(0xFF1565C0);
-        break;
-      case ReadingThemeType.sepia:
-        highlightColor = const Color(0xFF8B4513);
-        break;
-    }
-    
-    spans.add(TextSpan(
-      text: text.substring(startIndex, startIndex + length),
-      style: TextStyle(
-        fontWeight: FontWeight.w800,
-        fontSize: _fontSize + 3,
-        color: highlightColor,
-        letterSpacing: 0.5,
-        shadows: [
-          Shadow(
-            offset: const Offset(0, 1),
-            blurRadius: 2,
-            color: highlightColor.withOpacity(0.3),
-          ),
-        ],
+    // Если точное совпадение не найдено, выделяем весь параграф как потенциальную цитату
+    print('❌ Точное совпадение не найдено, выделяем весь параграф');
+    return [
+      TextSpan(
+        text: text,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          backgroundColor: _currentTheme.highlightColor.withOpacity(0.2),
+        ),
       ),
-    ));
-    
-    if (startIndex + length < text.length) {
-      spans.add(TextSpan(text: text.substring(startIndex + length)));
-    }
-    
-    return spans;
+    ];
   }
 
   @override

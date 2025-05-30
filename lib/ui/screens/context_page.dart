@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../models/daily_quote.dart';
 import '../../models/quote_context.dart';
+import '../../models/book_source.dart';
 import '../../services/quote_extraction_service.dart';
+import '../../services/text_file_service.dart';
 import '../../utils/custom_cache.dart';
 import 'full_text_page.dart';
 
@@ -24,6 +26,7 @@ class ContextPage extends StatefulWidget {
 class _ContextPageState extends State<ContextPage> 
     with SingleTickerProviderStateMixin {
   final QuoteExtractionService _quoteService = QuoteExtractionService();
+  final TextFileService _textService = TextFileService();
   final CustomCachePrefs _cache = CustomCache.prefs;
   final AudioPlayer _candlePlayer = AudioPlayer();
   
@@ -36,6 +39,11 @@ class _ContextPageState extends State<ContextPage>
   String? _error;
   bool _showSwipeHint = true;
   bool _showTapHint = true;
+  
+  // НОВОЕ: Предварительная загрузка полного текста
+  PreloadedFullTextData? _preloadedData;
+  bool _isPreloading = false;
+  bool _preloadCompleted = false;
 
   @override
   void initState() {
@@ -131,6 +139,9 @@ class _ContextPageState extends State<ContextPage>
           _isLoading = false;
         });
         _animationController.forward();
+        
+        // НОВОЕ: Начинаем предварительную загрузку после показа контекста
+        _startPreloadingFullText();
         return;
       }
 
@@ -143,6 +154,9 @@ class _ContextPageState extends State<ContextPage>
           _isLoading = false;
         });
         _animationController.forward();
+        
+        // НОВОЕ: Начинаем предварительную загрузку
+        _startPreloadingFullText();
       } else {
         setState(() {
           _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
@@ -163,6 +177,54 @@ class _ContextPageState extends State<ContextPage>
     }
   }
 
+  // НОВЫЙ МЕТОД: Предварительная загрузка полного текста
+  Future<void> _startPreloadingFullText() async {
+    if (_context == null || _isPreloading || _preloadCompleted) return;
+    
+    setState(() => _isPreloading = true);
+    
+    try {
+      // Загружаем в фоне без блокировки UI
+      Future.microtask(() async {
+        try {
+          // ТОЧНО такая же логика как в FullTextPage._loadFullText()
+          final sources = await _textService.loadBookSources();
+          
+          final source = sources.firstWhere(
+            (s) => s.author == _context!.quote.author && 
+                   s.title == _context!.quote.source,
+            orElse: () => throw Exception('Book source not found'),
+          );
+
+          final cleanedText = await _textService.loadTextFile(source.cleanedFilePath);
+          
+          if (mounted) {
+            // Кэшируем данные для быстрого доступа
+            _preloadedData = PreloadedFullTextData(
+              fullText: cleanedText,
+              bookSource: source,
+            );
+            
+            setState(() {
+              _preloadCompleted = true;
+              _isPreloading = false;
+            });
+            
+            print('✅ Полный текст предзагружен (${cleanedText.length} символов)');
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() => _isPreloading = false);
+            print('❌ Ошибка предзагрузки: $e');
+          }
+        }
+      });
+    } catch (e) {
+      setState(() => _isPreloading = false);
+      print('❌ Ошибка инициализации предзагрузки: $e');
+    }
+  }
+
   void _goBack() {
     _candlePlayer.stop();
     Navigator.of(context).pop();
@@ -173,33 +235,34 @@ class _ContextPageState extends State<ContextPage>
     
     _candlePlayer.stop(); // Останавливаем звук при переходе к полному тексту
     
+    // НОВОЕ: Передаем предзагруженные данные, если они готовы
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
-            FullTextPage(context: _context!),
-        // ЗАМЕНИТЬ НА (более легкая анимация):
-transitionsBuilder: (context, animation, secondaryAnimation, child) {
-  return SlideTransition(
-    position: Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-    )),
-    child: FadeTransition(
-      opacity: animation,
-      child: child,
-    ),
-  );
-},
+            FullTextPage(
+              context: _context!,
+              preloadedData: _preloadedData, // Передаем все данные
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            )),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
         transitionDuration: const Duration(milliseconds: 300),
       ),
     ).then((_) {
       _startCandleSound();
-    }
-    );
-
+    });
   }
 
   @override
@@ -218,6 +281,7 @@ transitionsBuilder: (context, animation, secondaryAnimation, child) {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: _goBack,
         ),
+        // Индикаторы предзагрузки убраны - только основная функциональность
       ),
       body: SafeArea(
         child: Stack(
@@ -573,3 +637,5 @@ transitionsBuilder: (context, animation, secondaryAnimation, child) {
     super.dispose();
   }
 }
+
+// КЛАСС убран отсюда - используем из full_text_page.dart

@@ -35,10 +35,10 @@ class ReadingTheme {
     cardColor: Color(0xFF1A1A1A),
     borderColor: Color(0xFF333333),
     highlightColor: Color(0xFF444444),
-    quoteHighlightColor: Color(0xFFFF6B35),
+    quoteHighlightColor: Color(0xFF4A90E2), // Более нейтральный синий
     contextHighlightColor: Color(0xFF2A2A2A),
     displayName: 'Темная',
-    letter: '𝒜',
+    letter: '𝖆',
   );
 
   static const ReadingTheme light = ReadingTheme(
@@ -48,10 +48,10 @@ class ReadingTheme {
     cardColor: Color(0xFFF5F5F5),
     borderColor: Color(0xFFE0E0E0),
     highlightColor: Color(0xFFEEEEEE),
-    quoteHighlightColor: Color(0xFFFF6B35),
+    quoteHighlightColor: Color(0xFF1565C0), // Более темный синий для светлой темы
     contextHighlightColor: Color(0xFFF0F0F0),
     displayName: 'Светлая',
-    letter: '𝒜',
+    letter: '𝖆',
   );
 
   static const ReadingTheme sepia = ReadingTheme(
@@ -61,10 +61,10 @@ class ReadingTheme {
     cardColor: Color(0xFFEDE6D3),
     borderColor: Color(0xFFD4C4A8),
     highlightColor: Color(0xFFE8DCC0),
-    quoteHighlightColor: Color(0xFFD2691E),
+    quoteHighlightColor: Color(0xFF8B4513), // Коричневый для сепии
     contextHighlightColor: Color(0xFFE8DCC0),
     displayName: 'Сепия',
-    letter: '𝒜',
+    letter: '𝖆',
   );
 
   static const List<ReadingTheme> allThemes = [dark, light, sepia];
