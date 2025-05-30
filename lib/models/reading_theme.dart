@@ -38,7 +38,7 @@ class ReadingTheme {
     quoteHighlightColor: Color(0xFFFF6B35),
     contextHighlightColor: Color(0xFF2A2A2A),
     displayName: 'Темная',
-    letter: 'Т',
+    letter: '𝒜',
   );
 
   static const ReadingTheme light = ReadingTheme(
@@ -51,7 +51,7 @@ class ReadingTheme {
     quoteHighlightColor: Color(0xFFFF6B35),
     contextHighlightColor: Color(0xFFF0F0F0),
     displayName: 'Светлая',
-    letter: 'С',
+    letter: '𝒜',
   );
 
   static const ReadingTheme sepia = ReadingTheme(
@@ -64,7 +64,7 @@ class ReadingTheme {
     quoteHighlightColor: Color(0xFFD2691E),
     contextHighlightColor: Color(0xFFE8DCC0),
     displayName: 'Сепия',
-    letter: 'П',
+    letter: '𝒜',
   );
 
   static const List<ReadingTheme> allThemes = [dark, light, sepia];
