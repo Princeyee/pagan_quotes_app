@@ -10,11 +10,11 @@ class ThemeSelectorPage extends StatefulWidget {
   State<ThemeSelectorPage> createState() => _ThemeSelectorPageState();
 }
 
-class _ThemeSelectorPageState extends State<ThemeSelectorPage> with SingleTickerProviderStateMixin {
+class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   late List<String> _enabledThemes = [];
   ThemeInfo? _expandedTheme;
   AudioPlayer? _currentPlayer;
-  bool _isTransitioning = false;
+  String? _currentPlayingThemeId;
 
   @override
   void initState() {
@@ -32,52 +32,71 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> with SingleTicker
     await _loadEnabledThemes();
   }
 
-  Future<void> _fadeOutAndStop() async {
+  Future<void> _stopCurrentSound() async {
     if (_currentPlayer == null) return;
     
     try {
-      // Затухание за 1 секунду
-      for (double volume = 1.0; volume >= 0.0; volume -= 0.05) {
-        await _currentPlayer!.setVolume(volume.clamp(0.0, 1.0));
-        await Future.delayed(const Duration(milliseconds: 50));
+      // Плавное затухание
+      final currentVolume = _currentPlayer!.volume;
+      const steps = 10;
+      const stepDuration = Duration(milliseconds: 50);
+      
+      for (int i = steps; i >= 0; i--) {
+        if (_currentPlayer != null) {
+          await _currentPlayer!.setVolume(currentVolume * i / steps);
+          await Future.delayed(stepDuration);
+        }
       }
       
       await _currentPlayer!.stop();
       await _currentPlayer!.dispose();
-      _currentPlayer = null;
     } catch (e) {
-      print('Error fading out: $e');
-      _currentPlayer?.dispose();
+      print('Error stopping sound: $e');
+    } finally {
       _currentPlayer = null;
+      _currentPlayingThemeId = null;
     }
   }
 
   Future<void> _playThemeSound(String themeId) async {
-    if (_isTransitioning) return;
-    _isTransitioning = true;
+    // Если пытаемся играть тот же звук, игнорируем
+    if (_currentPlayingThemeId == themeId && _currentPlayer != null) {
+      return;
+    }
+    
+    // Останавливаем текущий звук
+    await _stopCurrentSound();
     
     try {
-      // Сначала останавливаем текущий звук с затуханием
-      if (_currentPlayer != null) {
-        await _fadeOutAndStop();
-      }
-      
-      // Создаем новый плеер
       _currentPlayer = AudioPlayer();
+      _currentPlayingThemeId = themeId;
+      
       await _currentPlayer!.setAsset('assets/sounds/theme_${themeId}_open.mp3');
+      await _currentPlayer!.setVolume(0.0);
       await _currentPlayer!.play();
+      
+      // Плавное нарастание
+      const steps = 10;
+      const stepDuration = Duration(milliseconds: 50);
+      
+      for (int i = 0; i <= steps; i++) {
+        if (_currentPlayer != null) {
+          await _currentPlayer!.setVolume(i / steps);
+          await Future.delayed(stepDuration);
+        }
+      }
       
     } catch (e) {
       print('Error playing theme sound: $e');
       _currentPlayer?.dispose();
       _currentPlayer = null;
-    } finally {
-      _isTransitioning = false;
+      _currentPlayingThemeId = null;
     }
   }
 
   @override
   void dispose() {
+    _currentPlayer?.stop();
     _currentPlayer?.dispose();
     super.dispose();
   }
@@ -89,6 +108,13 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> with SingleTicker
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Text('Темы'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            await _stopCurrentSound();
+            Navigator.of(context).pop();
+          },
+        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(12),
@@ -104,17 +130,32 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> with SingleTicker
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               color: isSelected ? Colors.white10 : Colors.white12,
+              boxShadow: isExpanded ? [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ] : [],
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () async {
                 if (isExpanded) {
-                  // Закрываем и останавливаем звук
+                  // Закрываем текущий
                   setState(() => _expandedTheme = null);
-                  await _fadeOutAndStop();
+                  await _stopCurrentSound();
                 } else {
-                  // Открываем и играем звук
+                  // Открываем новый
+                  final previousTheme = _expandedTheme;
                   setState(() => _expandedTheme = theme);
+                  
+                  // Если был открыт другой - останавливаем его звук
+                  if (previousTheme != null && previousTheme.id != theme.id) {
+                    await _stopCurrentSound();
+                  }
+                  
+                  // Играем новый звук
                   await _playThemeSound(theme.id);
                 }
               },
@@ -136,7 +177,21 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> with SingleTicker
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Image.asset(theme.image, height: 160, width: double.infinity, fit: BoxFit.cover),
+          child: Image.asset(
+            theme.image, 
+            height: 160, 
+            width: double.infinity, 
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 160,
+                color: Colors.grey[900],
+                child: const Center(
+                  child: Icon(Icons.image_not_supported, color: Colors.white54),
+                ),
+              );
+            },
+          ),
         ),
         Padding(
           padding: const EdgeInsets.all(12),
@@ -160,20 +215,50 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> with SingleTicker
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Image.asset(theme.image, height: 240, width: double.infinity, fit: BoxFit.cover),
+          child: Image.asset(
+            theme.image, 
+            height: 240, 
+            width: double.infinity, 
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 240,
+                color: Colors.grey[900],
+                child: const Center(
+                  child: Icon(Icons.image_not_supported, color: Colors.white54),
+                ),
+              );
+            },
+          ),
         ),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(theme.name, style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(
+                theme.name, 
+                style: const TextStyle(
+                  fontSize: 22, 
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold
+                )
+              ),
               const SizedBox(height: 8),
-              Text(theme.authors.join(', '),
-                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                theme.authors.join(', '),
+                textAlign: TextAlign.center, 
+                style: const TextStyle(color: Colors.white70)
+              ),
               const SizedBox(height: 12),
-              Text(theme.description,
-                  textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, height: 1.4)),
+              Text(
+                theme.description,
+                textAlign: TextAlign.center, 
+                style: const TextStyle(
+                  color: Colors.white54, 
+                  height: 1.4
+                )
+              ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: Icon(isSelected ? Icons.check_circle : Icons.add_circle_outline),
