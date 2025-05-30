@@ -836,19 +836,7 @@ class _FullTextPageState extends State<FullTextPage>
   // Убираем неиспользуемые методы ленивой загрузки
   // List<Widget> _buildOptimizedParagraphs() теперь используется снова
 
-  Widget _buildNormalParagraph(String text) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: _fontSize,
-          height: _lineHeight,
-          color: _currentTheme.textColor,
-        ),
-      ),
-    );
-  }
+ 
 
   Widget _buildUnifiedContextBlock() {
     if (_cachedContextParagraphs == null || _cachedContextParagraphs!.isEmpty) {
