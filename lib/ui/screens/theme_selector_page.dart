@@ -1,30 +1,4 @@
-// lib/ui/screens/theme_selector_page.dart
-import 'package:flutter/material.dart';
-import '../../models/theme_info.dart';
-import '../../services/theme_service.dart';
-import '../../services/sound_manager.dart';
 
-class ThemeSelectorPage extends StatefulWidget {
-  const ThemeSelectorPage({super.key});
-
-  @override
-  State<ThemeSelectorPage> createState() => _ThemeSelectorPageState();
-}
-
-class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
-  late List<String> _enabledThemes;
-  ThemeInfo? _expandedTheme;
-  final SoundManager _soundManager = SoundManager();
-  String? _currentPlayingTheme;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadEnabledThemes();
-  }
-
-  Future<void> _loadEnabledThemes() async {
-    final enabled = await ThemeService.getE// lib/ui/screens/theme_selector_page.dart
 import 'package:flutter/material.dart';
 import '../../models/theme_info.dart';
 import '../../services/theme_service.dart';
