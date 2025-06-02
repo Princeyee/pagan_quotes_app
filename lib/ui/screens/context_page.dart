@@ -2,12 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:just_audio/just_audio.dart';
 import '../../models/daily_quote.dart';
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../services/quote_extraction_service.dart';
 import '../../services/text_file_service.dart';
+import '../../services/sound_manager.dart';
 import '../../utils/custom_cache.dart';
 import 'full_text_page.dart';
 
@@ -28,7 +28,7 @@ class _ContextPageState extends State<ContextPage>
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final TextFileService _textService = TextFileService();
   final CustomCachePrefs _cache = CustomCache.prefs;
-  final AudioPlayer _candlePlayer = AudioPlayer();
+  final SoundManager _soundManager = SoundManager();
   
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -40,7 +40,6 @@ class _ContextPageState extends State<ContextPage>
   bool _showSwipeHint = true;
   bool _showTapHint = true;
   
-  // НОВОЕ: Предварительная загрузка полного текста
   PreloadedFullTextData? _preloadedData;
   bool _isPreloading = false;
   bool _preloadCompleted = false;
@@ -49,20 +48,21 @@ class _ContextPageState extends State<ContextPage>
   void initState() {
     super.initState();
     _initializeAnimation();
-    _startCandleSound();
+    if (!_soundManager.isMuted) {
+      _startCandleSound();
+    }
     _loadContext();
     _checkHints();
   }
 
   Future<void> _startCandleSound() async {
-    try {
-      await _candlePlayer.setAsset('assets/sounds/candle.mp3');
-      _candlePlayer.setLoopMode(LoopMode.one);
-      await _candlePlayer.play();
-      print('Candle sound started');
-    } catch (e) {
-      print('Candle sound not available: $e');
-    }
+    if (_soundManager.isMuted) return;
+    
+    await _soundManager.playSound(
+      'candle_sound',
+      'assets/sounds/candle.mp3',
+      loop: true,
+    );
   }
 
   void _initializeAnimation() {
@@ -84,6 +84,7 @@ class _ContextPageState extends State<ContextPage>
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _animationController,
+      curve:      parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
   }
@@ -91,13 +92,11 @@ class _ContextPageState extends State<ContextPage>
   Future<void> _checkHints() async {
     final prefs = await SharedPreferences.getInstance();
     
-    // Проверяем подсказку для свайпа назад
     final swipeHintShown = prefs.getBool('context_swipe_hint_shown') ?? false;
     if (!swipeHintShown) {
       setState(() => _showSwipeHint = true);
       await prefs.setBool('context_swipe_hint_shown', true);
       
-      // Скрыть подсказку через 4 секунды
       Future.delayed(const Duration(seconds: 4), () {
         if (mounted) {
           setState(() => _showSwipeHint = false);
@@ -107,13 +106,11 @@ class _ContextPageState extends State<ContextPage>
       setState(() => _showSwipeHint = false);
     }
 
-    // Проверяем подсказку для тапа на полный текст
     final tapHintShown = prefs.getBool('fulltext_tap_hint_shown') ?? false;
     if (!tapHintShown) {
       setState(() => _showTapHint = true);
       await prefs.setBool('fulltext_tap_hint_shown', true);
       
-      // Скрыть подсказку через 5 секунд
       Future.delayed(const Duration(seconds: 5), () {
         if (mounted) {
           setState(() => _showTapHint = false);
@@ -131,7 +128,6 @@ class _ContextPageState extends State<ContextPage>
     });
 
     try {
-      // Проверяем кэш
       final cachedContext = _cache.getCachedQuoteContext(widget.dailyQuote.quote.id);
       if (cachedContext != null) {
         setState(() {
@@ -139,13 +135,10 @@ class _ContextPageState extends State<ContextPage>
           _isLoading = false;
         });
         _animationController.forward();
-        
-        // НОВОЕ: Начинаем предварительную загрузку после показа контекста
         _startPreloadingFullText();
         return;
       }
 
-      // Загружаем контекст
       final context = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
       if (context != null) {
         await _cache.cacheQuoteContext(context);
@@ -154,8 +147,6 @@ class _ContextPageState extends State<ContextPage>
           _isLoading = false;
         });
         _animationController.forward();
-        
-        // НОВОЕ: Начинаем предварительную загрузку
         _startPreloadingFullText();
       } else {
         setState(() {
@@ -164,7 +155,6 @@ class _ContextPageState extends State<ContextPage>
         });
       }
 
-      // Отмечаем контекст как просмотренный
       await _cache.markDailyQuoteAsViewed(
         widget.dailyQuote.date,
         contextViewed: true,
@@ -177,17 +167,14 @@ class _ContextPageState extends State<ContextPage>
     }
   }
 
-  // НОВЫЙ МЕТОД: Предварительная загрузка полного текста
   Future<void> _startPreloadingFullText() async {
     if (_context == null || _isPreloading || _preloadCompleted) return;
     
     setState(() => _isPreloading = true);
     
     try {
-      // Загружаем в фоне без блокировки UI
       Future.microtask(() async {
         try {
-          // ТОЧНО такая же логика как в FullTextPage._loadFullText()
           final sources = await _textService.loadBookSources();
           
           final source = sources.firstWhere(
@@ -199,7 +186,6 @@ class _ContextPageState extends State<ContextPage>
           final cleanedText = await _textService.loadTextFile(source.cleanedFilePath);
           
           if (mounted) {
-            // Кэшируем данные для быстрого доступа
             _preloadedData = PreloadedFullTextData(
               fullText: cleanedText,
               bookSource: source,
@@ -226,22 +212,21 @@ class _ContextPageState extends State<ContextPage>
   }
 
   void _goBack() {
-    _candlePlayer.stop();
+    _soundManager.stopSound('candle_sound');
     Navigator.of(context).pop();
   }
 
-  void _navigateToFullText() {
+  void _navigateToFullText() async {
     if (_context == null) return;
     
-    _candlePlayer.stop(); // Останавливаем звук при переходе к полному тексту
+    await _soundManager.stopSound('candle_sound');
     
-    // НОВОЕ: Передаем предзагруженные данные, если они готовы
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
             FullTextPage(
               context: _context!,
-              preloadedData: _preloadedData, // Передаем все данные
+              preloadedData: _preloadedData,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
@@ -281,13 +266,11 @@ class _ContextPageState extends State<ContextPage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: _goBack,
         ),
-        // Индикаторы предзагрузки убраны - только основная функциональность
       ),
       body: SafeArea(
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Фоновое изображение для книжного контекста
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -297,7 +280,6 @@ class _ContextPageState extends State<ContextPage>
               ),
             ),
             
-            // Темный оверлей для читаемости
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -311,7 +293,6 @@ class _ContextPageState extends State<ContextPage>
               ),
             ),
             
-            // Основной контент
             _isLoading
                 ? _buildLoadingState()
                 : _error != null
@@ -395,18 +376,15 @@ class _ContextPageState extends State<ContextPage>
   Widget _buildContextContent() {
     return GestureDetector(
       onVerticalDragEnd: (details) {
-        // Свайп вниз для возврата
         if (details.primaryVelocity != null && details.primaryVelocity! > 500) {
           _goBack();
         }
       },
       onTap: () {
-        // Тап для перехода к полному тексту
         _navigateToFullText();
       },
       child: Stack(
         children: [
-          // Основной контент
           FadeTransition(
             opacity: _fadeAnimation,
             child: SlideTransition(
@@ -415,17 +393,14 @@ class _ContextPageState extends State<ContextPage>
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    // Контекст до цитаты
                     if (_context!.beforeContext.isNotEmpty) ...[
                       ..._context!.beforeContext.map((paragraph) => 
                         _buildParagraph(paragraph, isContext: true)),
                       const SizedBox(height: 24),
                     ],
                     
-                    // Сама цитата
                     _buildQuoteParagraph(),
                     
-                    // Контекст после цитаты
                     if (_context!.afterContext.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       ..._context!.afterContext.map((paragraph) => 
@@ -439,7 +414,6 @@ class _ContextPageState extends State<ContextPage>
             ),
           ),
           
-          // Подсказка о свайпе вниз
           if (_showSwipeHint)
             Positioned(
               top: 16,
@@ -479,7 +453,6 @@ class _ContextPageState extends State<ContextPage>
               ),
             ),
 
-          // Подсказка о тапе для полного текста
           if (_showTapHint)
             Positioned(
               bottom: 16,
@@ -544,20 +517,17 @@ class _ContextPageState extends State<ContextPage>
     final paragraph = _context!.quoteParagraph;
     final quoteText = widget.dailyQuote.quote.text;
     
-    // Находим позицию цитаты в абзаце (более надежный поиск)
     final quoteLower = quoteText.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
     final paragraphLower = paragraph.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
     
     int quoteIndex = paragraphLower.indexOf(quoteLower);
     
     if (quoteIndex == -1) {
-      // Если точное совпадение не найдено, ищем по первым словам
       final quoteWords = quoteLower.split(' ').take(5).join(' ');
       quoteIndex = paragraphLower.indexOf(quoteWords);
     }
     
     if (quoteIndex == -1) {
-      // Fallback: выделяем весь абзац
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -583,7 +553,6 @@ class _ContextPageState extends State<ContextPage>
       );
     }
     
-    // Выделяем цитату в контексте
     final beforeQuote = paragraph.substring(0, quoteIndex);
     final afterQuoteStart = quoteIndex + quoteText.length;
     final afterQuote = afterQuoteStart < paragraph.length 
@@ -618,7 +587,6 @@ class _ContextPageState extends State<ContextPage>
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
                 color: Colors.white,
-                
               ),
             ),
             if (afterQuote.isNotEmpty)
@@ -633,9 +601,7 @@ class _ContextPageState extends State<ContextPage>
   @override
   void dispose() {
     _animationController.dispose();
-    _candlePlayer.dispose(); // Не забываем освободить ресурсы
+    _soundManager.stopSound('candle_sound');
     super.dispose();
   }
 }
-
-// КЛАСС убран отсюда - используем из full_text_page.dart

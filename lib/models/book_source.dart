@@ -3,13 +3,11 @@ class BookSource {
   final String id;
   final String title;
   final String author;
-  final String category; // greece, nordic, philosophy
-  final String language; // en, ru, etc
+  final String category; // greece, nordic, philosophy, pagan
+  final String language; // en, ru
   final String? translator;
   final String rawFilePath; // путь к raw.txt
   final String cleanedFilePath; // путь к cleaned.txt  
-  final DateTime? dateAdded;
-  final Map<String, dynamic>? metadata; // дополнительная информация
 
   const BookSource({
     required this.id,
@@ -20,8 +18,6 @@ class BookSource {
     this.translator,
     required this.rawFilePath,
     required this.cleanedFilePath,
-    this.dateAdded,
-    this.metadata,
   });
 
   factory BookSource.fromJson(Map<String, dynamic> json) {
@@ -34,10 +30,6 @@ class BookSource {
       translator: json['translator'] as String?,
       rawFilePath: json['rawFilePath'] as String,
       cleanedFilePath: json['cleanedFilePath'] as String,
-      dateAdded: json['dateAdded'] != null
-          ? DateTime.parse(json['dateAdded'] as String)
-          : null,
-      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -51,8 +43,6 @@ class BookSource {
       'translator': translator,
       'rawFilePath': rawFilePath,
       'cleanedFilePath': cleanedFilePath,
-      'dateAdded': dateAdded?.toIso8601String(),
-      'metadata': metadata,
     };
   }
 
@@ -69,17 +59,21 @@ class BookSource {
     return parts.join('/');
   }
 
-  /// Проверяет, является ли источник античным
-  bool get isAncient => category == 'greece' || category == 'rome';
-
-  /// Проверяет, является ли источник скандинавским
-  bool get isNordic => category == 'nordic';
-
-  /// Проверяет, является ли источник философским
-  bool get isPhilosophy => category == 'philosophy';
-
-  bool get isPagan => category == 'pagan';
-
+  /// Получает категорию на русском
+  String get categoryDisplay {
+    switch (category) {
+      case 'greece':
+        return 'Греция';
+      case 'nordic':
+        return 'Север';
+      case 'philosophy':
+        return 'Философия';
+      case 'pagan':
+        return 'Язычество';
+      default:
+        return category;
+    }
+  }
 
   @override
   String toString() {

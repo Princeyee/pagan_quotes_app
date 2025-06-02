@@ -15,34 +15,35 @@ import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/nav_drawer.dart';
+import '../widgets/note_modal.dart';
 import 'context_page.dart';
+
 class StrikeThroughPainter extends CustomPainter {
   final double progress;
   
   StrikeThroughPainter(this.progress);
   
   @override
-void paint(Canvas canvas, Size size) {
-  final paint = Paint()
-    ..color = Colors.white // ИЗМЕНЕНО: был Colors.red
-    ..strokeWidth = 2
-    ..strokeCap = StrokeCap.round;
-  
-  // ИЗМЕНЕНО: диагональная линия вместо горизонтальной
-  final startX = size.width * 0.15;
-  final startY = size.height * 0.15;
-  final endX = size.width * 0.85;
-  final endY = size.height * 0.85;
-  
-  final currentEndX = startX + (endX - startX) * progress;
-  final currentEndY = startY + (endY - startY) * progress;
-  
-  canvas.drawLine(
-    Offset(startX, startY),
-    Offset(currentEndX, currentEndY),
-    paint,
-  );
-}
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    
+    final startX = size.width * 0.15;
+    final startY = size.height * 0.15;
+    final endX = size.width * 0.85;
+    final endY = size.height * 0.85;
+    
+    final currentEndX = startX + (endX - startX) * progress;
+    final currentEndY = startY + (endY - startY) * progress;
+    
+    canvas.drawLine(
+      Offset(startX, startY),
+      Offset(currentEndX, currentEndY),
+      paint,
+    );
+  }
   
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
@@ -77,29 +78,32 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   Color _textColor = Colors.white;
   AudioPlayer? _ambientPlayer;
   String? _currentTheme;
-  String _dateToString(DateTime date) {
-  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-}
-  @override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addObserver(this);
-  _initializeAnimations();
-  _loadSoundSettings(); // ДОБАВИТЬ
-  _loadTodayQuote();
-}
 
-Future<void> _loadSoundSettings() async {
-  final soundMuted = await _cache.getSetting<bool>('sound_muted') ?? false;
-  setState(() {
-    _isSoundMuted = soundMuted;
-  });
-  if (_isSoundMuted) {
-    _soundButtonController.forward();
+  String _dateToString(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-}
-    @override
-  void didChangeAppLifecycleState(AppLifecycleState state) { // ДОБАВИТЬ ВЕСЬ МЕТОД
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeAnimations();
+    _loadSoundSettings();
+    _loadTodayQuote();
+  }
+
+  Future<void> _loadSoundSettings() async {
+    final soundMuted = await _cache.getSetting<bool>('sound_muted') ?? false;
+    setState(() {
+      _isSoundMuted = soundMuted;
+    });
+    if (_isSoundMuted) {
+      _soundButtonController.forward();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       _ambientPlayer?.stop();
@@ -112,14 +116,14 @@ Future<void> _loadSoundSettings() async {
       vsync: this,
     );
     _soundButtonController = AnimationController(
-    duration: const Duration(milliseconds: 300),
-   vsync: this,
-     );
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
 
-     _soundButtonAnimation = Tween<double>(
+    _soundButtonAnimation = Tween<double>(
       begin: 0.0,
-     end: 1.0,
-      ).animate(CurvedAnimation(
+      end: 1.0,
+    ).animate(CurvedAnimation(
       parent: _soundButtonController,
       curve: Curves.easeInOut,
     ));
@@ -178,34 +182,35 @@ Future<void> _loadSoundSettings() async {
       });
     }
   }
-  Future<void> _fadeOutAmbient() async {
-  if (_ambientPlayer != null) {
-    // Плавное затухание за 500мс
-    for (double volume = 1.0; volume >= 0.0; volume -= 0.1) {
-      await _ambientPlayer!.setVolume(volume);
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
-    await _ambientPlayer!.pause();
-  }
-}
 
-Future<void> _fadeInAmbient() async {
-  if (_ambientPlayer != null) {
-    _ambientPlayer!.play();
-    await _ambientPlayer!.setVolume(1.0);
+  Future<void> _fadeOutAmbient() async {
+    if (_ambientPlayer != null) {
+      // Плавное затухание за 500мс
+      for (double volume = 1.0; volume >= 0.0; volume -= 0.1) {
+        await _ambientPlayer!.setVolume(volume);
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+      await _ambientPlayer!.pause();
+    }
   }
-}
+
+  Future<void> _fadeInAmbient() async {
+    if (_ambientPlayer != null) {
+      _ambientPlayer!.play();
+      await _ambientPlayer!.setVolume(1.0);
+    }
+  }
 
   Future<void> _setupQuoteDisplay(DailyQuote dailyQuote) async {
     // Получаем случайное изображение для категории цитаты
-     String imageUrl;
-  final cachedImageUrl = _cache.getSetting('daily_image_${_dateToString(DateTime.now())}');
-  if (cachedImageUrl != null) {
-    imageUrl = cachedImageUrl;
-  } else {
-    imageUrl = ImagePickerService.getRandomImage(dailyQuote.quote.category);
-    await _cache.setSetting('daily_image_${_dateToString(DateTime.now())}', imageUrl);
-  }
+    String imageUrl;
+    final cachedImageUrl = _cache.getSetting('daily_image_${_dateToString(DateTime.now())}');
+    if (cachedImageUrl != null) {
+      imageUrl = cachedImageUrl;
+    } else {
+      imageUrl = ImagePickerService.getRandomImage(dailyQuote.quote.category);
+      await _cache.setSetting('daily_image_${_dateToString(DateTime.now())}', imageUrl);
+    }
     
     // Определяем цвет текста (можно улучшить анализом изображения)
     final textColor = _determineTextColor(dailyQuote.quote.category);
@@ -223,34 +228,34 @@ Future<void> _fadeInAmbient() async {
     });
     
     _startAnimations();
-    _playAmbientSound(dailyQuote.quote.category); // ДОБАВИТЬ ЭТУ СТРОКУ
-    // ДОБАВИТЬ:
-final soundMuted = await _cache.getSetting('sound_muted', false) ?? false;
-setState(() {
-  _isSoundMuted = soundMuted;
-});
-if (_isSoundMuted) {
-  _soundButtonController.forward();
-  _ambientPlayer?.pause();
-}
-  }
-  Future<void> _playAmbientSound(String themeId) async {
-  if (_currentTheme == themeId) return; // Уже играет эта тема
-  
-  _ambientPlayer?.stop();
-  _ambientPlayer?.dispose();
-  
-  try {
-    _ambientPlayer = AudioPlayer();
-    await _ambientPlayer!.setAsset('assets/sounds/theme_${themeId}_ambient.mp3');
-    _ambientPlayer!.setLoopMode(LoopMode.one);
-    await _ambientPlayer!.play();
-    _currentTheme = themeId;
-  } catch (e) {
-    print('Ambient sound not available: $e');
-  }
-}
+    _playAmbientSound(dailyQuote.quote.category);
     
+    final soundMuted = await _cache.getSetting('sound_muted', false) ?? false;
+    setState(() {
+      _isSoundMuted = soundMuted;
+    });
+    if (_isSoundMuted) {
+      _soundButtonController.forward();
+      _ambientPlayer?.pause();
+    }
+  }
+
+  Future<void> _playAmbientSound(String themeId) async {
+    if (_currentTheme == themeId) return; // Уже играет эта тема
+    
+    _ambientPlayer?.stop();
+    _ambientPlayer?.dispose();
+    
+    try {
+      _ambientPlayer = AudioPlayer();
+      await _ambientPlayer!.setAsset('assets/sounds/theme_${themeId}_ambient.mp3');
+      _ambientPlayer!.setLoopMode(LoopMode.one);
+      await _ambientPlayer!.play();
+      _currentTheme = themeId;
+    } catch (e) {
+      print('Ambient sound not available: $e');
+    }
+  }
 
   Color _determineTextColor(String category) {
     // Простая логика определения цвета текста по категории
@@ -408,13 +413,12 @@ if (_isSoundMuted) {
           },
           transitionDuration: const Duration(milliseconds: 400),
         ),
-        ).then((_) {
-  // ДОБАВИТЬ: возобновляем фоновый звук после возврата из контекста
-  if (!_isSoundMuted) {
-    _fadeInAmbient();
-  }
-});
-      ;
+      ).then((_) {
+        // Возобновляем фоновый звук после возврата из контекста
+        if (!_isSoundMuted) {
+          _fadeInAmbient();
+        }
+      });
     }
   }
 
@@ -422,14 +426,20 @@ if (_isSoundMuted) {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      drawer: const NavDrawer(),
-       onDrawerChanged: (isOpened) { // ДОБАВИТЬ
-    if (isOpened) {
-      _fadeOutAmbient();
-    } else {
-      _fadeInAmbient();
-    }
-  },
+      drawerScrimColor: Colors.black.withOpacity(0.3),
+      drawer: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.transparent,
+        ),
+        child: const NavDrawer(),
+      ),
+      onDrawerChanged: (isOpened) {
+        if (isOpened) {
+          _fadeOutAmbient();
+        } else {
+          _fadeInAmbient();
+        }
+      },
       body: SafeArea(
         child: _isLoading 
             ? _buildLoadingState()
@@ -498,6 +508,25 @@ if (_isSoundMuted) {
         if (details.primaryVelocity != null && details.primaryVelocity! < -500) {
           _navigateToContext();
         }
+      },
+      onLongPress: () {
+        // Долгое нажатие открывает заметки
+        HapticFeedback.mediumImpact();
+        showNoteModal(context, quote, onSaved: () {
+          // Показываем уведомление о сохранении
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Заметка сохранена'),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+              margin: const EdgeInsets.all(20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        });
       },
       child: RepaintBoundary(
         key: _quoteCardKey,
@@ -575,6 +604,40 @@ if (_isSoundMuted) {
                 ],
               ),
             ),
+            
+            // Индикатор свайпа вверх (появляется кратковременно)
+            if (_currentDailyQuote != null && !_currentDailyQuote!.isViewed)
+              Positioned(
+                bottom: 40,
+                left: 0,
+                right: 0,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(seconds: 2),
+                  builder: (context, value, child) {
+                    return AnimatedOpacity(
+                      opacity: value > 0.5 ? 2.0 - (value * 2) : value * 2,
+                      duration: const Duration(milliseconds: 300),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_up,
+                            color: _textColor.withOpacity(0.5),
+                            size: 24,
+                          ),
+                          Text(
+                            'Свайп для контекста',
+                            style: TextStyle(
+                              color: _textColor.withOpacity(0.4),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -593,83 +656,87 @@ if (_isSoundMuted) {
           ),
         ),
         
-        // Дата
-        // ЗАМЕНИТЬ НА:
-Row(
-  children: [
-    Column(
-      children: [
-        Text(
-          'Сегодня',
-          style: TextStyle(
-            fontSize: 14,
-            color: _textColor.withOpacity(0.8),
-            fontWeight: FontWeight.w300,
-          ),
-        ),
-        Text(
-          _currentDailyQuote!.formattedDate,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: _textColor,
-          ),
-        ),
-      ],
-    ),
-    const SizedBox(width: 16),
-    // Кнопка звука
-    // ЗАМЕНИТЬ кнопку звука на:
-GestureDetector(
-  onTap: () async {
-    setState(() {
-      _isSoundMuted = !_isSoundMuted;
-    });
-    
-    if (_isSoundMuted) {
-      _soundButtonController.forward();
-      await _fadeOutAmbient();
-      await _cache.setSetting('sound_muted', true);
-    } else {
-      _soundButtonController.reverse();
-      await _fadeInAmbient();
-      await _cache.setSetting('sound_muted', false);
-    }
-  },
-  child: Container(
-    padding: const EdgeInsets.all(8),
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: Colors.black.withOpacity(0.3),
-    ),
-    child: AnimatedBuilder(
-      animation: _soundButtonAnimation,
-      builder: (context, child) {
-        return Stack(
+        // Дата и индикаторы
+        Row(
           children: [
-            Icon(
-              Icons.volume_up,
-              color: _textColor,
-              size: 20,
+            Column(
+              children: [
+                Text(
+                  'Сегодня',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _textColor.withOpacity(0.8),
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+                Text(
+                  _currentDailyQuote!.formattedDate,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: _textColor,
+                  ),
+                ),
+              ],
             ),
-            if (_soundButtonAnimation.value > 0)
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: StrikeThroughPainter(_soundButtonAnimation.value),
+            const SizedBox(width: 16),
+            // Кнопка звука
+            GestureDetector(
+              onTap: () async {
+                setState(() {
+                  _isSoundMuted = !_isSoundMuted;
+                });
+                
+                if (_isSoundMuted) {
+                  _soundButtonController.forward();
+                  await _fadeOutAmbient();
+                  await _cache.setSetting('sound_muted', true);
+                } else {
+                  _soundButtonController.reverse();
+                  await _fadeInAmbient();
+                  await _cache.setSetting('sound_muted', false);
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.3),
+                ),
+                child: AnimatedBuilder(
+                  animation: _soundButtonAnimation,
+                  builder: (context, child) {
+                    return Stack(
+                      children: [
+                        Icon(
+                          Icons.volume_up,
+                          color: _textColor,
+                          size: 20,
+                        ),
+                        if (_soundButtonAnimation.value > 0)
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: StrikeThroughPainter(_soundButtonAnimation.value),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
+            ),
           ],
-        );
-      },
-    ),
-  ),
-),
-  ],
-),
-
+        ),
         
-        // Пустое место для симметрии
-        const SizedBox(width: 48),
+        // Индикатор заметок
+        Tooltip(
+          message: 'Долгое нажатие для заметки',
+          child: Icon(
+            Icons.touch_app,
+            color: _textColor.withOpacity(0.3),
+            size: 20,
+          ),
+        ),
       ],
     );
   }
@@ -781,9 +848,10 @@ GestureDetector(
 
   @override
   void dispose() {
-     WidgetsBinding.instance.removeObserver(this); // ДОБАВИТЬ
+    WidgetsBinding.instance.removeObserver(this);
     _fadeController.dispose();
     _slideController.dispose();
+    _soundButtonController.dispose();
     _ambientPlayer?.dispose();
     super.dispose();
   }

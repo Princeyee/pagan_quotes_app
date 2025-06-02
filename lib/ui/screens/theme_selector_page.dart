@@ -1,7 +1,8 @@
+// lib/ui/screens/theme_selector_page.dart
 import 'package:flutter/material.dart';
 import '../../models/theme_info.dart';
 import '../../services/theme_service.dart';
-import 'package:just_audio/just_audio.dart';
+import '../../services/sound_manager.dart';
 
 class ThemeSelectorPage extends StatefulWidget {
   const ThemeSelectorPage({super.key});
@@ -13,7 +14,34 @@ class ThemeSelectorPage extends StatefulWidget {
 class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   late List<String> _enabledThemes;
   ThemeInfo? _expandedTheme;
-  AudioPlayer? _currentPlayer;
+  final SoundManager _soundManager = SoundManager();
+  String? _currentPlayingTheme;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEnabledThemes();
+  }
+
+  Future<void> _loadEnabledThemes() async {
+    final enabled = await ThemeService.getE// lib/ui/screens/theme_selector_page.dart
+import 'package:flutter/material.dart';
+import '../../models/theme_info.dart';
+import '../../services/theme_service.dart';
+import '../../services/sound_manager.dart';
+
+class ThemeSelectorPage extends StatefulWidget {
+  const ThemeSelectorPage({super.key});
+
+  @override
+  State<ThemeSelectorPage> createState() => _ThemeSelectorPageState();
+}
+
+class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
+  late List<String> _enabledThemes;
+  ThemeInfo? _expandedTheme;
+  final SoundManager _soundManager = SoundManager();
+  String? _currentPlayingTheme;
 
   @override
   void initState() {
@@ -31,36 +59,34 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
     await _loadEnabledThemes();
   }
 
-  Future<void> _stopCurrentSound() async {
-    if (_currentPlayer != null) {
-      try {
-        await _currentPlayer!.stop();
-        await _currentPlayer!.dispose();
-        _currentPlayer = null;
-      } catch (e) {
-        print('Error stopping sound: $e');
-      }
+  Future<void> _playThemeSound(String themeId) async {
+    if (_soundManager.isMuted) return;
+    
+    // Если играет другой звук, плавно затухаем
+    if (_currentPlayingTheme != null && _currentPlayingTheme != themeId) {
+      await _soundManager.fadeOut('theme_preview', duration: const Duration(seconds: 1));
     }
+    
+    _currentPlayingTheme = themeId;
+    
+    // Плавно запускаем новый звук
+    await _soundManager.fadeIn(
+      'theme_preview',
+      'assets/sounds/theme_${themeId}_open.mp3',
+      duration: const Duration(seconds: 1),
+    );
   }
 
-  Future<void> _playThemeSound(String themeId) async {
-    // Полностью останавливаем и очищаем предыдущий плеер
-    await _stopCurrentSound();
-    
-    try {
-      _currentPlayer = AudioPlayer();
-      await _currentPlayer!.setAsset('assets/sounds/theme_${themeId}_open.mp3');
-      await _currentPlayer!.play();
-    } catch (e) {
-      print('Theme sound error: $e');
-      _currentPlayer?.dispose();
-      _currentPlayer = null;
+  Future<void> _stopThemeSound() async {
+    if (_currentPlayingTheme != null) {
+      await _soundManager.fadeOut('theme_preview', duration: const Duration(seconds: 1));
+      _currentPlayingTheme = null;
     }
   }
 
   @override
   void dispose() {
-    _stopCurrentSound();
+    _stopThemeSound();
     super.dispose();
   }
 
@@ -90,13 +116,19 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
             child: InkWell(
               onTap: () async {
                 if (isExpanded) {
-                  // Закрываем контейнер и останавливаем звук
-                  await _stopCurrentSound();
+                  // Закрываем контейнер и плавно затухаем звук
+                  await _stopThemeSound();
                   setState(() {
                     _expandedTheme = null;
                   });
                 } else {
-                  // Открываем контейнер и играем звук
+                  // Закрываем предыдущий контейнер если открыт
+                  if (_expandedTheme != null) {
+                    setState(() {
+                      _expandedTheme = null;
+                    });
+                  }
+                  // Открываем новый контейнер и плавно играем звук
                   setState(() {
                     _expandedTheme = theme;
                   });
@@ -129,7 +161,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
             children: [
               Text(theme.name, style: const TextStyle(fontSize: 20, color: Colors.white)),
               const SizedBox(height: 6),
-Icon(
+              Icon(
                 isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
                 color: isSelected ? Colors.greenAccent : Colors.grey,
               ),

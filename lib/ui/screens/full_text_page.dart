@@ -1,3 +1,4 @@
+
 // lib/ui/screens/full_text_page.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -9,7 +10,8 @@ import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
 import '../../services/text_file_service.dart';
 import 'package:flutter/services.dart';
-
+import '../../services/favorites_service.dart';
+import '../../services/image_picker_service.dart';
 class PreloadedFullTextData {
   final String fullText;
   final BookSource bookSource;
@@ -405,8 +407,10 @@ class _FullTextPageState extends State<FullTextPage>
               border: Border.all(
                 color: _currentTheme.borderColor.withOpacity(0.2),
                 width: 1,
-              ),
-              boxShadow: [
+              Container(
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                       ),
+                 boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.15),
                   blurRadius: 30,
@@ -444,7 +448,7 @@ class _FullTextPageState extends State<FullTextPage>
           ),
         ),
       ),
-    );
+    ));
 
     Future.delayed(const Duration(milliseconds: 2000), () {
       if (mounted) Navigator.of(context).pop();
@@ -572,32 +576,38 @@ class _FullTextPageState extends State<FullTextPage>
       
       await favService.addToFavorites(newQuote, imageUrl: imageUrl);
       
-      Navigator.of(context).pop();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Цитата добавлена в избранное'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context).pop();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Цитата добавлена в избранное'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
-      Navigator.of(context).pop();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Ошибка: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context).pop();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   void _shareSelectedText(String text) {
-    Share.share(
-      '"$text"\n\n— ${_bookSource?.author}, ${_bookSource?.title}',
-      subject: 'Цитата из Sacral',
-    );
+    if (_bookSource != null) {
+      Share.share(
+        '"$text"\n\n— ${_bookSource!.author}, ${_bookSource!.title}',
+        subject: 'Цитата из Sacral',
+      );
+    }
   }
 
   void _addNoteToSelection(String text, int position) {
@@ -1151,6 +1161,13 @@ class _FullTextPageState extends State<FullTextPage>
     return matches.length;
   }
 
+  double _getReadingProgress() {
+    if (!_scrollController.hasClients) return 0.0;
+    final max = _scrollController.position.maxScrollExtent;
+    if (max <= 0) return 0.0;
+    return (_scrollController.offset / max).clamp(0.0, 1.0);
+  }
+
   void _adjustFontSize(double delta) {
     setState(() {
       _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
@@ -1187,54 +1204,57 @@ class _FullTextPageState extends State<FullTextPage>
     }
     
     // Обычный параграф с возможностью выделения
-    return SelectableText.rich(
-      TextSpan(
-        style: TextStyle(
-          fontSize: _fontSize,
-          height: _lineHeight,
-          color: _effectiveTextColor,
-          fontWeight: FontWeight.normal,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      child: SelectableText.rich(
+        TextSpan(
+          style: TextStyle(
+            fontSize: _fontSize,
+            height: _lineHeight,
+            color: _effectiveTextColor,
+            fontWeight: FontWeight.normal,
+          ),
+          children: [TextSpan(text: text)],
         ),
-        children: [TextSpan(text: text)],
-      ),
-      onSelectionChanged: (selection, cause) {
-        if (selection.baseOffset != selection.extentOffset) {
-          final selectedText = text.substring(
-            selection.baseOffset,
-            selection.extentOffset,
-          );
-          if (selectedText.trim().length > 10) { // Минимум 10 символов
-            _selectedText = selectedText;
+        onSelectionChanged: (selection, cause) {
+          if (selection.baseOffset != selection.extentOffset) {
+            final selectedText = text.substring(
+              selection.baseOffset,
+              selection.extentOffset,
+            );
+            if (selectedText.trim().length > 10) { // Минимум 10 символов
+              _selectedText = selectedText;
+            }
           }
-        }
-      },
-      contextMenuBuilder: (context, editableTextState) {
-        return AdaptiveTextSelectionToolbar(
-          anchors: editableTextState.contextMenuAnchors,
-          children: [
-            TextSelectionToolbarTextButton(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              onPressed: () {
-                editableTextState.hideToolbar();
-                if (_selectedText != null && _selectedText!.trim().length > 10) {
-                  _handleTextSelection(_selectedText!, position);
-                }
-              },
-              child: const Text('💾 Сохранить'),
-            ),
-            TextSelectionToolbarTextButton(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              onPressed: () {
-                editableTextState.hideToolbar();
-                if (_selectedText != null) {
-                  _shareSelectedText(_selectedText!);
-                }
-              },
-              child: const Text('📤 Поделиться'),
-            ),
-          ],
-        );
-      },
+        },
+        contextMenuBuilder: (context, editableTextState) {
+          return AdaptiveTextSelectionToolbar(
+            anchors: editableTextState.contextMenuAnchors,
+            children: [
+              TextSelectionToolbarTextButton(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: () {
+                  editableTextState.hideToolbar();
+                  if (_selectedText != null && _selectedText!.trim().length > 10) {
+                    _handleTextSelection(_selectedText!, position);
+                  }
+                },
+                child: const Text('💾 Сохранить'),
+              ),
+              TextSelectionToolbarTextButton(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: () {
+                  editableTextState.hideToolbar();
+                  if (_selectedText != null) {
+                    _shareSelectedText(_selectedText!);
+                  }
+                },
+                child: const Text('📤 Поделиться'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
