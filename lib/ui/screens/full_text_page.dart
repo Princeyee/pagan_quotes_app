@@ -2,10 +2,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../models/quote.dart';
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
 import '../../services/text_file_service.dart';
+import 'package:flutter/services.dart';
 
 class PreloadedFullTextData {
   final String fullText;
@@ -57,6 +60,14 @@ class _FullTextPageState extends State<FullTextPage>
   bool _useCustomColors = false;
 
   double _initialScrollPosition = 0.0;
+  
+  // Кэш для нормализованных текстов
+  String? _normalizedQuoteCache;
+  final Map<String, String> _normalizedTextCache = {};
+  
+  // Для выделения текста
+  bool _isSelectionMode = false;
+  String? _selectedText;
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -68,12 +79,30 @@ class _FullTextPageState extends State<FullTextPage>
 
   Color get _uiTextColor => _currentTheme.textColor;
 
+  // Добавляем переменные для throttling
+  double _lastProgress = 0.0;
+  
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _loadTheme();
     _loadFullText();
+    // Инициализируем кэш нормализованной цитаты
+    _normalizedQuoteCache = _normalizeText(widget.context.quote.text);
+    
+    // Слушаем скролл для обновления прогресса с throttling
+    _scrollController.addListener(() {
+      if (mounted) {
+        final currentProgress = _getReadingProgress();
+        // Обновляем UI только если прогресс изменился на 1% или больше
+        if ((currentProgress - _lastProgress).abs() >= 0.01) {
+          setState(() {
+            _lastProgress = currentProgress;
+          });
+        }
+      }
+    });
   }
 
   void _initializeAnimations() {
@@ -160,6 +189,15 @@ class _FullTextPageState extends State<FullTextPage>
     await _themeController.reverse();
   }
 
+  // Очистка текста от артефактов
+  String _cleanTextArtifacts(String text) {
+    return text
+        .replaceAll('>', '') // убираем только символ >
+        .replaceAll('<', '') // убираем только символ <
+        .replaceAll(RegExp(r'\s+'), ' ') // нормализуем пробелы
+        .trim();
+  }
+
   Future<void> _loadFullText() async {
     setState(() {
       _isLoading = true;
@@ -167,19 +205,35 @@ class _FullTextPageState extends State<FullTextPage>
     });
 
     try {
+      // Диагностика QuoteContext
+      print('📊 QuoteContext информация:');
+      print('   - startPosition: ${widget.context.startPosition}');
+      print('   - endPosition: ${widget.context.endPosition}');
+      print('   - contextParagraphs: ${widget.context.contextParagraphs.length}');
+      print('   - quoteParagraph индекс: ${widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)}');
+      
       if (widget.preloadedData != null) {
         setState(() {
           _bookSource = widget.preloadedData!.bookSource;
-          _fullText = widget.preloadedData!.fullText;
+          _fullText = _cleanTextArtifacts(widget.preloadedData!.fullText);
           _isLoading = false;
         });
 
         _fadeController.forward();
         
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted) {
+        // Ожидаем готовность ListView
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scrollController.hasClients) {
             _findQuotePositionFast();
-            _scheduleAutoScroll();
+            _scrollToQuoteSmooth();
+          } else {
+            // Повторяем попытку
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                _findQuotePositionFast();
+                _scheduleAutoScroll();
+              }
+            });
           }
         });
         
@@ -198,16 +252,23 @@ class _FullTextPageState extends State<FullTextPage>
       
       setState(() {
         _bookSource = source;
-        _fullText = cleanedText;
+        _fullText = _cleanTextArtifacts(cleanedText);
         _isLoading = false;
       });
 
       _fadeController.forward();
       
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
           _findQuotePositionFast();
-          _scheduleAutoScroll();
+          _scrollToQuoteSmooth();
+        } else {
+          Future.delayed(const Duration(milliseconds: 200), () {
+            if (mounted) {
+              _findQuotePositionFast();
+              _scheduleAutoScroll();
+            }
+          });
         }
       });
       
@@ -222,82 +283,72 @@ class _FullTextPageState extends State<FullTextPage>
   void _findQuotePositionFast() {
     if (_fullText == null) return;
     
-    // ИСПОЛЬЗУЕМ ГОТОВЫЕ ДАННЫЕ из QuoteContext вместо поиска!
     final startPos = widget.context.startPosition;
-    final endPos = widget.context.endPosition;
+    print('🔍 Ищем позицию для цитаты: startPos=$startPos');
+    print('📖 Цитата: "${widget.context.quote.text.substring(0, min(50, widget.context.quote.text.length))}..."');
     
-    print('🎯 Используем готовые позиции из QuoteContext:');
-    print('   startPosition: $startPos');
-    print('   endPosition: $endPos');
-    print('   contextParagraphs: ${widget.context.contextParagraphs.length}');
-    
-    // Разбиваем текст по параграфам для подсчета общего количества
     final parts = _fullText!.split(RegExp(r'\[pos:\d+\]'));
     final paragraphs = parts.where((p) => p.trim().isNotEmpty).toList();
-    
-    // Вычисляем позицию для скролла на основе startPosition
-    // startPosition - это номер позиции в файле, нужно найти соответствующий параграф
+    print('📊 Всего параграфов: ${paragraphs.length}');
     
     double progress = 0.0;
     
-    if (startPos > 0 && startPos <= paragraphs.length) {
-      // Скроллим к началу контекстного блока
-      progress = (startPos - 1) / paragraphs.length; // -1 потому что позиции с 1, а индексы с 0
-      print('✅ Вычислена позиция скролла: ${(progress * 100).toStringAsFixed(1)}% (параграф ${startPos - 1})');
+    if (startPos > 0) {
+      int actualParagraphIndex = -1;
+      
+      // Более точный парсинг с сохранением позиций
+      final regex = RegExp(r'\[pos:(\d+)\]');
+      final matches = regex.allMatches(_fullText!).toList();
+      print('🏷️ Найдено ${matches.length} меток позиций');
+      
+      // Находим параграф с нужной позицией
+      for (int i = 0; i < matches.length; i++) {
+        final match = matches[i];
+        final posNumber = int.parse(match.group(1)!);
+        
+        if (posNumber == startPos) {
+          // Считаем сколько непустых параграфов до этой позиции
+          final textBeforePos = _fullText!.substring(0, match.start);
+          final partsBeforePos = textBeforePos.split(RegExp(r'\[pos:\d+\]'));
+          actualParagraphIndex = partsBeforePos.where((p) => p.trim().isNotEmpty).length;
+          
+          print('✅ Нашли позицию $startPos на индексе параграфа $actualParagraphIndex');
+          
+          // Проверяем текст в найденном параграфе
+          if (i < matches.length - 1) {
+            final paragraphText = _fullText!.substring(match.end, matches[i + 1].start).trim();
+            print('📝 Текст параграфа: "${paragraphText.substring(0, min(100, paragraphText.length))}..."');
+          }
+          break;
+        }
+      }
+      
+      if (actualParagraphIndex >= 0) {
+        progress = actualParagraphIndex / paragraphs.length;
+        print('📍 Прогресс: ${(progress * 100).toStringAsFixed(1)}%');
+      } else {
+        print('⚠️ Не нашли точную позицию, используем приблизительную');
+        progress = (startPos - 1) / paragraphs.length;
+      }
     } else {
-      // Fallback: ищем по тексту как раньше
-      print('⚠️ startPosition вне диапазона, ищем по тексту...');
-      _findQuoteByTextSearch();
+      print('❌ startPos = 0, начинаем с начала');
+      _initialScrollPosition = 0.0;
       return;
     }
     
     _initialScrollPosition = progress;
-    print('📍 ИТОГ: Используем позицию $startPos-$endPos, скролл: ${(progress * 100).toStringAsFixed(1)}%');
-  }
-  
-  // Fallback метод поиска по тексту (если позиции не работают)
-  void _findQuoteByTextSearch() {
-    final quoteText = widget.context.quote.text;
-    final parts = _fullText!.split(RegExp(r'\[pos:\d+\]'));
-    final paragraphs = parts.where((p) => p.trim().isNotEmpty).toList();
-    
-    final normalizedQuote = _normalizeText(quoteText);
-    
-    for (int i = 0; i < paragraphs.length; i++) {
-      final normalizedParagraph = _normalizeText(paragraphs[i].trim());
-      
-      if (normalizedParagraph.contains(normalizedQuote)) {
-        final progress = i / paragraphs.length;
-        _initialScrollPosition = progress;
-        print('✅ Fallback: найдено в параграфе $i, позиция: ${(progress * 100).toStringAsFixed(1)}%');
-        return;
-      }
-    }
-    
-    print('❌ Fallback: цитата не найдена');
-    _initialScrollPosition = 0.0;
-  }
-  
-  // НОВЫЙ метод для вычисления схожести текстов
-  double _calculateSimilarity(String text1, String text2) {
-    final words1 = text1.split(' ').where((w) => w.length > 3).toSet();
-    final words2 = text2.split(' ').where((w) => w.length > 3).toSet();
-    
-    final intersection = words1.intersection(words2).length;
-    final union = words1.union(words2).length;
-    
-    return union > 0 ? intersection / union : 0.0;
+    print('🎯 Финальная позиция скролла: ${_initialScrollPosition.toStringAsFixed(3)}');
   }
 
   void _scheduleAutoScroll() {
-    // СРАЗУ показываем анимацию поиска
+    // Показываем анимацию поиска
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         _showSearchAnimation();
       }
     });
     
-    // ПАРАЛЛЕЛЬНО делаем скролл в фоне
+    // Параллельно делаем скролл в фоне
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted && !_autoScrolled) {
         _scrollToQuoteSmooth();
@@ -309,22 +360,32 @@ class _FullTextPageState extends State<FullTextPage>
     if (_initialScrollPosition > 0 && _scrollController.hasClients) {
       final maxScroll = _scrollController.position.maxScrollExtent;
       
+      print('📜 Начинаем скролл: maxScroll=$maxScroll, initialPos=$_initialScrollPosition');
+      
       if (maxScroll > 0) {
         final screenHeight = MediaQuery.of(context).size.height;
         final targetScroll = (maxScroll * _initialScrollPosition) - (screenHeight * 0.3);
         final clampedScroll = targetScroll.clamp(0.0, maxScroll);
         
         print('📍 Скроллим к позиции: ${clampedScroll.toStringAsFixed(0)} из ${maxScroll.toStringAsFixed(0)}');
+        print('📐 Смещение от верха экрана: ${(screenHeight * 0.3).toStringAsFixed(0)}px');
         
-        // ПЛАВНЫЙ скролл БЕЗ показа анимации
         _scrollController.animateTo(
           clampedScroll,
-          duration: const Duration(milliseconds: 1200), // Увеличил время чтобы анимация успела
+          duration: const Duration(milliseconds: 1200),
           curve: Curves.easeInOutCubic,
-        );
+        ).then((_) {
+          print('✅ Скролл завершен');
+        }).catchError((error) {
+          print('❌ Ошибка скролла: $error');
+        });
         
         _autoScrolled = true;
+      } else {
+        print('⚠️ maxScroll = 0, не можем скроллить');
       }
+    } else {
+      print('❌ Не можем скроллить: hasClients=${_scrollController.hasClients}, initialPos=$_initialScrollPosition');
     }
   }
 
@@ -385,17 +446,168 @@ class _FullTextPageState extends State<FullTextPage>
       ),
     );
 
-    // Закрываем анимацию через 2 секунды (достаточно времени для скролла)
     Future.delayed(const Duration(milliseconds: 2000), () {
       if (mounted) Navigator.of(context).pop();
     });
   }
 
-  void _adjustFontSize(double delta) {
-    setState(() {
-      _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
-    });
-    _saveSettings();
+  // Метод выделения текста для сохранения как цитаты
+  void _handleTextSelection(String selectedText, int position) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _currentTheme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Выделенный текст',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: _effectiveTextColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _currentTheme.highlightColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _currentTheme.borderColor.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                selectedText.length > 200 
+                    ? '${selectedText.substring(0, 200)}...' 
+                    : selectedText,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _effectiveTextColor,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  icon: Icons.favorite_border,
+                  label: 'В избранное',
+                  onTap: () => _saveAsQuote(selectedText, position),
+                ),
+                _buildActionButton(
+                  icon: Icons.share,
+                  label: 'Поделиться',
+                  onTap: () => _shareSelectedText(selectedText),
+                ),
+                _buildActionButton(
+                  icon: Icons.note_add,
+                  label: 'Заметка',
+                  onTap: () => _addNoteToSelection(selectedText, position),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: _currentTheme.highlightColor.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: _effectiveTextColor, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: _effectiveTextColor.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveAsQuote(String text, int position) async {
+    // Создаем новую цитату из выделенного текста
+    final newQuote = Quote(
+      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+      text: text.trim(),
+      author: _bookSource?.author ?? '',
+      source: _bookSource?.title ?? '',
+      category: _bookSource?.category ?? 'custom',
+      position: position,
+      theme: _bookSource?.category ?? 'custom',
+      dateAdded: DateTime.now(),
+    );
+    
+    try {
+      final favService = await FavoritesService.init();
+      
+      // Используем случайное изображение из той же категории
+      final imageUrl = ImagePickerService.getRandomImage(newQuote.category);
+      
+      await favService.addToFavorites(newQuote, imageUrl: imageUrl);
+      
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Цитата добавлена в избранное'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _shareSelectedText(String text) {
+    Share.share(
+      '"$text"\n\n— ${_bookSource?.author}, ${_bookSource?.title}',
+      subject: 'Цитата из Sacral',
+    );
+  }
+
+  void _addNoteToSelection(String text, int position) {
+    Navigator.of(context).pop();
+    // TODO: Implement notes functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Функция заметок будет добавлена в следующей версии'),
+      ),
+    );
   }
 
   void _adjustLineHeight(double delta) {
@@ -410,7 +622,12 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   String _normalizeText(String text) {
-    return text.toLowerCase()
+    // Проверяем кэш
+    if (_normalizedTextCache.containsKey(text)) {
+      return _normalizedTextCache[text]!;
+    }
+    
+    final normalized = text.toLowerCase()
         .replaceAll('«', '"')
         .replaceAll('»', '"')
         .replaceAll('"', '"')
@@ -424,6 +641,10 @@ class _FullTextPageState extends State<FullTextPage>
         .replaceAll('…', '...')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+    
+    // Сохраняем в кэш
+    _normalizedTextCache[text] = normalized;
+    return normalized;
   }
 
   @override
@@ -573,7 +794,6 @@ class _FullTextPageState extends State<FullTextPage>
               ],
             ),
           ),
-          // Убираем отдельную кнопку смены темы - оставляем только в настройках
           IconButton(
             onPressed: () {
               setState(() => _showSettings = !_showSettings);
@@ -677,58 +897,64 @@ class _FullTextPageState extends State<FullTextPage>
           _buildModernSettingCard(
             'Готовые темы',
             Icons.palette_outlined,
-            Wrap(
-              spacing: 12,
-              children: ReadingTheme.allThemes.map((theme) {
-                final isSelected = theme.type == _currentTheme.type && !_useCustomColors;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _currentTheme = theme;
-                      _useCustomColors = false;
-                    });
-                    _saveSettings();
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: theme.backgroundColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected 
-                            ? theme.quoteHighlightColor 
-                            : theme.borderColor.withOpacity(0.3),
-                        width: isSelected ? 3 : 1,
+            SizedBox(
+              height: 120,
+              child: SingleChildScrollView(
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: ReadingTheme.allThemes.map((theme) {
+                    final isSelected = theme.type == _currentTheme.type && !_useCustomColors;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _currentTheme = theme;
+                          _useCustomColors = false;
+                        });
+                        _saveSettings();
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: theme.backgroundColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected 
+                                ? theme.quoteHighlightColor 
+                                : theme.borderColor.withOpacity(0.3),
+                            width: isSelected ? 3 : 1,
+                          ),
+                          boxShadow: isSelected ? [
+                            BoxShadow(
+                              color: theme.quoteHighlightColor.withOpacity(0.3),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ] : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            theme.letter,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: theme.textColor,
+                            ),
+                          ),
+                        ),
                       ),
-                      boxShadow: isSelected ? [
-                        BoxShadow(
-                          color: theme.quoteHighlightColor.withOpacity(0.3),
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                        ),
-                      ] : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        theme.letter,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: theme.textColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -845,7 +1071,7 @@ class _FullTextPageState extends State<FullTextPage>
     );
   }
 
-  Widget _buildColorPicker(Color currentColor, Function(Color) onColorChanged, [Color? selectedColor]) {
+  Widget _buildColorPicker(Color currentColor, Function(Color) onColorChanged) {
     final colors = [
       Colors.black,
       Colors.white,
@@ -863,7 +1089,7 @@ class _FullTextPageState extends State<FullTextPage>
       spacing: 8,
       runSpacing: 8,
       children: colors.map((color) {
-        final isSelected = selectedColor != null && color.value == selectedColor.value;
+        final isSelected = currentColor.value == color.value;
         return GestureDetector(
           onTap: () => onColorChanged(color),
           child: AnimatedContainer(
@@ -907,7 +1133,9 @@ class _FullTextPageState extends State<FullTextPage>
         controller: _scrollController,
         padding: const EdgeInsets.all(24.0),
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        cacheExtent: 1000,
+        cacheExtent: 500, // Уменьшено для производительности
+        addAutomaticKeepAlives: false, // Отключаем автосохранение
+        addRepaintBoundaries: true, // Оптимизация отрисовки
         itemCount: _getItemCount(),
         itemBuilder: (context, index) => _buildLazyItem(index),
       ),
@@ -916,47 +1144,101 @@ class _FullTextPageState extends State<FullTextPage>
 
   int _getItemCount() {
     if (_fullText == null) return 0;
-    return _fullText!.split(RegExp(r'\[pos:\d+\]')).where((p) => p.trim().isNotEmpty).length;
+    
+    // Считаем параграфы по меткам [pos:N]
+    final regex = RegExp(r'\[pos:\d+\]');
+    final matches = regex.allMatches(_fullText!);
+    return matches.length;
+  }
+
+  void _adjustFontSize(double delta) {
+    setState(() {
+      _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
+    });
+    _saveSettings();
   }
 
   Widget _buildLazyItem(int index) {
-    final paragraphs = _fullText!.split(RegExp(r'\[pos:\d+\]')).where((p) => p.trim().isNotEmpty).toList();
+    // Парсим параграфы с позициями
+    final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
+    final matches = regex.allMatches(_fullText!).toList();
     
-    if (index >= paragraphs.length) return const SizedBox.shrink();
+    if (index >= matches.length) return const SizedBox.shrink();
     
-    final text = paragraphs[index].trim();
+    final match = matches[index];
+    final position = int.parse(match.group(1)!);
+    final rawText = match.group(2)!.trim();
+    final text = _cleanTextArtifacts(rawText); // Очищаем артефакты
+    
     if (text.isEmpty) return const SizedBox.shrink();
     
-    final isQuote = _simpleQuoteCheck(text);
+    // Проверяем, является ли это позицией с цитатой
+    final isQuotePosition = position == widget.context.startPosition;
     
-    // НОВОЕ: Если это цитата, строим КОНТЕКСТНЫЙ БЛОК
-    if (isQuote) {
-      return _buildContextBlock(paragraphs, index);
+    // Если это позиция цитаты, строим контекстный блок
+    if (isQuotePosition) {
+      return _buildContextBlockForPosition(position, matches, index);
     }
     
-    // НОВОЕ: Если это контекст рядом с цитатой, не показываем отдельно
-    if (_isPartOfContextBlock(paragraphs, index)) {
+    // Проверяем, входит ли этот параграф в контекст цитаты
+    if (position >= widget.context.startPosition && position <= widget.context.endPosition) {
+      // Этот параграф уже будет показан в контекстном блоке
       return const SizedBox.shrink();
     }
     
-    // Обычный параграф
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: RichText(
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: _fontSize,
-            height: _lineHeight,
-            color: _effectiveTextColor,
-            fontWeight: FontWeight.normal,
-          ),
-          children: [TextSpan(text: text)],
+    // Обычный параграф с возможностью выделения
+    return SelectableText.rich(
+      TextSpan(
+        style: TextStyle(
+          fontSize: _fontSize,
+          height: _lineHeight,
+          color: _effectiveTextColor,
+          fontWeight: FontWeight.normal,
         ),
+        children: [TextSpan(text: text)],
       ),
+      onSelectionChanged: (selection, cause) {
+        if (selection.baseOffset != selection.extentOffset) {
+          final selectedText = text.substring(
+            selection.baseOffset,
+            selection.extentOffset,
+          );
+          if (selectedText.trim().length > 10) { // Минимум 10 символов
+            _selectedText = selectedText;
+          }
+        }
+      },
+      contextMenuBuilder: (context, editableTextState) {
+        return AdaptiveTextSelectionToolbar(
+          anchors: editableTextState.contextMenuAnchors,
+          children: [
+            TextSelectionToolbarTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              onPressed: () {
+                editableTextState.hideToolbar();
+                if (_selectedText != null && _selectedText!.trim().length > 10) {
+                  _handleTextSelection(_selectedText!, position);
+                }
+              },
+              child: const Text('💾 Сохранить'),
+            ),
+            TextSelectionToolbarTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              onPressed: () {
+                editableTextState.hideToolbar();
+                if (_selectedText != null) {
+                  _shareSelectedText(_selectedText!);
+                }
+              },
+              child: const Text('📤 Поделиться'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  // НОВЫЙ метод: Строим контекстный блок ИЗ ГОТОВЫХ ДАННЫХ QuoteContext
+  // Строим контекстный блок из готовых данных QuoteContext
   Widget _buildContextBlock(List<String> paragraphs, int quoteIndex) {
     List<Widget> contextItems = [];
     
@@ -978,7 +1260,7 @@ class _FullTextPageState extends State<FullTextPage>
             ),
             const SizedBox(width: 6),
             Text(
-              'Контекст цитаты',
+              'Контекст цитаты (${widget.context.startPosition})',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -991,8 +1273,6 @@ class _FullTextPageState extends State<FullTextPage>
     );
     
     contextItems.add(const SizedBox(height: 16));
-    
-    // ИСПОЛЬЗУЕМ ГОТОВЫЕ ДАННЫЕ из QuoteContext
     
     // Контекст ДО цитаты
     for (final paragraph in widget.context.beforeContext) {
@@ -1014,7 +1294,7 @@ class _FullTextPageState extends State<FullTextPage>
       );
     }
     
-    // САМА ЦИТАТА (используем quoteParagraph)
+    // Сама цитата
     contextItems.add(
       Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -1035,7 +1315,7 @@ class _FullTextPageState extends State<FullTextPage>
               color: _effectiveTextColor,
               fontWeight: FontWeight.w500,
             ),
-            children: _highlightQuoteInParagraph(widget.context.quoteParagraph),
+            children: [TextSpan(text: widget.context.quoteParagraph)],
           ),
         ),
       ),
@@ -1080,19 +1360,27 @@ class _FullTextPageState extends State<FullTextPage>
     );
   }
 
-  // Цвет фона контекстного блока
+  // Цвета для контекстного блока
   Color _getContextBlockBackgroundColor() {
     if (_currentTheme.type == ReadingThemeType.dark) {
-      return Colors.orange.withOpacity(0.08); // Оранжевый оттенок для тёмной темы
+      return Colors.orange.withOpacity(0.08);
     } else {
       return _currentTheme.highlightColor.withOpacity(0.1);
+    }
+  }
+
+  Color _getContextBlockBorderColor() {
+    if (_currentTheme.type == ReadingThemeType.dark) {
+      return Colors.orange.withOpacity(0.3);
+    } else {
+      return Colors.grey.withOpacity(0.4);
     }
   }
 
   // Цвета для выделения цитаты
   Color _getQuoteHighlightBackgroundColor() {
     if (_currentTheme.type == ReadingThemeType.dark) {
-      return Colors.orange.withOpacity(0.12); // Оранжевый фон для цитаты в тёмной теме
+      return Colors.orange.withOpacity(0.12);
     } else {
       return _currentTheme.quoteHighlightColor.withOpacity(0.08);
     }
@@ -1100,62 +1388,13 @@ class _FullTextPageState extends State<FullTextPage>
 
   Color _getQuoteHighlightBorderColor() {
     if (_currentTheme.type == ReadingThemeType.dark) {
-      return Colors.orange.withOpacity(0.4); // Оранжевая рамка для цитаты в тёмной теме
+      return Colors.orange.withOpacity(0.4);
     } else {
       return _currentTheme.quoteHighlightColor.withOpacity(0.2);
     }
   }
 
-  Color _getQuoteHighlightTextColor() {
-    if (_currentTheme.type == ReadingThemeType.dark) {
-      return Colors.orange; // Оранжевый текст цитаты в тёмной теме
-    } else {
-      return _currentTheme.quoteHighlightColor;
-    }
-  }
-
-  // Метод для выделения цитаты в параграфе (как на ContextPage)
-  List<TextSpan> _highlightQuoteInParagraph(String paragraphText) {
-    final quoteText = widget.context.quote.text;
-    
-    // Ищем позицию цитаты в параграфе
-    final quoteLower = quoteText.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
-    final paragraphLower = paragraphText.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
-    
-    int quoteIndex = paragraphLower.indexOf(quoteLower);
-    
-    if (quoteIndex == -1) {
-      // Если точное совпадение не найдено, ищем по первым словам
-      final quoteWords = quoteLower.split(' ').take(5).join(' ');
-      quoteIndex = paragraphLower.indexOf(quoteWords);
-    }
-    
-    if (quoteIndex != -1) {
-      // Выделяем цитату в контексте
-      final beforeQuote = paragraphText.substring(0, quoteIndex);
-      final afterQuoteStart = quoteIndex + quoteText.length;
-      final afterQuote = afterQuoteStart < paragraphText.length 
-          ? paragraphText.substring(afterQuoteStart)
-          : '';
-      
-      return [
-        if (beforeQuote.isNotEmpty) TextSpan(text: beforeQuote),
-        TextSpan(
-          text: quoteText,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: _getQuoteHighlightTextColor(),
-          ),
-        ),
-        if (afterQuote.isNotEmpty) TextSpan(text: afterQuote),
-      ];
-    }
-    
-    // Если не нашли цитату, возвращаем весь текст
-    return [TextSpan(text: paragraphText)];
-  }
-
-  // НОВЫЙ метод: Проверяем является ли параграф частью уже показанного контекстного блока
+  // Проверяем является ли параграф частью уже показанного контекстного блока
   bool _isPartOfContextBlock(List<String> paragraphs, int index) {
     // Ищем ближайшую цитату
     for (int i = max(0, index - 2); i <= min(paragraphs.length - 1, index + 2); i++) {
@@ -1168,87 +1407,18 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   bool _simpleQuoteCheck(String text) {
+    if (_normalizedQuoteCache == null || _normalizedQuoteCache!.length < 10) return false;
+    
     final normalizedText = _normalizeText(text);
-    final normalizedQuote = _normalizeText(widget.context.quote.text);
+    final quoteStart = _normalizedQuoteCache!.substring(0, min(30, _normalizedQuoteCache!.length));
     
-    if (normalizedQuote.length < 10) return false;
+    final isQuote = normalizedText.contains(quoteStart);
     
-    final quoteStart = normalizedQuote.substring(0, min(30, normalizedQuote.length));
-    return normalizedText.contains(quoteStart);
-  }
-
-  List<TextSpan> _highlightQuoteInText(String text) {
-    final quoteText = widget.context.quote.text;
-    final normalizedText = _normalizeText(text);
-    final normalizedQuote = _normalizeText(quoteText);
-    
-    print('🎨 Выделяем цитату в тексте: "${quoteText.substring(0, min(50, quoteText.length))}..."');
-    
-    // Ищем ТОЧНОЕ совпадение полной цитаты
-    final quoteIndex = normalizedText.indexOf(normalizedQuote);
-    
-    if (quoteIndex != -1) {
-      print('✅ Найдено точное совпадение для выделения на позиции $quoteIndex');
-      
-      // Находим точные границы в оригинальном тексте
-      int realStartIndex = 0;
-      int realEndIndex = text.length;
-      
-      // Пытаемся найти точное начало цитаты в оригинальном тексте
-      final words = text.split(' ');
-      final quoteWords = quoteText.split(' ');
-      
-      // Ищем последовательность слов из цитаты в тексте
-      for (int i = 0; i <= words.length - quoteWords.length; i++) {
-        bool matches = true;
-        for (int j = 0; j < quoteWords.length; j++) {
-          if (_normalizeText(words[i + j]) != _normalizeText(quoteWords[j])) {
-            matches = false;
-            break;
-          }
-        }
-        
-        if (matches) {
-          // Нашли точное совпадение
-          realStartIndex = words.take(i).join(' ').length + (i > 0 ? 1 : 0);
-          final quotePart = words.skip(i).take(quoteWords.length).join(' ');
-          realEndIndex = realStartIndex + quotePart.length;
-          
-          print('✅ Точные границы: $realStartIndex - $realEndIndex');
-          print('✅ Выделяемый текст: "${quotePart}"');
-          
-          final beforeQuote = realStartIndex > 0 ? text.substring(0, realStartIndex) : '';
-          final afterQuote = realEndIndex < text.length ? text.substring(realEndIndex) : '';
-          
-          return [
-            if (beforeQuote.isNotEmpty) TextSpan(text: beforeQuote),
-            TextSpan(
-              text: quotePart,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                backgroundColor: _currentTheme.quoteHighlightColor.withOpacity(0.3),
-                color: _currentTheme.quoteHighlightColor,
-              ),
-            ),
-            if (afterQuote.isNotEmpty) TextSpan(text: afterQuote),
-          ];
-        }
-      }
-      
-      print('⚠️ Не удалось найти точные границы, используем приблизительное выделение');
+    if (isQuote) {
+      print('🎯 Найдена цитата в параграфе: "${text.substring(0, min(50, text.length))}..."');
     }
     
-    // Если точное совпадение не найдено, выделяем весь параграф как потенциальную цитату
-    print('❌ Точное совпадение не найдено, выделяем весь параграф');
-    return [
-      TextSpan(
-        text: text,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          backgroundColor: _currentTheme.highlightColor.withOpacity(0.2),
-        ),
-      ),
-    ];
+    return isQuote;
   }
 
   @override
@@ -1410,7 +1580,7 @@ class _SearchProgressWidgetState extends State<_SearchProgressWidget>
                     ),
                   ),
                   Positioned(
-                    left: _scanAnimation.value * 200,
+                    left: _scanAnimation.value * 160,
                     child: Container(
                       height: 2,
                       width: 40,
