@@ -81,15 +81,14 @@ class _QuotePageState extends State<QuotePage>
   AudioPlayer? _ambientPlayer;
   String? _currentTheme;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _initializeAnimations();
-    _initializeSound(); // ✅ запуск и загрузка состояния звука
-    _loadTodayQuote();
-  }
-
+ @override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addObserver(this);
+  _initializeAnimations();
+  _initializeSound();
+  _loadTodayQuote();
+}
   Future<void> _initializeSound() async {
     await _soundManager.init();
 
@@ -102,18 +101,17 @@ class _QuotePageState extends State<QuotePage>
     }
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      _stopAmbientSound();
-    } else if (state == AppLifecycleState.resumed) {
-      // Возобновляем звук только если мы на главном экране
-      if (mounted && !_isSoundMuted) {
-        _resumeAmbientIfNeeded();
-      }
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  super.didChangeAppLifecycleState(state);
+  if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    _stopAmbientSound();
+  } else if (state == AppLifecycleState.resumed) {
+    if (mounted && !_isSoundMuted) {
+      _resumeAmbientIfNeeded();
     }
   }
+}
 
   void _initializeAnimations() {
     _fadeController = AnimationController(

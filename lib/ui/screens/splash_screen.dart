@@ -7,6 +7,7 @@ import '../../services/favorites_service.dart';
 import '../../services/sound_manager.dart';
 import '../../utils/custom_cache.dart';
 import 'quote_page.dart';
+import 'package:just_audio/just_audio.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,13 +48,14 @@ class _SplashScreenState extends State<SplashScreen> {
       // Генерируем цитату
       await _ensureTodayQuote();
 
-      // 🔔 Звук удара (только если звук не отключен)
-      if (!_soundManager.isMuted) {
-        _soundManager.playSound(
-          'chime_splash',
-          'assets/sounds/chime.mp3',
-        );
-      }
+      await _ensureTodayQuote();
+
+// 🔔 Звук удара (не через SoundManager — чтобы не обрывался)
+if (!_soundManager.isMuted) {
+  final chimePlayer = AudioPlayer();
+  await chimePlayer.setAsset('assets/sounds/chime.mp3');
+  chimePlayer.play(); // Не await — он доиграет сам
+}
 
       // Небольшая пауза перед переходом
       await Future.delayed(const Duration(milliseconds: 800));
