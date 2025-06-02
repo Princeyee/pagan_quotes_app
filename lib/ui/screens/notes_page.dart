@@ -1,3 +1,4 @@
+
 // lib/ui/screens/notes_page.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,31 +7,7 @@ import '../widgets/note_modal.dart';
 import '../../models/quote.dart';
 
 class NotesPage extends StatefulWidget {
-  const NotesPage({super.key  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-    
-    if (difference.inDays == 0) {
-      if (difference.inHours == 0) {
-        if (difference.inMinutes == 0) {
-          return 'Только что';
-        }
-        return '${difference.inMinutes} мин. назад';
-      }
-      return '${difference.inHours} ч. назад';
-    } else if (difference.inDays == 1) {
-      return 'Вчера';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} дн. назад';
-    } else {
-      final months = [
-        'янв', 'фев', 'мар', 'апр', 'май', 'июн',
-        'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'
-      ];
-      return '${date.day} ${months[date.month - 1]}';
-    }
-  }
-});
+  const NotesPage({super.key});
 
   @override
   State<NotesPage> createState() => _NotesPageState();
@@ -59,6 +36,31 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
       curve: Curves.easeIn,
     );
     _loadNotes();
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        if (difference.inMinutes == 0) {
+          return 'Только что';
+        }
+        return '${difference.inMinutes} мин. назад';
+      }
+      return '${difference.inHours} ч. назад';
+    } else if (difference.inDays == 1) {
+      return 'Вчера';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} дн. назад';
+    } else {
+      final months = [
+        'янв', 'фев', 'мар', 'апр', 'май', 'июн',
+        'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'
+      ];
+      return '${date.day} ${months[date.month - 1]}';
+    }
   }
 
   Future<void> _loadNotes() async {
@@ -134,7 +136,9 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
         _loadNotes();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Заметка обновлена'),
+
+
+content: Text('Заметка обновлена'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -257,7 +261,9 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
           const SizedBox(height: 8),
           Text(
             'Долгое нажатие на цитату создаст заметку',
-            style: TextStyle(
+
+
+style: TextStyle(
               fontSize: 16,
               color: Colors.white.withOpacity(0.3),
             ),
@@ -390,7 +396,9 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                ),
+
+
+),
                 
                 const SizedBox(height: 16),
                 

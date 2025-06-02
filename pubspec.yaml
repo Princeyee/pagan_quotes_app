@@ -30,7 +30,10 @@ flutter:
   uses-material-design: true
 
   assets:
+#Иконка
     - assets/icon/app_icon.png
+
+#Звуки
     - assets/sounds/candle.mp3
     - assets/sounds/chime.mp3
     - assets/sounds/fire.mp3
@@ -43,16 +46,24 @@ flutter:
     - assets/sounds/theme_nordic_open.mp3
     - assets/sounds/theme_greece_open.mp3
     - assets/sounds/theme_pagan_open.mp3
+#Картинки
     - assets/images/book_background.jpg
     - assets/images/greece.jpg
     - assets/images/nordic.jpg
     - assets/images/pagan.jpg
     - assets/images/philosophy.jpg
+#Не рабочие анимации
     - assets/animations/fire.gif
     - assets/animations/greece.json
     - assets/animations/nordic.json
     - assets/animations/pagan.json
     - assets/animations/philosophy.json
+#Текста
+    
+    - assets/full_texts/nordic/
+    - assets/full_texts/pagan/
+    - assets/full_texts/philosophy/
+    - assets/full_texts/greece/
     - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
     - assets/full_texts/greece/aristotle/metaphysics_raw.txt
     - assets/config/book_sources.json

@@ -12,6 +12,8 @@ import '../../services/text_file_service.dart';
 import 'package:flutter/services.dart';
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
+import '../screens/context_page.dart';
+
 class PreloadedFullTextData {
   final String fullText;
   final BookSource bookSource;
@@ -401,23 +403,22 @@ class _FullTextPageState extends State<FullTextPage>
           child: Container(
             margin: const EdgeInsets.all(40),
             padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: _currentTheme.backgroundColor.withOpacity(0.95),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _currentTheme.borderColor.withOpacity(0.2),
-                width: 1,
-              Container(
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                       ),
-                 boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
+            // Замените строки 410-412:
+decoration: BoxDecoration(
+  color: _currentTheme.backgroundColor.withOpacity(0.95),
+  borderRadius: BorderRadius.circular(16),
+  border: Border.all(
+    color: _currentTheme.borderColor.withOpacity(0.2),
+    width: 1,
+  ),
+  boxShadow: [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.15),
+      blurRadius: 30,
+      spreadRadius: 5,
+    ),
+  ],
+),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -448,7 +449,7 @@ class _FullTextPageState extends State<FullTextPage>
           ),
         ),
       ),
-    ));
+    );
 
     Future.delayed(const Duration(milliseconds: 2000), () {
       if (mounted) Navigator.of(context).pop();
