@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
-import '../../services/image_picker_service.dart';
+import '../../services/book_image_service.dart';
 import '../../utils/custom_cache.dart';
 import 'book_reader_page.dart';
 
@@ -25,6 +25,8 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
   String _selectedCategory = 'all';
   bool _isLoading = true;
   String _searchQuery = '';
+  
+  final Map<String, String> _bookImages = {};
 
   @override
   void initState() {
@@ -43,6 +45,12 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
   Future<void> _loadBooks() async {
     try {
       final books = await _textService.loadBookSources();
+      
+      for (final book in books) {
+        final imageUrl = await BookImageService.getStableBookImage(book.id, book.category);
+        _bookImages[book.id] = imageUrl;
+      }
+      
       setState(() {
         _books = books;
         _filteredBooks = books;
@@ -91,7 +99,6 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
               opacity: _fadeAnimation,
               child: Column(
                 children: [
-                  // Поиск
                   Container(
                     margin: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -115,7 +122,6 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                     ),
                   ),
                   
-                  // Фильтр по категориям
                   SizedBox(
                     height: 50,
                     child: ListView(
@@ -133,7 +139,6 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                   
                   const SizedBox(height: 16),
                   
-                  // Список книг
                   Expanded(
                     child: _filteredBooks.isEmpty
                         ? Center(
@@ -187,7 +192,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
   }
 
   Widget _buildBookCard(BookSource book) {
-    final imageUrl = ImagePickerService.getRandomImage(book.category);
+    final imageUrl = _bookImages[book.id] ?? '';
     final readingProgress = _getReadingProgress(book.id);
     
     return GestureDetector(
@@ -208,19 +213,35 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Фоновое изображение
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                cacheManager: CustomCache.instance,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: Colors.grey[900]),
-                errorWidget: (_, __, ___) => Container(
-                  color: Colors.grey[900],
-                  child: const Icon(Icons.book, color: Colors.white24, size: 48),
+              if (imageUrl.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  cacheManager: CustomCache.instance,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(
+                    color: Colors.grey[900],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: _getCategoryColor(book.category),
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (_, __, ___) => Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _getCategoryColor(book.category).withOpacity(0.3),
+                          Colors.grey[900]!,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: const Icon(Icons.book, color: Colors.white24, size: 48),
+                  ),
                 ),
-              ),
               
-              // Градиент
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -234,7 +255,6 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                 ),
               ),
               
-              // Информация о книге
               Positioned(
                 left: 12,
                 right: 12,
@@ -292,7 +312,6 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                 ),
               ),
               
-              // Метка категории
               Positioned(
                 top: 12,
                 right: 12,
@@ -350,7 +369,6 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
   }
 
   double _getReadingProgress(String bookId) {
-    // Получаем прогресс чтения из кэша
     final cache = CustomCache.prefs;
     return cache.getSetting<double>('reading_progress_$bookId') ?? 0.0;
   }

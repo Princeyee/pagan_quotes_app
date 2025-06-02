@@ -18,43 +18,45 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   bool _visible = true;
   final SoundManager _soundManager = SoundManager();
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _startSplash();
+    // Запускаем инициализацию асинхронно, чтобы не блокировать UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startSplash();
+    });
   }
 
   Future<void> _startSplash() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+
     try {
-      // Инициализируем кэш
-      await CustomCache.prefs.init();
-      
-      // Инициализируем сервис избранного
-      await FavoritesService.init();
-      
-      // 🔥 Звук костра (только если звук не отключен)
-      if (!_soundManager.isMuted) {
-        await _soundManager.playSound(
-          'fire_splash',
-          'assets/sounds/fire.mp3',
-          loop: true,
-        );
-      }
+      // Показываем анимацию сразу
+      setState(() => _visible = true);
 
-      // ⏳ Генерируем или получаем сегодняшнюю цитату
+      // Инициализируем сервисы параллельно
+      await Future.wait([
+        _initializeServices(),
+        _playFireSound(),
+        Future.delayed(const Duration(milliseconds: 1500)), // Минимальное время показа
+      ]);
+
+      // Генерируем цитату
       await _ensureTodayQuote();
-
-      // ⏳ Ожидание для красивого splash экрана
-      await Future.delayed(const Duration(seconds: 2));
 
       // 🔔 Звук удара (только если звук не отключен)
       if (!_soundManager.isMuted) {
-        await _soundManager.playSound(
+        _soundManager.playSound(
           'chime_splash',
           'assets/sounds/chime.mp3',
         );
       }
+
+      // Небольшая пауза перед переходом
+      await Future.delayed(const Duration(milliseconds: 800));
 
       // 🌑 Затухание
       if (mounted) {
@@ -64,9 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       // 🚪 Переход к основному экрану
       if (mounted) {
-        // Останавливаем звуки сплэша
-        await _soundManager.stopSound('fire_splash');
-        await _soundManager.stopSound('chime_splash');
+        await _soundManager.stopAll();
         
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
@@ -79,12 +79,25 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } catch (e) {
       print('Error during splash initialization: $e');
-      
-      // В случае ошибки все равно переходим к основному экрану
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const QuotePage()),
+      _navigateToMainScreen();
+    }
+  }
+
+  Future<void> _initializeServices() async {
+    await CustomCache.prefs.init();
+    await FavoritesService.init();
+  }
+
+  Future<void> _playFireSound() async {
+    if (!_soundManager.isMuted) {
+      try {
+        await _soundManager.playSound(
+          'fire_splash',
+          'assets/sounds/fire.mp3',
+          loop: true,
         );
+      } catch (e) {
+        print('Could not play fire sound: $e');
       }
     }
   }
@@ -94,18 +107,16 @@ class _SplashScreenState extends State<SplashScreen> {
     final cache = CustomCache.prefs;
     
     try {
-      // Проверяем, есть ли уже цитата на сегодня
       final existingQuote = cache.getTodayQuote();
       if (existingQuote != null) {
         print('Today\'s quote already exists');
         return;
       }
       
-      // Генерируем новую цитату
       final dailyQuote = await quoteService.generateDailyQuote();
       if (dailyQuote != null) {
         await cache.cacheDailyQuote(dailyQuote);
-        print('Generated new daily quote: "${dailyQuote.quote.text.substring(0, 50)}..."');
+        print('Generated new daily quote');
       } else {
         print('Failed to generate daily quote');
       }
@@ -114,11 +125,17 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  void _navigateToMainScreen() {
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const QuotePage()),
+      );
+    }
+  }
+
   @override
   void dispose() {
-    // Останавливаем звуки сплэша при выходе
-    _soundManager.stopSound('fire_splash');
-    _soundManager.stopSound('chime_splash');
+    _soundManager.stopAll();
     super.dispose();
   }
 
@@ -131,10 +148,8 @@ class _SplashScreenState extends State<SplashScreen> {
         duration: const Duration(milliseconds: 600),
         child: Column(
           children: [
-            // Верхняя треть - пустая
             const Expanded(flex: 1, child: SizedBox()),
             
-            // Средняя треть - огонь
             Expanded(
               flex: 1,
               child: Center(
@@ -167,7 +182,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             
-            // Нижняя треть - название
             Expanded(
               flex: 1,
               child: Column(
@@ -175,7 +189,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   const SizedBox(height: 40),
                   
-                  // Главное название
                   const Text(
                     'SACRAL',
                     style: TextStyle(
@@ -188,7 +201,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   
                   const SizedBox(height: 16),
                   
-                  // Элегантная линия
                   Container(
                     width: 100,
                     height: 1,

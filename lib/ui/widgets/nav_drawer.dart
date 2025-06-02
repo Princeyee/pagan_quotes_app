@@ -1,5 +1,5 @@
 
-// lib/ui/widgets/nav_drawer.dart
+// lib/ui/widgets/nav_drawer.dart - ЭЛЕГАНТНАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
@@ -13,7 +13,9 @@ import '../screens/notes_page.dart';
 import '../screens/audio_library_page.dart';
 
 class NavDrawer extends StatelessWidget {
-  const NavDrawer({super.key});
+  final Function(Widget)? onNavigate;
+  
+  const NavDrawer({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,7 @@ class NavDrawer extends StatelessWidget {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withOpacity(0.85),
             borderRadius: const BorderRadius.only(
               topRight: Radius.circular(30),
               bottomRight: Radius.circular(30),
@@ -36,20 +38,20 @@ class NavDrawer extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
-                // Заголовок
+                // Элегантный заголовок
                 Container(
                   padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
-                      // Логотип/иконка
+                      // Логотип с классическим дизайном
                       Container(
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 2,
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -62,10 +64,11 @@ class NavDrawer extends StatelessWidget {
                         child: Center(
                           child: Text(
                             'S',
-                            style: GoogleFonts.merriweather(
+                            style: TextStyle(
                               fontSize: 36,
                               color: Colors.white,
                               fontWeight: FontWeight.w300,
+                              fontFamily: 'serif', // Классический шрифт с засечками
                             ),
                           ),
                         ),
@@ -73,11 +76,12 @@ class NavDrawer extends StatelessWidget {
                       const SizedBox(height: 16),
                       Text(
                         'SACRAL',
-                        style: GoogleFonts.merriweather(
+                        style: TextStyle(
                           fontSize: 24,
                           color: Colors.white,
-                          fontWeight: FontWeight.w400,
-                          letterSpacing: 3,
+                          fontWeight: FontWeight.w300,
+                          letterSpacing: 4,
+                          fontFamily: 'serif',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -88,7 +92,7 @@ class NavDrawer extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               Colors.transparent,
-                              Colors.white.withOpacity(0.5),
+                              Colors.white.withOpacity(0.3),
                               Colors.transparent,
                             ],
                           ),
@@ -98,130 +102,117 @@ class NavDrawer extends StatelessWidget {
                   ),
                 ),
                 
-                // Пункты меню
+                // Пункты меню с единым стилем
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children: [
-                      _buildMenuItem(
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.format_quote_rounded,
+                        icon: Icons.auto_stories, // Классическая иконка для цитат
                         label: 'Цитата дня',
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.
-
-
-pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const QuotePage(),
-                            ),
-                          );
+                          // Просто закрываем drawer - мы уже на QuotePage!
+                          // Музыка продолжит играть без прерывания
                         },
                       ),
-                      _buildMenuItem(
+                      
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.favorite_rounded,
+                        icon: Icons.bookmark, // Элегантная закладка
                         label: 'Избранное',
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.red.withOpacity(0.3),
-                            Colors.red.withOpacity(0.1),
-                          ],
-                        ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const FavoritesPage()),
-                          );
+                          if (onNavigate != null) {
+                            onNavigate!(const FavoritesPage());
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const FavoritesPage()),
+                            );
+                          }
                         },
                       ),
-                      _buildMenuItem(
+                      
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.note_alt_rounded,
+                        icon: Icons.edit_note, // Классическая иконка заметок
                         label: 'Заметки',
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.amber.withOpacity(0.3),
-                            Colors.amber.withOpacity(0.1),
-                          ],
-                        ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const NotesPage()),
-                          );
+                          if (onNavigate != null) {
+                            onNavigate!(const NotesPage());
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const NotesPage()),
+                            );
+                          }
                         },
                       ),
-                      _buildMenuItem(
+                      
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.library_books_rounded,
+                        icon: Icons.library_books, // Классическая библиотека
                         label: 'Библиотека',
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.blue.withOpacity(0.3),
-                            Colors.blue.withOpacity(0.1),
-                          ],
-                        ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const LibraryPage()),
-                          );
+                          if (onNavigate != null) {
+                            onNavigate!(const LibraryPage());
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LibraryPage()),
+                            );
+                          }
                         },
                       ),
-                      _buildMenuItem(
+                      
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.headphones_rounded,
+                        icon: Icons.music_note, // Элегантная нота для аудио
                         label: 'Аудио',
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.purple.withOpacity(0.3),
-                            Colors.purple.withOpacity(0.1),
-                          ],
-                        ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AudioLibraryPage()),
-                          );
+                          if (onNavigate != null) {
+                            onNavigate!(const AudioLibraryPage());
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AudioLibraryPage()),
+                            );
+                          }
                         },
                       ),
-                      _buildMenuItem(
+                      
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.style_rounded,
+                        icon: Icons.palette_outlined, // Элегантная палитра
                         label: 'Темы',
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.green.withOpacity(0.3),
-                            Colors.green.withOpacity(0.1),
-                          ],
-                        ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const ThemeSelectorPage()),
-                          );
+                          if (onNavigate != null) {
+                            onNavigate!(const ThemeSelectorPage());
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ThemeSelectorPage()),
+                            );
+                          }
                         },
                       ),
 
-
-// Разделитель
+                      // Элегантный разделитель
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                         child: Container(
                           height: 1,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 Colors.transparent,
-                                Colors.white.withOpacity(0.2),
+                                Colors.white.withOpacity(0.1),
                                 Colors.transparent,
                               ],
                             ),
@@ -229,31 +220,37 @@ pushReplacement(
                         ),
                       ),
                       
-                      _buildMenuItem(
+                      _buildElegantMenuItem(
                         context,
-                        icon: Icons.info_outline_rounded,
+                        icon: Icons.info_outline, // Минималистичная иконка информации
                         label: 'О приложении',
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AboutPage()),
-                          );
+                          if (onNavigate != null) {
+                            onNavigate!(const AboutPage());
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AboutPage()),
+                            );
+                          }
                         },
                       ),
                     ],
                   ),
                 ),
                 
-                // Футер
+                // Элегантный футер
                 Container(
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     'Возрождение близко',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withOpacity(0.3),
                       fontStyle: FontStyle.italic,
+                      letterSpacing: 1,
+                      fontFamily: 'serif',
                     ),
                   ),
                 ),
@@ -265,68 +262,72 @@ pushReplacement(
     );
   }
 
-  Widget _buildMenuItem(
+  Widget _buildElegantMenuItem(
     BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-    Gradient? gradient,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(15),
           onTap: onTap,
-          splashColor: Colors.white.withOpacity(0.1),
-          highlightColor: Colors.white.withOpacity(0.05),
+          splashColor: Colors.white.withOpacity(0.05),
+          highlightColor: Colors.white.withOpacity(0.02),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
-              gradient: gradient,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withOpacity(0.03),
                 width: 1,
               ),
             ),
             child: Row(
               children: [
-                // Иконка в контейнере
+                // Элегантная иконка
                 Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.08),
+                      width: 1,
+                    ),
                   ),
                   child: Icon(
                     icon,
-                    color: Colors.white.withOpacity(0.9),
-                    size: 22,
+                    color: Colors.white.withOpacity(0.85),
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 16),
                 
-                // Текст
+                // Элегантный текст
                 Expanded(
                   child: Text(
                     label,
-                    style: GoogleFonts.merriweather(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 0.5,
+                      fontFamily: 'serif',
                     ),
                   ),
                 ),
                 
-                // Стрелка
+                // Минималистичная стрелка
                 Icon(
                   Icons.chevron_right,
-                  color: Colors.white.withOpacity(0.3),
-                  size: 20,
+                  color: Colors.white.withOpacity(0.2),
+                  size: 18,
                 ),
               ],
             ),

@@ -1,4 +1,4 @@
-// lib/ui/screens/quote_page.dart
+// lib/ui/screens/quote_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
@@ -56,7 +56,8 @@ class QuotePage extends StatefulWidget {
   State<QuotePage> createState() => _QuotePageState();
 }
 
-class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, WidgetsBindingObserver {
+class _QuotePageState extends State<QuotePage> 
+    with TickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final CustomCachePrefs _cache = CustomCache.prefs;
   final GlobalKey _quoteCardKey = GlobalKey();
@@ -79,10 +80,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   AudioPlayer? _ambientPlayer;
   String? _currentTheme;
 
-  String _dateToString(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
   @override
   void initState() {
     super.initState();
@@ -90,6 +87,12 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     _initializeAnimations();
     _loadSoundSettings();
     _loadTodayQuote();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Здесь можно добавить RouteObserver если нужно
   }
 
   Future<void> _loadSoundSettings() async {
@@ -106,15 +109,21 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      _ambientPlayer?.stop();
+      _stopAmbientSound();
+    } else if (state == AppLifecycleState.resumed) {
+      // Возобновляем звук только если мы на главном экране
+      if (mounted && !_isSoundMuted) {
+        _resumeAmbientIfNeeded();
+      }
     }
   }
- 
+
   void _initializeAnimations() {
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+    
     _soundButtonController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -157,14 +166,12 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     });
 
     try {
-      // Сначала проверяем кэш
       final cached = _cache.getTodayQuote();
       if (cached != null) {
         await _setupQuoteDisplay(cached);
         return;
       }
 
-      // Генерируем новую цитату только если её нет в кэше
       final dailyQuote = await _quoteService.generateDailyQuote();
       if (dailyQuote != null) {
         await _cache.cacheDailyQuote(dailyQuote);
@@ -183,26 +190,32 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     }
   }
 
-  Future<void> _fadeOutAmbient() async {
+  Future<void> _stopAmbientSound() async {
     if (_ambientPlayer != null) {
-      // Плавное затухание за 500мс
-      for (double volume = 1.0; volume >= 0.0; volume -= 0.1) {
-        await _ambientPlayer!.setVolume(volume);
-        await Future.delayed(const Duration(milliseconds: 50));
+      try {
+        await _ambientPlayer!.stop();
+        await _ambientPlayer!.dispose();
+        _ambientPlayer = null;
+        _currentTheme = null;
+      } catch (e) {
+        print('Error stopping ambient sound: $e');
       }
-      await _ambientPlayer!.pause();
     }
   }
 
-  Future<void> _fadeInAmbient() async {
-    if (_ambientPlayer != null) {
-      _ambientPlayer!.play();
-      await _ambientPlayer!.setVolume(1.0);
+  Future<void> _resumeAmbientIfNeeded() async {
+    // Возобновляем музыку только если:
+    // 1. Звук не отключен пользователем
+    // 2. У нас есть цитата для проигрывания
+    // 3. Музыка еще не играет
+    if (_currentDailyQuote != null && 
+        !_isSoundMuted && 
+        (_ambientPlayer == null || !(_ambientPlayer?.playing ?? false))) {
+      await _playAmbientSound(_currentDailyQuote!.quote.category);
     }
   }
 
   Future<void> _setupQuoteDisplay(DailyQuote dailyQuote) async {
-    // Получаем случайное изображение для категории цитаты
     String imageUrl;
     final cachedImageUrl = _cache.getSetting('daily_image_${_dateToString(DateTime.now())}');
     if (cachedImageUrl != null) {
@@ -212,10 +225,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
       await _cache.setSetting('daily_image_${_dateToString(DateTime.now())}', imageUrl);
     }
     
-    // Определяем цвет текста (можно улучшить анализом изображения)
     final textColor = _determineTextColor(dailyQuote.quote.category);
-
-    // Проверяем статус избранного
     final favSvc = await FavoritesService.init();
     final isFavorite = favSvc.isFavorite(dailyQuote.quote.id);
 
@@ -228,23 +238,16 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     });
     
     _startAnimations();
-    _playAmbientSound(dailyQuote.quote.category);
     
-    final soundMuted = await _cache.getSetting('sound_muted', false) ?? false;
-    setState(() {
-      _isSoundMuted = soundMuted;
-    });
-    if (_isSoundMuted) {
-      _soundButtonController.forward();
-      _ambientPlayer?.pause();
+    if (!_isSoundMuted) {
+      await _playAmbientSound(dailyQuote.quote.category);
     }
   }
 
   Future<void> _playAmbientSound(String themeId) async {
-    if (_currentTheme == themeId) return; // Уже играет эта тема
+    if (_currentTheme == themeId || _isSoundMuted) return;
     
-    _ambientPlayer?.stop();
-    _ambientPlayer?.dispose();
+    await _stopAmbientSound();
     
     try {
       _ambientPlayer = AudioPlayer();
@@ -258,7 +261,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   }
 
   Color _determineTextColor(String category) {
-    // Простая логика определения цвета текста по категории
     switch (category) {
       case 'greece':
         return Colors.white;
@@ -280,12 +282,14 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     });
   }
 
+  String _dateToString(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
   Future<void> _toggleFavorite() async {
     if (_currentDailyQuote == null) return;
 
     final quote = _currentDailyQuote!.quote;
-    
-    // Haptic feedback
     HapticFeedback.lightImpact();
 
     try {
@@ -294,7 +298,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
       if (_isFavorite) {
         await favSvc.removeFromFavorites(quote.id);
       } else {
-        // Сохраняем цитату с URL изображения
         await favSvc.addToFavorites(quote, imageUrl: _backgroundImageUrl);
       }
 
@@ -302,7 +305,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
         _isFavorite = !_isFavorite;
       });
 
-      // Показываем снэкбар
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -329,7 +331,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     if (_currentDailyQuote == null) return;
 
     try {
-      // Показываем индикатор загрузки
       if (mounted) {
         showDialog(
           context: context,
@@ -340,14 +341,11 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
         );
       }
 
-      // Создаем изображение с цитатой
       final imageBytes = await _createQuoteImage();
       
-      // Закрываем индикатор загрузки
       if (mounted) Navigator.of(context).pop();
 
       if (imageBytes != null) {
-        // Сохраняем временный файл и делимся им
         await Share.shareXFiles([
           XFile.fromData(
             imageBytes,
@@ -358,10 +356,8 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
       }
     } catch (e) {
       print('Error sharing quote image: $e');
-      // Закрываем индикатор загрузки в случае ошибки
       if (mounted) Navigator.of(context).pop();
       
-      // Fallback: делимся просто текстом
       await Share.share(
         '"${_currentDailyQuote!.quote.text}"\n— ${_currentDailyQuote!.quote.author}',
         subject: 'Цитата дня',
@@ -386,9 +382,10 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
 
   void _navigateToContext() async {
     if (_currentDailyQuote == null) return;
-    _fadeOutAmbient();
+    
+    // ОСТАНАВЛИВАЕМ МУЗЫКУ ПРИ ПЕРЕХОДЕ К КОНТЕКСТУ
+    await _stopAmbientSound();
 
-    // Отмечаем цитату как просмотренную
     await _cache.markQuoteAsViewed(_currentDailyQuote!.quote.id);
     await _cache.markDailyQuoteAsViewed(DateTime.now());
 
@@ -415,8 +412,30 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
         ),
       ).then((_) {
         // Возобновляем фоновый звук после возврата из контекста
-        if (!_isSoundMuted) {
-          _fadeInAmbient();
+        if (!_isSoundMuted && mounted) {
+          _resumeAmbientIfNeeded();
+        }
+      });
+    }
+  }
+
+  // НОВЫЙ МЕТОД ДЛЯ НАВИГАЦИИ В МЕНЮ
+  void _navigateToPage(Widget page) async {
+    // Останавливаем музыку при переходе в любой раздел меню
+    await _stopAmbientSound();
+    
+    if (mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => page),
+      ).then((_) {
+        // Возобновляем музыку при возврате на главную
+        // Но только если мы не были отключены пользователем
+        if (!_isSoundMuted && mounted) {
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted && !_isSoundMuted) {
+              _resumeAmbientIfNeeded();
+            }
+          });
         }
       });
     }
@@ -431,14 +450,11 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
         data: Theme.of(context).copyWith(
           canvasColor: Colors.transparent,
         ),
-        child: const NavDrawer(),
+        child: NavDrawer(onNavigate: _navigateToPage), // Передаём callback
       ),
       onDrawerChanged: (isOpened) {
-        if (isOpened) {
-          _fadeOutAmbient();
-        } else {
-          _fadeInAmbient();
-        }
+        // Убираем остановку музыки при открытии drawer'а
+        // Музыка будет играть и при открытом меню
       },
       body: SafeArea(
         child: _isLoading 
@@ -504,16 +520,13 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     
     return GestureDetector(
       onVerticalDragEnd: (details) {
-        // Свайп вверх для перехода к контексту
         if (details.primaryVelocity != null && details.primaryVelocity! < -500) {
           _navigateToContext();
         }
       },
       onLongPress: () {
-        // Долгое нажатие открывает заметки
         HapticFeedback.mediumImpact();
         showNoteModal(context, quote, onSaved: () {
-          // Показываем уведомление о сохранении
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Заметка сохранена'),
@@ -533,7 +546,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Фоновое изображение
             if (_backgroundImageUrl != null)
               CachedNetworkImage(
                 imageUrl: _backgroundImageUrl!,
@@ -551,7 +563,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
                 ),
               ),
             
-            // Темный оверлей для читаемости текста
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -565,17 +576,14 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
               ),
             ),
             
-            // Основной контент
             Container(
               width: double.infinity,
               height: double.infinity,
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  // Header с датой и меню
                   _buildHeader(),
                   
-                  // Основной контент с цитатой
                   Expanded(
                     child: FadeTransition(
                       opacity: _fadeAnimation,
@@ -584,17 +592,10 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Цитата
                             _buildQuoteText(quote),
-                            
                             const SizedBox(height: 32),
-                            
-                            // Автор и источник
                             _buildQuoteAttribution(quote),
-                            
                             const SizedBox(height: 48),
-                            
-                            // Кнопки лайка и поделиться
                             _buildActionButtons(),
                           ],
                         ),
@@ -605,7 +606,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
               ),
             ),
             
-            // Индикатор свайпа вверх (появляется кратковременно)
             if (_currentDailyQuote != null && !_currentDailyQuote!.isViewed)
               Positioned(
                 bottom: 40,
@@ -648,7 +648,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Меню
         Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.menu, color: _textColor),
@@ -656,7 +655,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
           ),
         ),
         
-        // Дата и индикаторы
         Row(
           children: [
             Column(
@@ -680,7 +678,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
               ],
             ),
             const SizedBox(width: 16),
-            // Кнопка звука
             GestureDetector(
               onTap: () async {
                 setState(() {
@@ -689,11 +686,11 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
                 
                 if (_isSoundMuted) {
                   _soundButtonController.forward();
-                  await _fadeOutAmbient();
+                  await _stopAmbientSound();
                   await _cache.setSetting('sound_muted', true);
                 } else {
                   _soundButtonController.reverse();
-                  await _fadeInAmbient();
+                  await _resumeAmbientIfNeeded();
                   await _cache.setSetting('sound_muted', false);
                 }
               },
@@ -728,7 +725,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
           ],
         ),
         
-        // Индикатор заметок
         Tooltip(
           message: 'Долгое нажатие для заметки',
           child: Icon(
@@ -742,7 +738,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
   }
 
   Widget _buildQuoteText(Quote quote) {
-    // Автоматически подбираем размер шрифта в зависимости от длины цитаты
     double fontSize = 24;
     if (quote.text.length > 200) {
       fontSize = 20;
@@ -803,7 +798,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Кнопка лайка
         GestureDetector(
           onTap: _toggleFavorite,
           child: AnimatedScale(
@@ -826,7 +820,6 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
         
         const SizedBox(width: 32),
         
-        // Кнопка поделиться
         GestureDetector(
           onTap: _shareQuoteImage,
           child: Container(
@@ -852,7 +845,7 @@ class _QuotePageState extends State<QuotePage> with TickerProviderStateMixin, Wi
     _fadeController.dispose();
     _slideController.dispose();
     _soundButtonController.dispose();
-    _ambientPlayer?.dispose();
+    _stopAmbientSound();
     super.dispose();
   }
 }

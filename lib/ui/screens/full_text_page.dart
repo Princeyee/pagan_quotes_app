@@ -1,6 +1,7 @@
 
 // lib/ui/screens/full_text_page.dart
 import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
@@ -72,6 +73,16 @@ class _FullTextPageState extends State<FullTextPage>
   // Для выделения текста
   bool _isSelectionMode = false;
   String? _selectedText;
+
+  // Диагностика и оптимизация скролла
+  bool _isScrolling = false;
+  bool _listViewReady = false;
+  int? _targetItemIndex;
+  Timer? _scrollRetryTimer;
+
+  // Кэши для оптимизации
+  List<RegExpMatch>? _positionMatches;
+  Map<int, bool> _contextBlockCache = {};
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -202,6 +213,54 @@ class _FullTextPageState extends State<FullTextPage>
         .trim();
   }
 
+  // Инициализация кэша позиций
+  void _initializePositionCache() {
+    if (_fullText == null) return;
+    
+    final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
+    _positionMatches = regex.allMatches(_fullText!).toList();
+    _contextBlockCache.clear();
+    
+    print('💾 Кэш позиций инициализирован: ${_positionMatches!.length} элементов');
+  }
+
+  // Детальная диагностика позиций
+  void _debugPositionAnalysis() {
+    if (_fullText == null) return;
+    
+    print('\n🔍 === ДЕТАЛЬНАЯ ДИАГНОСТИКА ПОЗИЦИЙ ===');
+    print('Ищем позицию: ${widget.context.startPosition}');
+    
+    final regex = RegExp(r'\[pos:(\d+)\]');
+    final matches = regex.allMatches(_fullText!).toList();
+    
+    print('Всего найдено позиций: ${matches.length}');
+    
+    // Показываем позиции вокруг целевой
+    final targetPos = widget.context.startPosition;
+    
+    for (int i = 0; i < matches.length; i++) {
+      final posNumber = int.parse(matches[i].group(1)!);
+      
+      // Показываем позиции в диапазоне ±5 от целевой
+      if ((posNumber - targetPos).abs() <= 5) {
+        final marker = posNumber == targetPos ? ' <<<< ЦЕЛЬ' : '';
+        print('  Индекс $i: позиция $posNumber$marker');
+      }
+      
+      if (posNumber == targetPos) {
+        _targetItemIndex = i;
+        print('✅ НАЙДЕНО: Позиция $targetPos находится на индексе $i');
+      }
+    }
+    
+    if (_targetItemIndex == null) {
+      print('❌ ПРОБЛЕМА: Позиция $targetPos НЕ НАЙДЕНА!');
+    }
+    
+    print('=== КОНЕЦ ДИАГНОСТИКИ ===\n');
+  }
+
   Future<void> _loadFullText() async {
     setState(() {
       _isLoading = true;
@@ -214,7 +273,6 @@ class _FullTextPageState extends State<FullTextPage>
       print('   - startPosition: ${widget.context.startPosition}');
       print('   - endPosition: ${widget.context.endPosition}');
       print('   - contextParagraphs: ${widget.context.contextParagraphs.length}');
-      print('   - quoteParagraph индекс: ${widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)}');
       
       if (widget.preloadedData != null) {
         setState(() {
@@ -225,21 +283,8 @@ class _FullTextPageState extends State<FullTextPage>
 
         _fadeController.forward();
         
-        // Ожидаем готовность ListView
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _scrollController.hasClients) {
-            _findQuotePositionFast();
-            _scrollToQuoteSmooth();
-          } else {
-            // Повторяем попытку
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (mounted) {
-                _findQuotePositionFast();
-                _scheduleAutoScroll();
-              }
-            });
-          }
-        });
+        // Новая система надежной инициализации скролла
+        _initializeScrollWithDiagnostics();
         
         return;
       }
@@ -262,19 +307,8 @@ class _FullTextPageState extends State<FullTextPage>
 
       _fadeController.forward();
       
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scrollController.hasClients) {
-          _findQuotePositionFast();
-          _scrollToQuoteSmooth();
-        } else {
-          Future.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) {
-              _findQuotePositionFast();
-              _scheduleAutoScroll();
-            }
-          });
-        }
-      });
+      // Новая система надежной инициализации скролла
+      _initializeScrollWithDiagnostics();
       
     } catch (e) {
       setState(() {
@@ -284,113 +318,144 @@ class _FullTextPageState extends State<FullTextPage>
     }
   }
 
-  void _findQuotePositionFast() {
+  // Основной метод для интеграции в _loadFullText
+  void _initializeScrollWithDiagnostics() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializePositionCache();
+        _findQuotePositionFastWithDebug();
+        
+        // Даем время на построение ListView
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _scheduleReliableScrollWithDebug();
+          }
+        });
+      }
+    });
+  }
+
+  void _findQuotePositionFastWithDebug() {
     if (_fullText == null) return;
     
-    final startPos = widget.context.startPosition;
-    print('🔍 Ищем позицию для цитаты: startPos=$startPos');
-    print('📖 Цитата: "${widget.context.quote.text.substring(0, min(50, widget.context.quote.text.length))}..."');
+    print('\n🔍 === ПОИСК ПОЗИЦИИ С ДИАГНОСТИКОЙ ===');
+    _debugPositionAnalysis();
+    print('=== ПОИСК ЗАВЕРШЕН ===\n');
+  }
+
+  void _scheduleReliableScrollWithDebug() {
+    print('\n📍 === ПЛАНИРОВАНИЕ СКРОЛЛА ===');
+    print('Целевой индекс: $_targetItemIndex');
     
-    final parts = _fullText!.split(RegExp(r'\[pos:\d+\]'));
-    final paragraphs = parts.where((p) => p.trim().isNotEmpty).toList();
-    print('📊 Всего параграфов: ${paragraphs.length}');
-    
-    double progress = 0.0;
-    
-    if (startPos > 0) {
-      int actualParagraphIndex = -1;
-      
-      // Более точный парсинг с сохранением позиций
-      final regex = RegExp(r'\[pos:(\d+)\]');
-      final matches = regex.allMatches(_fullText!).toList();
-      print('🏷️ Найдено ${matches.length} меток позиций');
-      
-      // Находим параграф с нужной позицией
-      for (int i = 0; i < matches.length; i++) {
-        final match = matches[i];
-        final posNumber = int.parse(match.group(1)!);
-        
-        if (posNumber == startPos) {
-          // Считаем сколько непустых параграфов до этой позиции
-          final textBeforePos = _fullText!.substring(0, match.start);
-          final partsBeforePos = textBeforePos.split(RegExp(r'\[pos:\d+\]'));
-          actualParagraphIndex = partsBeforePos.where((p) => p.trim().isNotEmpty).length;
-          
-          print('✅ Нашли позицию $startPos на индексе параграфа $actualParagraphIndex');
-          
-          // Проверяем текст в найденном параграфе
-          if (i < matches.length - 1) {
-            final paragraphText = _fullText!.substring(match.end, matches[i + 1].start).trim();
-            print('📝 Текст параграфа: "${paragraphText.substring(0, min(100, paragraphText.length))}..."');
-          }
-          break;
-        }
-      }
-      
-      if (actualParagraphIndex >= 0) {
-        progress = actualParagraphIndex / paragraphs.length;
-        print('📍 Прогресс: ${(progress * 100).toStringAsFixed(1)}%');
-      } else {
-        print('⚠️ Не нашли точную позицию, используем приблизительную');
-        progress = (startPos - 1) / paragraphs.length;
-      }
-    } else {
-      print('❌ startPos = 0, начинаем с начала');
-      _initialScrollPosition = 0.0;
+    if (_targetItemIndex == null) {
+      print('❌ Нет целевого индекса для скролла');
       return;
     }
     
-    _initialScrollPosition = progress;
-    print('🎯 Финальная позиция скролла: ${_initialScrollPosition.toStringAsFixed(3)}');
+    _showSearchAnimation();
+    _waitForListViewWithDebug();
   }
 
-  void _scheduleAutoScroll() {
-    // Показываем анимацию поиска
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _showSearchAnimation();
+  void _waitForListViewWithDebug() {
+    _scrollRetryTimer?.cancel();
+    int attemptCount = 0;
+    
+    void attemptScroll() {
+      attemptCount++;
+      print('⏳ Попытка $attemptCount: проверяем готовность ListView');
+      
+      if (!mounted || _targetItemIndex == null) {
+        print('❌ Компонент размонтирован или нет целевого индекса');
+        return;
       }
+      
+      if (_scrollController.hasClients && 
+          _scrollController.position.maxScrollExtent > 0) {
+        
+        print('✅ ListView готов после $attemptCount попыток');
+        _performPreciseScrollWithDebug();
+        
+      } else {
+        if (attemptCount < 20) {
+          _scrollRetryTimer = Timer(const Duration(milliseconds: 100), attemptScroll);
+        } else {
+          print('❌ ListView не готов, используем аварийный скролл');
+          _emergencyScrollToPosition();
+        }
+      }
+    }
+    
+    Future.delayed(const Duration(milliseconds: 200), attemptScroll);
+  }
+
+  void _performPreciseScrollWithDebug() {
+    if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
+      return;
+    }
+    
+    _isScrolling = true;
+    
+    print('\n🎯 === НАЧАЛО ТОЧНОГО СКРОЛЛА ===');
+    
+    final totalItems = _getItemCount();
+    final targetIndex = _targetItemIndex!;
+    
+    print('Скроллим к элементу $targetIndex из $totalItems');
+    
+    // Используем простой и надежный метод расчета
+    final progressMethod = targetIndex / totalItems;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final targetOffset = maxScroll * progressMethod;
+    
+    print('📏 РАСЧЕТ ПОЗИЦИИ:');
+    print('   - Прогресс: ${(progressMethod * 100).toStringAsFixed(1)}%');
+    print('   - Целевой offset: ${targetOffset.toStringAsFixed(0)}px');
+    
+    // Добавляем отступ для лучшей видимости
+    final screenHeight = MediaQuery.of(context).size.height;
+    final adjustedOffset = (targetOffset - screenHeight * 0.2).clamp(0.0, maxScroll);
+    
+    print('📍 ФИНАЛЬНАЯ ПОЗИЦИЯ: ${adjustedOffset.toStringAsFixed(0)}px');
+    
+    // Выполняем плавный скролл
+    _scrollController.animateTo(
+      adjustedOffset,
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
+    ).then((_) {
+      print('✅ Скролл завершен');
+      _isScrolling = false;
+      _autoScrolled = true;
+      
+    }).catchError((error) {
+      print('❌ Ошибка скролла: $error');
+      _isScrolling = false;
     });
     
-    // Параллельно делаем скролл в фоне
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted && !_autoScrolled) {
-        _scrollToQuoteSmooth();
-      }
-    });
+    print('=== СКРОЛЛ ЗАПУЩЕН ===\n');
   }
 
-  void _scrollToQuoteSmooth() {
-    if (_initialScrollPosition > 0 && _scrollController.hasClients) {
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      
-      print('📜 Начинаем скролл: maxScroll=$maxScroll, initialPos=$_initialScrollPosition');
-      
-      if (maxScroll > 0) {
-        final screenHeight = MediaQuery.of(context).size.height;
-        final targetScroll = (maxScroll * _initialScrollPosition) - (screenHeight * 0.3);
-        final clampedScroll = targetScroll.clamp(0.0, maxScroll);
-        
-        print('📍 Скроллим к позиции: ${clampedScroll.toStringAsFixed(0)} из ${maxScroll.toStringAsFixed(0)}');
-        print('📐 Смещение от верха экрана: ${(screenHeight * 0.3).toStringAsFixed(0)}px');
-        
-        _scrollController.animateTo(
-          clampedScroll,
-          duration: const Duration(milliseconds: 1200),
-          curve: Curves.easeInOutCubic,
-        ).then((_) {
-          print('✅ Скролл завершен');
-        }).catchError((error) {
-          print('❌ Ошибка скролла: $error');
-        });
-        
-        _autoScrolled = true;
-      } else {
-        print('⚠️ maxScroll = 0, не можем скроллить');
-      }
-    } else {
-      print('❌ Не можем скроллить: hasClients=${_scrollController.hasClients}, initialPos=$_initialScrollPosition');
+  void _emergencyScrollToPosition() {
+    print('\n🚨 === АВАРИЙНЫЙ СКРОЛЛ ===');
+    
+    if (_targetItemIndex == null || !_scrollController.hasClients) {
+      print('❌ Невозможно выполнить аварийный скролл');
+      return;
     }
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final targetIndex = _targetItemIndex!;
+    final totalItems = _getItemCount();
+    
+    final simpleProgress = targetIndex / totalItems;
+    final simpleOffset = maxScroll * simpleProgress;
+    
+    print('📍 Аварийный скролл к ${simpleOffset.toStringAsFixed(0)}px');
+    
+    _scrollController.jumpTo(simpleOffset.clamp(0.0, maxScroll));
+    _autoScrolled = true;
+    
+    print('✅ Аварийный скролл выполнен');
   }
 
   void _showSearchAnimation() {
@@ -403,22 +468,21 @@ class _FullTextPageState extends State<FullTextPage>
           child: Container(
             margin: const EdgeInsets.all(40),
             padding: const EdgeInsets.all(28),
-            // Замените строки 410-412:
-decoration: BoxDecoration(
-  color: _currentTheme.backgroundColor.withOpacity(0.95),
-  borderRadius: BorderRadius.circular(16),
-  border: Border.all(
-    color: _currentTheme.borderColor.withOpacity(0.2),
-    width: 1,
-  ),
-  boxShadow: [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.15),
-      blurRadius: 30,
-      spreadRadius: 5,
-    ),
-  ],
-),
+            decoration: BoxDecoration(
+              color: _currentTheme.backgroundColor.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _currentTheme.borderColor.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -571,8 +635,6 @@ decoration: BoxDecoration(
     
     try {
       final favService = await FavoritesService.init();
-      
-      // Используем случайное изображение из той же категории
       final imageUrl = ImagePickerService.getRandomImage(newQuote.category);
       
       await favService.addToFavorites(newQuote, imageUrl: imageUrl);
@@ -613,12 +675,18 @@ decoration: BoxDecoration(
 
   void _addNoteToSelection(String text, int position) {
     Navigator.of(context).pop();
-    // TODO: Implement notes functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Функция заметок будет добавлена в следующей версии'),
       ),
     );
+  }
+
+  void _adjustFontSize(double delta) {
+    setState(() {
+      _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
+    });
+    _saveSettings();
   }
 
   void _adjustLineHeight(double delta) {
@@ -633,7 +701,6 @@ decoration: BoxDecoration(
   }
 
   String _normalizeText(String text) {
-    // Проверяем кэш
     if (_normalizedTextCache.containsKey(text)) {
       return _normalizedTextCache[text]!;
     }
@@ -653,9 +720,15 @@ decoration: BoxDecoration(
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
     
-    // Сохраняем в кэш
     _normalizedTextCache[text] = normalized;
     return normalized;
+  }
+
+  double _getReadingProgress() {
+    if (!_scrollController.hasClients) return 0.0;
+    final max = _scrollController.position.maxScrollExtent;
+    if (max <= 0) return 0.0;
+    return (_scrollController.position.pixels / max).clamp(0.0, 1.0);
   }
 
   @override
@@ -1144,125 +1217,153 @@ decoration: BoxDecoration(
         controller: _scrollController,
         padding: const EdgeInsets.all(24.0),
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        cacheExtent: 500, // Уменьшено для производительности
-        addAutomaticKeepAlives: false, // Отключаем автосохранение
-        addRepaintBoundaries: true, // Оптимизация отрисовки
+        cacheExtent: 1000,
+        addAutomaticKeepAlives: false,
+        addRepaintBoundaries: true,
+        addSemanticIndexes: false,
         itemCount: _getItemCount(),
-        itemBuilder: (context, index) => _buildLazyItem(index),
+        itemBuilder: (context, index) {
+          return KeyedSubtree(
+            key: ValueKey('item_$index'),
+            child: _buildLazyItem(index),
+          );
+        },
       ),
     );
   }
 
   int _getItemCount() {
+    if (_positionMatches != null) {
+      return _positionMatches!.length;
+    }
+    
     if (_fullText == null) return 0;
     
-    // Считаем параграфы по меткам [pos:N]
     final regex = RegExp(r'\[pos:\d+\]');
     final matches = regex.allMatches(_fullText!);
     return matches.length;
   }
 
-  double _getReadingProgress() {
-    if (!_scrollController.hasClients) return 0.0;
-    final max = _scrollController.position.maxScrollExtent;
-    if (max <= 0) return 0.0;
-    return (_scrollController.offset / max).clamp(0.0, 1.0);
+  Widget _buildLazyItem(int index) {
+    // Используем кэш вместо повторного парсинга
+    if (_positionMatches == null) {
+      _initializePositionCache();
+    }
+    
+    if (_positionMatches == null || index >= _positionMatches!.length) {
+      return const SizedBox.shrink();
+    }
+    
+    final match = _positionMatches![index];
+    final position = int.parse(match.group(1)!);
+    final rawText = match.group(2)!.trim();
+    
+    // Быстрая проверка на пустоту
+    if (rawText.isEmpty) return const SizedBox.shrink();
+    
+    final text = _cleanTextArtifacts(rawText);
+    if (text.isEmpty) return const SizedBox.shrink();
+    
+    // Кэшированная проверка контекстного блока
+    if (_contextBlockCache.containsKey(position)) {
+      if (_contextBlockCache[position]!) {
+        return const SizedBox.shrink(); // Уже в контекстном блоке
+      }
+    } else {
+      // Вычисляем и кэшируем
+      final shouldSkip = _shouldSkipForContextBlock(position);
+      _contextBlockCache[position] = shouldSkip;
+      if (shouldSkip) return const SizedBox.shrink();
+    }
+    
+    // Проверяем, является ли это позицией с цитатой
+    final isQuotePosition = position == widget.context.startPosition;
+    
+    if (isQuotePosition) {
+      // Отмечаем связанные позиции как обработанные
+      _markContextPositionsAsProcessed();
+      
+      return _buildContextBlock(
+        widget.context.contextParagraphs, 
+        widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)
+      );
+    }
+    
+    // Обычный параграф
+    return _buildOptimizedParagraph(text, position);
   }
 
-  void _adjustFontSize(double delta) {
-    setState(() {
-      _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
-    });
-    _saveSettings();
+  // Определяем нужно ли пропустить позицию для контекстного блока
+  bool _shouldSkipForContextBlock(int position) {
+    return position >= widget.context.startPosition && 
+           position <= widget.context.endPosition &&
+           position != widget.context.startPosition;
   }
 
-  // Замените метод _buildLazyItem (начиная со строки ~1180):
+  // Отмечаем позиции контекста как обработанные
+  void _markContextPositionsAsProcessed() {
+    for (int pos = widget.context.startPosition; pos <= widget.context.endPosition; pos++) {
+      if (pos != widget.context.startPosition) {
+        _contextBlockCache[pos] = true; // Пропускаем
+      }
+    }
+  }
 
-Widget _buildLazyItem(int index) {
-  // Парсим параграфы с позициями
-  final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
-  final matches = regex.allMatches(_fullText!).toList();
-  
-  if (index >= matches.length) return const SizedBox.shrink();
-  
-  final match = matches[index];
-  final position = int.parse(match.group(1)!);
-  final rawText = match.group(2)!.trim();
-  final text = _cleanTextArtifacts(rawText);
-  
-  if (text.isEmpty) return const SizedBox.shrink();
-  
-  // Проверяем, является ли это позицией с цитатой
-  final isQuotePosition = position == widget.context.startPosition;
-  
-  // Если это позиция цитаты, строим контекстный блок из готовых данных QuoteContext
-  if (isQuotePosition) {
-    return _buildContextBlock(
-      widget.context.contextParagraphs, 
-      widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)
+  // Оптимизированный виджет параграфа
+  Widget _buildOptimizedParagraph(String text, int position) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      child: SelectableText.rich(
+        TextSpan(
+          style: TextStyle(
+            fontSize: _fontSize,
+            height: _lineHeight,
+            color: _effectiveTextColor,
+            fontWeight: FontWeight.normal,
+          ),
+          children: [TextSpan(text: text)],
+        ),
+        onSelectionChanged: (selection, cause) {
+          if (selection.baseOffset != selection.extentOffset) {
+            final selectedText = text.substring(
+              selection.baseOffset,
+              selection.extentOffset,
+            );
+            if (selectedText.trim().length > 10) {
+              _selectedText = selectedText;
+            }
+          }
+        },
+        contextMenuBuilder: (context, editableTextState) {
+          return AdaptiveTextSelectionToolbar(
+            anchors: editableTextState.contextMenuAnchors,
+            children: [
+              TextSelectionToolbarTextButton(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: () {
+                  editableTextState.hideToolbar();
+                  if (_selectedText != null && _selectedText!.trim().length > 10) {
+                    _handleTextSelection(_selectedText!, position);
+                  }
+                },
+                child: const Text('💾 Сохранить'),
+              ),
+              TextSelectionToolbarTextButton(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: () {
+                  editableTextState.hideToolbar();
+                  if (_selectedText != null) {
+                    _shareSelectedText(_selectedText!);
+                  }
+                },
+                child: const Text('📤 Поделиться'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
-  
-  // Проверяем, входит ли этот параграф в контекст цитаты
-  if (position >= widget.context.startPosition && position <= widget.context.endPosition) {
-    // Этот параграф уже будет показан в контекстном блоке
-    return const SizedBox.shrink();
-  }
-  
-  // Обычный параграф с возможностью выделения
-  return Container(
-    margin: const EdgeInsets.only(bottom: 16.0),
-    child: SelectableText.rich(
-      TextSpan(
-        style: TextStyle(
-          fontSize: _fontSize,
-          height: _lineHeight,
-          color: _effectiveTextColor,
-          fontWeight: FontWeight.normal,
-        ),
-        children: [TextSpan(text: text)],
-      ),
-      onSelectionChanged: (selection, cause) {
-        if (selection.baseOffset != selection.extentOffset) {
-          final selectedText = text.substring(
-            selection.baseOffset,
-            selection.extentOffset,
-          );
-          if (selectedText.trim().length > 10) {
-            _selectedText = selectedText;
-          }
-        }
-      },
-      contextMenuBuilder: (context, editableTextState) {
-        return AdaptiveTextSelectionToolbar(
-          anchors: editableTextState.contextMenuAnchors,
-          children: [
-            TextSelectionToolbarTextButton(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              onPressed: () {
-                editableTextState.hideToolbar();
-                if (_selectedText != null && _selectedText!.trim().length > 10) {
-                  _handleTextSelection(_selectedText!, position);
-                }
-              },
-              child: const Text('💾 Сохранить'),
-            ),
-            TextSelectionToolbarTextButton(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              onPressed: () {
-                editableTextState.hideToolbar();
-                if (_selectedText != null) {
-                  _shareSelectedText(_selectedText!);
-                }
-              },
-              child: const Text('📤 Поделиться'),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-}
 
   // Строим контекстный блок из готовых данных QuoteContext
   Widget _buildContextBlock(List<String> paragraphs, int quoteIndex) {
@@ -1449,6 +1550,7 @@ Widget _buildLazyItem(int index) {
 
   @override
   void dispose() {
+    _scrollRetryTimer?.cancel();
     _fadeController.dispose();
     _themeController.dispose();
     _settingsController.dispose();

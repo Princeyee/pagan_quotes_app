@@ -1,4 +1,4 @@
-// lib/ui/screens/book_reader_page.dart
+// lib/ui/screens/book_reader_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
@@ -153,7 +153,6 @@ class _BookReaderPageState extends State<BookReaderPage>
       final text = await _textService.loadTextFile(widget.book.cleanedFilePath);
       _fullText = text;
       
-      // Извлекаем параграфы с позициями
       _paragraphs = _textService.extractParagraphsWithPositions(text);
       
       setState(() {
@@ -162,7 +161,6 @@ class _BookReaderPageState extends State<BookReaderPage>
       
       _fadeController.forward();
       
-      // Восстанавливаем позицию чтения
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_savedScrollPosition > 0 && _scrollController.hasClients) {
           _scrollController.jumpTo(_savedScrollPosition);
@@ -352,7 +350,6 @@ class _BookReaderPageState extends State<BookReaderPage>
               ],
             ),
           ),
-          // Индикатор прогресса
           if (_scrollController.hasClients) _buildProgressIndicator(),
           const SizedBox(width: 12),
           IconButton(
@@ -405,212 +402,219 @@ class _BookReaderPageState extends State<BookReaderPage>
   }
 
   Widget _buildReadingSettings() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: _currentTheme.cardColor,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7, // Максимум 70% экрана
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(24.0),
+        decoration: BoxDecoration(
+          color: _currentTheme.cardColor,
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _currentTheme.highlightColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.tune, size: 20, color: _currentTheme.textColor.withOpacity(0.8)),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Настройки чтения',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _currentTheme.textColor),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildModernSettingCard(
-            'Размер текста',
-            Icons.format_size,
-            Row(
-              children: [
-                _buildModernButton(Icons.remove, () => _adjustFontSize(-1), _fontSize > 12),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _currentTheme.highlightColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    '${_fontSize.toInt()}px',
-                    style: TextStyle(fontWeight: FontWeight.w600, color: _currentTheme.textColor, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                _buildModernButton(Icons.add, () => _adjustFontSize(1), _fontSize < 24),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildModernSettingCard(
-            'Межстрочный интервал',
-            Icons.format_line_spacing,
-            Row(
-              children: [
-                _buildModernButton(Icons.compress, () => _adjustLineHeight(-0.1), _lineHeight > 1.2),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _currentTheme.highlightColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    '${_lineHeight.toStringAsFixed(1)}x',
-                    style: TextStyle(fontWeight: FontWeight.w600, color: _currentTheme.textColor, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                _buildModernButton(Icons.expand, () => _adjustLineHeight(0.1), _lineHeight < 2.0),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildModernSettingCard(
-            'Тема оформления',
-            Icons.palette_outlined,
-            Wrap(
-              spacing: 12,
-              children: ReadingTheme.allThemes.map((theme) {
-                final isSelected = theme.type == _currentTheme.type && !_useCustomColors;
-                return GestureDetector(
-                  onTap: () async {
-                    await _themeController.forward();
-                    setState(() {
-                      _currentTheme = theme;
-                      _useCustomColors = false;
-                    });
-                    await _saveSettings();
-                    await _themeController.reverse();
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 50,
-                    height: 50,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: theme.backgroundColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected 
-                            ? theme.quoteHighlightColor 
-                            : theme.borderColor.withOpacity(0.3),
-                        width: isSelected ? 3 : 1,
-                      ),
-                      boxShadow: isSelected ? [
-                        BoxShadow(
-                          color: theme.quoteHighlightColor.withOpacity(0.3),
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                        ),
-                      ] : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          spreadRadius: 1,
-                        ),
-                      ],
+                      color: _currentTheme.highlightColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Center(
-                      child: Text(
-                        theme.letter,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: theme.textColor,
-                        ),
-                      ),
-                    ),
+                    child: Icon(Icons.tune, size: 20, color: _currentTheme.textColor.withOpacity(0.8)),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildModernSettingCard(
-            'Кастомные цвета',
-            Icons.color_lens,
-            Column(
-              children: [
+                  const SizedBox(width: 12),
+                  Text(
+                    'Настройки чтения',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _currentTheme.textColor),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildModernSettingCard(
+                'Размер текста',
+                Icons.format_size,
                 Row(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Цвет текста',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _currentTheme.textColor.withOpacity(0.6),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildColorPicker(
-                            _customTextColor ?? _currentTheme.textColor,
-                            (color) {
-                              setState(() {
-                                _customTextColor = color;
-                                _useCustomColors = true;
-                              });
-                              _saveSettings();
-                            },
-                          ),
-                        ],
+                    _buildModernButton(Icons.remove, () => _adjustFontSize(-1), _fontSize > 12),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _currentTheme.highlightColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        '${_fontSize.toInt()}px',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: _currentTheme.textColor, fontSize: 16),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Цвет фона',
+                    _buildModernButton(Icons.add, () => _adjustFontSize(1), _fontSize < 24),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildModernSettingCard(
+                'Межстрочный интервал',
+                Icons.format_line_spacing,
+                Row(
+                  children: [
+                    _buildModernButton(Icons.compress, () => _adjustLineHeight(-0.1), _lineHeight > 1.2),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _currentTheme.highlightColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        '${_lineHeight.toStringAsFixed(1)}x',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: _currentTheme.textColor, fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    _buildModernButton(Icons.expand, () => _adjustLineHeight(0.1), _lineHeight < 2.0),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildModernSettingCard(
+                'Тема оформления',
+                Icons.palette_outlined,
+                Wrap(
+                  spacing: 12,
+                  children: ReadingTheme.allThemes.map((theme) {
+                    final isSelected = theme.type == _currentTheme.type && !_useCustomColors;
+                    return GestureDetector(
+                      onTap: () async {
+                        await _themeController.forward();
+                        setState(() {
+                          _currentTheme = theme;
+                          _useCustomColors = false;
+                        });
+                        await _saveSettings();
+                        await _themeController.reverse();
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: theme.backgroundColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected 
+                                ? theme.quoteHighlightColor 
+                                : theme.borderColor.withOpacity(0.3),
+                            width: isSelected ? 3 : 1,
+                          ),
+                          boxShadow: isSelected ? [
+                            BoxShadow(
+                              color: theme.quoteHighlightColor.withOpacity(0.3),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ] : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            theme.letter,
                             style: TextStyle(
-                              fontSize: 12,
-                              color: _currentTheme.textColor.withOpacity(0.6),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: theme.textColor,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          _buildColorPicker(
-                            _customBackgroundColor ?? _currentTheme.backgroundColor,
-                            (color) {
-                              setState(() {
-                                _customBackgroundColor = color;
-                                _useCustomColors = true;
-                              });
-                              _saveSettings();
-                            },
-                          ),
-                        ],
+                        ),
                       ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildModernSettingCard(
+                'Кастомные цвета',
+                Icons.color_lens,
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Цвет текста',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _currentTheme.textColor.withOpacity(0.6),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildColorPicker(
+                                _customTextColor ?? _currentTheme.textColor,
+                                (color) {
+                                  setState(() {
+                                    _customTextColor = color;
+                                    _useCustomColors = true;
+                                  });
+                                  _saveSettings();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Цвет фона',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _currentTheme.textColor.withOpacity(0.6),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildColorPicker(
+                                _customBackgroundColor ?? _currentTheme.backgroundColor,
+                                (color) {
+                                  setState(() {
+                                    _customBackgroundColor = color;
+                                    _useCustomColors = true;
+                                  });
+                                  _saveSettings();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -738,34 +742,17 @@ class _BookReaderPageState extends State<BookReaderPage>
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Опциональный номер позиции (скрытый по умолчанию)
-          if (false) // Можно включить для отладки
-            Container(
-              margin: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                '[pos:$position]',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: _effectiveTextColor.withOpacity(0.3),
-                ),
-              ),
-            ),
-          RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeight,
-                color: _effectiveTextColor,
-                fontWeight: FontWeight.normal,
-              ),
-              children: [TextSpan(text: text)],
-            ),
-            textAlign: TextAlign.justify,
+      child: RichText(
+        text: TextSpan(
+          style: TextStyle(
+            fontSize: _fontSize,
+            height: _lineHeight,
+            color: _effectiveTextColor,
+            fontWeight: FontWeight.normal,
           ),
-        ],
+          children: [TextSpan(text: text)],
+        ),
+        textAlign: TextAlign.justify,
       ),
     );
   }
