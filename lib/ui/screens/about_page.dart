@@ -11,7 +11,7 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMixin {
-  static const String _supportUrl = 'https://www.tbank.ru/cf/37a1I34xZfo';
+  static const String _supportUrl = 'https://boosty.to/sacral/donate';
 
   late final AnimationController _animCtrl;
   late final Animation<double> _fadeAnim;
@@ -96,8 +96,7 @@ class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMix
                   ),
                   const SizedBox(height: 28),
                   Text(
-                    'Этот проект создан с любовью и стремлением вернуть ощущение священного в повседневность. Здесь — не просто красивые фразы, а живое дыхание традиции, философии и тишины.\n\n'
-                    'Если вам важно то, чем мы занимаемся — поддержите проект. Победа будет за нами, возрождение близко.',
+                    'Этот проект создан со стремлением вернуть ощущение священного в повседневность. Философия начинается с удивления, язык - дом бытия. Цитата - то что пробуждает удивление, цепляет и ведет за собой. Перевернутая картина погружения в язык через отрывок - то что может вынуть человека из рутины.',
                     style: GoogleFonts.merriweather(
                       fontSize: 15,
                       height: 1.6,
