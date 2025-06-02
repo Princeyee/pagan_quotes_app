@@ -1,4 +1,3 @@
-// lib/ui/screens/quote_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
@@ -13,6 +12,7 @@ import '../../models/quote.dart';
 import '../../services/quote_extraction_service.dart';
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
+import '../../services/sound_manager.dart'; // ✅ убедись, что импорт есть
 import '../../utils/custom_cache.dart';
 import '../widgets/nav_drawer.dart';
 import '../widgets/note_modal.dart';
@@ -20,31 +20,31 @@ import 'context_page.dart';
 
 class StrikeThroughPainter extends CustomPainter {
   final double progress;
-  
+
   StrikeThroughPainter(this.progress);
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.white
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
-    
+
     final startX = size.width * 0.15;
     final startY = size.height * 0.15;
     final endX = size.width * 0.85;
     final endY = size.height * 0.85;
-    
+
     final currentEndX = startX + (endX - startX) * progress;
     final currentEndY = startY + (endY - startY) * progress;
-    
+
     canvas.drawLine(
       Offset(startX, startY),
       Offset(currentEndX, currentEndY),
       paint,
     );
   }
-  
+
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
@@ -56,10 +56,11 @@ class QuotePage extends StatefulWidget {
   State<QuotePage> createState() => _QuotePageState();
 }
 
-class _QuotePageState extends State<QuotePage> 
+class _QuotePageState extends State<QuotePage>
     with TickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final CustomCachePrefs _cache = CustomCache.prefs;
+  final SoundManager _soundManager = SoundManager(); // ✅ экземпляр SoundManager
   final GlobalKey _quoteCardKey = GlobalKey();
 
   late AnimationController _fadeController;
@@ -85,21 +86,17 @@ class _QuotePageState extends State<QuotePage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeAnimations();
-    _loadSoundSettings();
+    _initializeSound(); // ✅ запуск и загрузка состояния звука
     _loadTodayQuote();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Здесь можно добавить RouteObserver если нужно
-  }
+  Future<void> _initializeSound() async {
+    await _soundManager.init();
 
-  Future<void> _loadSoundSettings() async {
-    final soundMuted = await _cache.getSetting<bool>('sound_muted') ?? false;
     setState(() {
-      _isSoundMuted = soundMuted;
+      _isSoundMuted = _soundManager.isMuted;
     });
+
     if (_isSoundMuted) {
       _soundButtonController.forward();
     }
@@ -684,15 +681,17 @@ class _QuotePageState extends State<QuotePage>
                   _isSoundMuted = !_isSoundMuted;
                 });
                 
-                if (_isSoundMuted) {
-                  _soundButtonController.forward();
-                  await _stopAmbientSound();
-                  await _cache.setSetting('sound_muted', true);
-                } else {
-                  _soundButtonController.reverse();
-                  await _resumeAmbientIfNeeded();
-                  await _cache.setSetting('sound_muted', false);
-                }
+                if (!_isSoundMuted) {
+  // Выключаем звук глобально
+  await SoundManager().setMuted(true);
+  _soundButtonController.forward();
+  await _stopAmbientSound();
+} else {
+  // Включаем звук глобально
+  await SoundManager().setMuted(false);
+  _soundButtonController.reverse();
+  await _resumeAmbientIfNeeded();
+}
               },
               child: Container(
                 padding: const EdgeInsets.all(8),

@@ -32,24 +32,25 @@ class SoundManager {
 
   // Воспроизвести звук
   Future<void> playSound(String key, String assetPath, {bool loop = false}) async {
-    if (_isMuted) return;
+  if (_isMuted) return;
 
-    try {
-      // Останавливаем предыдущий звук с таким же ключом
-      await stopSound(key);
+  try {
+    await stopSound(key);
 
-      final player = AudioPlayer();
-      _players[key] = player;
+    final player = AudioPlayer();
+    _players[key] = player;
 
-      await player.setAsset(assetPath);
-      if (loop) {
-        player.setLoopMode(LoopMode.one);
-      }
-      await player.play();
-    } catch (e) {
-      print('Error playing sound $key: $e');
+    await player.setAsset(assetPath);
+    if (loop) {
+      player.setLoopMode(LoopMode.one);
+      player.play(); // 🔄 НЕ await — потому что звук бесконечный
+    } else {
+      await player.play(); // ✅ Только ждем, если он не зациклен
     }
+  } catch (e) {
+    print('Error playing sound $key: $e');
   }
+}
 
   // Остановить конкретный звук
   Future<void> stopSound(String key) async {

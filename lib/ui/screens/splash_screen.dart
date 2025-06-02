@@ -66,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       // 🚪 Переход к основному экрану
       if (mounted) {
-        await _soundManager.stopAll();
+        await  _soundManager.stopSound('fire_splash');
         
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
@@ -89,18 +89,17 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _playFireSound() async {
-    if (!_soundManager.isMuted) {
-      try {
-        await _soundManager.playSound(
-          'fire_splash',
-          'assets/sounds/fire.mp3',
-          loop: true,
-        );
-      } catch (e) {
-        print('Could not play fire sound: $e');
-      }
-    }
-  }
+  if (_soundManager.isMuted) return;
+
+  // НЕ await, чтобы не блокировать UI (особенно при loop: true)
+  _soundManager.playSound(
+    'fire_splash',
+    'assets/sounds/fire.mp3',
+    loop: true,
+  ).catchError((e) {
+    print('Could not play fire sound: $e');
+  });
+}
 
   Future<void> _ensureTodayQuote() async {
     final quoteService = QuoteExtractionService();
