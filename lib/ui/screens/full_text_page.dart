@@ -1176,88 +1176,93 @@ decoration: BoxDecoration(
     _saveSettings();
   }
 
-  Widget _buildLazyItem(int index) {
-    // Парсим параграфы с позициями
-    final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
-    final matches = regex.allMatches(_fullText!).toList();
-    
-    if (index >= matches.length) return const SizedBox.shrink();
-    
-    final match = matches[index];
-    final position = int.parse(match.group(1)!);
-    final rawText = match.group(2)!.trim();
-    final text = _cleanTextArtifacts(rawText); // Очищаем артефакты
-    
-    if (text.isEmpty) return const SizedBox.shrink();
-    
-    // Проверяем, является ли это позицией с цитатой
-    final isQuotePosition = position == widget.context.startPosition;
-    
-    // Если это позиция цитаты, строим контекстный блок
-    if (isQuotePosition) {
-      return _buildContextBlockForPosition(position, matches, index);
-    }
-    
-    // Проверяем, входит ли этот параграф в контекст цитаты
-    if (position >= widget.context.startPosition && position <= widget.context.endPosition) {
-      // Этот параграф уже будет показан в контекстном блоке
-      return const SizedBox.shrink();
-    }
-    
-    // Обычный параграф с возможностью выделения
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: SelectableText.rich(
-        TextSpan(
-          style: TextStyle(
-            fontSize: _fontSize,
-            height: _lineHeight,
-            color: _effectiveTextColor,
-            fontWeight: FontWeight.normal,
-          ),
-          children: [TextSpan(text: text)],
-        ),
-        onSelectionChanged: (selection, cause) {
-          if (selection.baseOffset != selection.extentOffset) {
-            final selectedText = text.substring(
-              selection.baseOffset,
-              selection.extentOffset,
-            );
-            if (selectedText.trim().length > 10) { // Минимум 10 символов
-              _selectedText = selectedText;
-            }
-          }
-        },
-        contextMenuBuilder: (context, editableTextState) {
-          return AdaptiveTextSelectionToolbar(
-            anchors: editableTextState.contextMenuAnchors,
-            children: [
-              TextSelectionToolbarTextButton(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: () {
-                  editableTextState.hideToolbar();
-                  if (_selectedText != null && _selectedText!.trim().length > 10) {
-                    _handleTextSelection(_selectedText!, position);
-                  }
-                },
-                child: const Text('💾 Сохранить'),
-              ),
-              TextSelectionToolbarTextButton(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: () {
-                  editableTextState.hideToolbar();
-                  if (_selectedText != null) {
-                    _shareSelectedText(_selectedText!);
-                  }
-                },
-                child: const Text('📤 Поделиться'),
-              ),
-            ],
-          );
-        },
-      ),
+  // Замените метод _buildLazyItem (начиная со строки ~1180):
+
+Widget _buildLazyItem(int index) {
+  // Парсим параграфы с позициями
+  final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
+  final matches = regex.allMatches(_fullText!).toList();
+  
+  if (index >= matches.length) return const SizedBox.shrink();
+  
+  final match = matches[index];
+  final position = int.parse(match.group(1)!);
+  final rawText = match.group(2)!.trim();
+  final text = _cleanTextArtifacts(rawText);
+  
+  if (text.isEmpty) return const SizedBox.shrink();
+  
+  // Проверяем, является ли это позицией с цитатой
+  final isQuotePosition = position == widget.context.startPosition;
+  
+  // Если это позиция цитаты, строим контекстный блок из готовых данных QuoteContext
+  if (isQuotePosition) {
+    return _buildContextBlock(
+      widget.context.contextParagraphs, 
+      widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)
     );
   }
+  
+  // Проверяем, входит ли этот параграф в контекст цитаты
+  if (position >= widget.context.startPosition && position <= widget.context.endPosition) {
+    // Этот параграф уже будет показан в контекстном блоке
+    return const SizedBox.shrink();
+  }
+  
+  // Обычный параграф с возможностью выделения
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16.0),
+    child: SelectableText.rich(
+      TextSpan(
+        style: TextStyle(
+          fontSize: _fontSize,
+          height: _lineHeight,
+          color: _effectiveTextColor,
+          fontWeight: FontWeight.normal,
+        ),
+        children: [TextSpan(text: text)],
+      ),
+      onSelectionChanged: (selection, cause) {
+        if (selection.baseOffset != selection.extentOffset) {
+          final selectedText = text.substring(
+            selection.baseOffset,
+            selection.extentOffset,
+          );
+          if (selectedText.trim().length > 10) {
+            _selectedText = selectedText;
+          }
+        }
+      },
+      contextMenuBuilder: (context, editableTextState) {
+        return AdaptiveTextSelectionToolbar(
+          anchors: editableTextState.contextMenuAnchors,
+          children: [
+            TextSelectionToolbarTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              onPressed: () {
+                editableTextState.hideToolbar();
+                if (_selectedText != null && _selectedText!.trim().length > 10) {
+                  _handleTextSelection(_selectedText!, position);
+                }
+              },
+              child: const Text('💾 Сохранить'),
+            ),
+            TextSelectionToolbarTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              onPressed: () {
+                editableTextState.hideToolbar();
+                if (_selectedText != null) {
+                  _shareSelectedText(_selectedText!);
+                }
+              },
+              child: const Text('📤 Поделиться'),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
 
   // Строим контекстный блок из готовых данных QuoteContext
   Widget _buildContextBlock(List<String> paragraphs, int quoteIndex) {
