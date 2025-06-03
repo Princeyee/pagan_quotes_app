@@ -35,7 +35,7 @@ final List<ThemeInfo> allThemes = [
     id: "philosophy",
     name: "Философия",
     image: "assets/images/philosophy.jpg",
-    authors: ["Ницше", "Кант", "Хайдеггер", "Шопенгауэр"],
+    authors: ["Ницше","Хайдеггер", "Шопенгауэр"],
     description: "Размышления о бытии, человеке и истине.",
   ),
   ThemeInfo(

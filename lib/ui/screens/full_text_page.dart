@@ -1,4 +1,3 @@
-
 // lib/ui/screens/full_text_page.dart
 import 'dart:math';
 import 'dart:async';
@@ -74,15 +73,14 @@ class _FullTextPageState extends State<FullTextPage>
   bool _isSelectionMode = false;
   String? _selectedText;
 
-  // Диагностика и оптимизация скролла
+  // ИСПРАВЛЕННЫЕ переменные для поиска
   bool _isScrolling = false;
-  bool _listViewReady = false;
   int? _targetItemIndex;
   Timer? _scrollRetryTimer;
 
-  // Кэши для оптимизации
-  List<RegExpMatch>? _positionMatches;
-  Map<int, bool> _contextBlockCache = {};
+  // Список всех параграфов для правильной индексации
+  List<ParsedTextItem> _parsedItems = [];
+  bool _isParsed = false;
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -213,54 +211,6 @@ class _FullTextPageState extends State<FullTextPage>
         .trim();
   }
 
-  // Инициализация кэша позиций
-  void _initializePositionCache() {
-    if (_fullText == null) return;
-    
-    final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
-    _positionMatches = regex.allMatches(_fullText!).toList();
-    _contextBlockCache.clear();
-    
-    print('💾 Кэш позиций инициализирован: ${_positionMatches!.length} элементов');
-  }
-
-  // Детальная диагностика позиций
-  void _debugPositionAnalysis() {
-    if (_fullText == null) return;
-    
-    print('\n🔍 === ДЕТАЛЬНАЯ ДИАГНОСТИКА ПОЗИЦИЙ ===');
-    print('Ищем позицию: ${widget.context.startPosition}');
-    
-    final regex = RegExp(r'\[pos:(\d+)\]');
-    final matches = regex.allMatches(_fullText!).toList();
-    
-    print('Всего найдено позиций: ${matches.length}');
-    
-    // Показываем позиции вокруг целевой
-    final targetPos = widget.context.startPosition;
-    
-    for (int i = 0; i < matches.length; i++) {
-      final posNumber = int.parse(matches[i].group(1)!);
-      
-      // Показываем позиции в диапазоне ±5 от целевой
-      if ((posNumber - targetPos).abs() <= 5) {
-        final marker = posNumber == targetPos ? ' <<<< ЦЕЛЬ' : '';
-        print('  Индекс $i: позиция $posNumber$marker');
-      }
-      
-      if (posNumber == targetPos) {
-        _targetItemIndex = i;
-        print('✅ НАЙДЕНО: Позиция $targetPos находится на индексе $i');
-      }
-    }
-    
-    if (_targetItemIndex == null) {
-      print('❌ ПРОБЛЕМА: Позиция $targetPos НЕ НАЙДЕНА!');
-    }
-    
-    print('=== КОНЕЦ ДИАГНОСТИКИ ===\n');
-  }
-
   Future<void> _loadFullText() async {
     setState(() {
       _isLoading = true;
@@ -283,8 +233,8 @@ class _FullTextPageState extends State<FullTextPage>
 
         _fadeController.forward();
         
-        // Новая система надежной инициализации скролла
-        _initializeScrollWithDiagnostics();
+        // ИСПРАВЛЕННАЯ инициализация
+        _initializeScrollSystem();
         
         return;
       }
@@ -307,8 +257,8 @@ class _FullTextPageState extends State<FullTextPage>
 
       _fadeController.forward();
       
-      // Новая система надежной инициализации скролла
-      _initializeScrollWithDiagnostics();
+      // ИСПРАВЛЕННАЯ инициализация
+      _initializeScrollSystem();
       
     } catch (e) {
       setState(() {
@@ -318,45 +268,92 @@ class _FullTextPageState extends State<FullTextPage>
     }
   }
 
-  // Основной метод для интеграции в _loadFullText
-  void _initializeScrollWithDiagnostics() {
+  // ИСПРАВЛЕННАЯ система инициализации скролла
+  void _initializeScrollSystem() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _initializePositionCache();
-        _findQuotePositionFastWithDebug();
+      if (mounted && _fullText != null) {
+        _parseTextOnce();
+        _findTargetQuoteIndex();
+        
+        // Показываем анимацию поиска и запускаем скролл
+        _showSearchAnimation();
         
         // Даем время на построение ListView
-        Future.delayed(const Duration(milliseconds: 500), () {
+        Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
-            _scheduleReliableScrollWithDebug();
+            _scheduleScrollToQuote();
           }
         });
       }
     });
   }
 
-  void _findQuotePositionFastWithDebug() {
-    if (_fullText == null) return;
+  // ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ парсинг текста
+  void _parseTextOnce() {
+    if (_isParsed || _fullText == null) return;
     
-    print('\n🔍 === ПОИСК ПОЗИЦИИ С ДИАГНОСТИКОЙ ===');
-    _debugPositionAnalysis();
+    print('\n🔄 === ПАРСИНГ ТЕКСТА ===');
+    
+    _parsedItems.clear();
+    final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
+    final matches = regex.allMatches(_fullText!).toList();
+    
+    print('Найдено позиций в тексте: ${matches.length}');
+    
+    // Парсим ВСЕ позиции подряд, НЕ пропускаем контекстные
+    for (final match in matches) {
+      final position = int.parse(match.group(1)!);
+      final rawText = match.group(2)!.trim();
+      
+      if (rawText.isEmpty) continue;
+      
+      final cleanText = _cleanTextArtifacts(rawText);
+      if (cleanText.isEmpty) continue;
+      
+      // Определяем тип элемента
+      final isQuotePosition = position == widget.context.startPosition;
+      final isContextPosition = position >= widget.context.startPosition && 
+                              position <= widget.context.endPosition;
+      
+      _parsedItems.add(ParsedTextItem(
+        position: position,
+        text: cleanText,
+        isQuote: isQuotePosition,
+        isContext: isContextPosition,
+      ));
+    }
+    
+    _isParsed = true;
+    print('✅ Парсинг завершен. Элементов в массиве: ${_parsedItems.length}');
+    print('=== ПАРСИНГ ЗАВЕРШЕН ===\n');
+  }
+
+  // ИСПРАВЛЕННЫЙ поиск индекса цитаты
+  void _findTargetQuoteIndex() {
+    print('\n🎯 === ПОИСК ЦИТАТЫ ===');
+    print('Ищем позицию: ${widget.context.startPosition}');
+    
+    for (int i = 0; i < _parsedItems.length; i++) {
+      if (_parsedItems[i].position == widget.context.startPosition) {
+        _targetItemIndex = i;
+        print('✅ НАЙДЕНО! Позиция ${widget.context.startPosition} находится на индексе $i');
+        break;
+      }
+    }
+    
+    if (_targetItemIndex == null) {
+      print('❌ ОШИБКА: Позиция ${widget.context.startPosition} НЕ НАЙДЕНА!');
+    }
+    
     print('=== ПОИСК ЗАВЕРШЕН ===\n');
   }
 
-  void _scheduleReliableScrollWithDebug() {
-    print('\n📍 === ПЛАНИРОВАНИЕ СКРОЛЛА ===');
-    print('Целевой индекс: $_targetItemIndex');
-    
+  void _scheduleScrollToQuote() {
     if (_targetItemIndex == null) {
       print('❌ Нет целевого индекса для скролла');
       return;
     }
     
-    _showSearchAnimation();
-    _waitForListViewWithDebug();
-  }
-
-  void _waitForListViewWithDebug() {
     _scrollRetryTimer?.cancel();
     int attemptCount = 0;
     
@@ -373,11 +370,11 @@ class _FullTextPageState extends State<FullTextPage>
           _scrollController.position.maxScrollExtent > 0) {
         
         print('✅ ListView готов после $attemptCount попыток');
-        _performPreciseScrollWithDebug();
+        _performScrollToQuote();
         
       } else {
-        if (attemptCount < 20) {
-          _scrollRetryTimer = Timer(const Duration(milliseconds: 100), attemptScroll);
+        if (attemptCount < 15) {
+          _scrollRetryTimer = Timer(const Duration(milliseconds: 150), attemptScroll);
         } else {
           print('❌ ListView не готов, используем аварийный скролл');
           _emergencyScrollToPosition();
@@ -385,51 +382,55 @@ class _FullTextPageState extends State<FullTextPage>
       }
     }
     
-    Future.delayed(const Duration(milliseconds: 200), attemptScroll);
+    Future.delayed(const Duration(milliseconds: 300), attemptScroll);
   }
 
-  void _performPreciseScrollWithDebug() {
+  void _performScrollToQuote() {
     if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
       return;
     }
     
     _isScrolling = true;
     
-    print('\n🎯 === НАЧАЛО ТОЧНОГО СКРОЛЛА ===');
+    print('\n🎯 === СКРОЛЛ К ЦИТАТЕ ===');
     
-    final totalItems = _getItemCount();
     final targetIndex = _targetItemIndex!;
+    final totalItems = _parsedItems.length;
     
     print('Скроллим к элементу $targetIndex из $totalItems');
     
-    // Используем простой и надежный метод расчета
-    final progressMethod = targetIndex / totalItems;
+    // Рассчитываем позицию скролла
+    final progress = targetIndex / totalItems;
     final maxScroll = _scrollController.position.maxScrollExtent;
-    final targetOffset = maxScroll * progressMethod;
+    final targetOffset = maxScroll * progress;
     
-    print('📏 РАСЧЕТ ПОЗИЦИИ:');
-    print('   - Прогресс: ${(progressMethod * 100).toStringAsFixed(1)}%');
+    print('📏 РАСЧЕТ:');
+    print('   - Прогресс: ${(progress * 100).toStringAsFixed(1)}%');
     print('   - Целевой offset: ${targetOffset.toStringAsFixed(0)}px');
     
     // Добавляем отступ для лучшей видимости
     final screenHeight = MediaQuery.of(context).size.height;
-    final adjustedOffset = (targetOffset - screenHeight * 0.2).clamp(0.0, maxScroll);
+    final adjustedOffset = (targetOffset - screenHeight * 0.25).clamp(0.0, maxScroll);
     
     print('📍 ФИНАЛЬНАЯ ПОЗИЦИЯ: ${adjustedOffset.toStringAsFixed(0)}px');
     
     // Выполняем плавный скролл
     _scrollController.animateTo(
       adjustedOffset,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       curve: Curves.easeOutCubic,
     ).then((_) {
       print('✅ Скролл завершен');
       _isScrolling = false;
       _autoScrolled = true;
       
+      // Закрываем диалог поиска
+      if (mounted) Navigator.of(context).pop();
+      
     }).catchError((error) {
       print('❌ Ошибка скролла: $error');
       _isScrolling = false;
+      if (mounted) Navigator.of(context).pop();
     });
     
     print('=== СКРОЛЛ ЗАПУЩЕН ===\n');
@@ -445,7 +446,7 @@ class _FullTextPageState extends State<FullTextPage>
     
     final maxScroll = _scrollController.position.maxScrollExtent;
     final targetIndex = _targetItemIndex!;
-    final totalItems = _getItemCount();
+    final totalItems = _parsedItems.length;
     
     final simpleProgress = targetIndex / totalItems;
     final simpleOffset = maxScroll * simpleProgress;
@@ -454,6 +455,8 @@ class _FullTextPageState extends State<FullTextPage>
     
     _scrollController.jumpTo(simpleOffset.clamp(0.0, maxScroll));
     _autoScrolled = true;
+    
+    if (mounted) Navigator.of(context).pop();
     
     print('✅ Аварийный скролл выполнен');
   }
@@ -515,9 +518,7 @@ class _FullTextPageState extends State<FullTextPage>
       ),
     );
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (mounted) Navigator.of(context).pop();
-    });
+    // Диалог закроется автоматически после завершения скролла
   }
 
   // Метод выделения текста для сохранения как цитаты
@@ -1205,7 +1206,7 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildTextContent() {
-    if (_fullText == null) return const SizedBox.shrink();
+    if (_fullText == null || !_isParsed) return const SizedBox.shrink();
 
     return GestureDetector(
       onVerticalDragEnd: (details) {
@@ -1221,92 +1222,37 @@ class _FullTextPageState extends State<FullTextPage>
         addAutomaticKeepAlives: false,
         addRepaintBoundaries: true,
         addSemanticIndexes: false,
-        itemCount: _getItemCount(),
+        itemCount: _parsedItems.length,
         itemBuilder: (context, index) {
           return KeyedSubtree(
             key: ValueKey('item_$index'),
-            child: _buildLazyItem(index),
+            child: _buildTextItem(index),
           );
         },
       ),
     );
   }
 
-  int _getItemCount() {
-    if (_positionMatches != null) {
-      return _positionMatches!.length;
-    }
+  Widget _buildTextItem(int index) {
+    if (index >= _parsedItems.length) return const SizedBox.shrink();
     
-    if (_fullText == null) return 0;
+    final item = _parsedItems[index];
     
-    final regex = RegExp(r'\[pos:\d+\]');
-    final matches = regex.allMatches(_fullText!);
-    return matches.length;
-  }
-
-  Widget _buildLazyItem(int index) {
-    // Используем кэш вместо повторного парсинга
-    if (_positionMatches == null) {
-      _initializePositionCache();
-    }
-    
-    if (_positionMatches == null || index >= _positionMatches!.length) {
-      return const SizedBox.shrink();
-    }
-    
-    final match = _positionMatches![index];
-    final position = int.parse(match.group(1)!);
-    final rawText = match.group(2)!.trim();
-    
-    // Быстрая проверка на пустоту
-    if (rawText.isEmpty) return const SizedBox.shrink();
-    
-    final text = _cleanTextArtifacts(rawText);
-    if (text.isEmpty) return const SizedBox.shrink();
-    
-    // Кэшированная проверка контекстного блока
-    if (_contextBlockCache.containsKey(position)) {
-      if (_contextBlockCache[position]!) {
-        return const SizedBox.shrink(); // Уже в контекстном блоке
-      }
-    } else {
-      // Вычисляем и кэшируем
-      final shouldSkip = _shouldSkipForContextBlock(position);
-      _contextBlockCache[position] = shouldSkip;
-      if (shouldSkip) return const SizedBox.shrink();
-    }
-    
-    // Проверяем, является ли это позицией с цитатой
-    final isQuotePosition = position == widget.context.startPosition;
-    
-    if (isQuotePosition) {
-      // Отмечаем связанные позиции как обработанные
-      _markContextPositionsAsProcessed();
-      
+    // Если это цитата, строим контекстный блок
+    if (item.isQuote) {
       return _buildContextBlock(
         widget.context.contextParagraphs, 
         widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)
       );
     }
     
-    // Обычный параграф
-    return _buildOptimizedParagraph(text, position);
-  }
-
-  // Определяем нужно ли пропустить позицию для контекстного блока
-  bool _shouldSkipForContextBlock(int position) {
-    return position >= widget.context.startPosition && 
-           position <= widget.context.endPosition &&
-           position != widget.context.startPosition;
-  }
-
-  // Отмечаем позиции контекста как обработанные
-  void _markContextPositionsAsProcessed() {
-    for (int pos = widget.context.startPosition; pos <= widget.context.endPosition; pos++) {
-      if (pos != widget.context.startPosition) {
-        _contextBlockCache[pos] = true; // Пропускаем
-      }
+    // Если это часть контекста (но не сама цитата), пропускаем
+    if (item.isContext) {
+      return const SizedBox.shrink();
     }
+    
+    // Обычный параграф
+    return _buildOptimizedParagraph(item.text, item.position);
   }
 
   // Оптимизированный виджет параграфа
@@ -1521,33 +1467,6 @@ class _FullTextPageState extends State<FullTextPage>
     }
   }
 
-  // Проверяем является ли параграф частью уже показанного контекстного блока
-  bool _isPartOfContextBlock(List<String> paragraphs, int index) {
-    // Ищем ближайшую цитату
-    for (int i = max(0, index - 2); i <= min(paragraphs.length - 1, index + 2); i++) {
-      if (_simpleQuoteCheck(paragraphs[i].trim())) {
-        // Если рядом есть цитата, этот параграф будет показан в контекстном блоке
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool _simpleQuoteCheck(String text) {
-    if (_normalizedQuoteCache == null || _normalizedQuoteCache!.length < 10) return false;
-    
-    final normalizedText = _normalizeText(text);
-    final quoteStart = _normalizedQuoteCache!.substring(0, min(30, _normalizedQuoteCache!.length));
-    
-    final isQuote = normalizedText.contains(quoteStart);
-    
-    if (isQuote) {
-      print('🎯 Найдена цитата в параграфе: "${text.substring(0, min(50, text.length))}..."');
-    }
-    
-    return isQuote;
-  }
-
   @override
   void dispose() {
     _scrollRetryTimer?.cancel();
@@ -1557,6 +1476,21 @@ class _FullTextPageState extends State<FullTextPage>
     _scrollController.dispose();
     super.dispose();
   }
+}
+
+// Класс для хранения распарсенных элементов текста
+class ParsedTextItem {
+  final int position;
+  final String text;
+  final bool isQuote;
+  final bool isContext;
+
+  ParsedTextItem({
+    required this.position,
+    required this.text,
+    required this.isQuote,
+    required this.isContext,
+  });
 }
 
 class _SearchProgressWidget extends StatefulWidget {
