@@ -38,10 +38,49 @@ class QuoteContext {
 
   /// Получает абзац, содержащий саму цитату
   String get quoteParagraph {
-    return contextParagraphs.firstWhere(
-      (paragraph) => paragraph.toLowerCase().contains(quote.text.toLowerCase()),
-      orElse: () => contextParagraphs.first,
-    );
+    // Нормализуем текст цитаты для более точного поиска
+    final normalizedQuote = _normalizeText(quote.text);
+    
+    // Сначала пробуем найти точное совпадение
+    for (final paragraph in contextParagraphs) {
+      if (_normalizeText(paragraph).contains(normalizedQuote)) {
+        return paragraph;
+      }
+    }
+    
+    // Если точное совпадение не найдено, ищем по словам
+    final quoteWords = normalizedQuote.split(' ')
+        .where((word) => word.length > 3)  // Игнорируем короткие слова
+        .toList();
+    
+    if (quoteWords.isEmpty) return contextParagraphs.first;
+    
+    // Ищем параграф с наибольшим количеством совпадающих слов
+    var bestMatch = contextParagraphs.first;
+    var maxMatchCount = 0;
+    
+    for (final paragraph in contextParagraphs) {
+      final normalizedParagraph = _normalizeText(paragraph);
+      final matchCount = quoteWords
+          .where((word) => normalizedParagraph.contains(word))
+          .length;
+      
+      if (matchCount > maxMatchCount) {
+        maxMatchCount = matchCount;
+        bestMatch = paragraph;
+      }
+    }
+    
+    return bestMatch;
+  }
+  
+  /// Нормализует текст для сравнения
+  String _normalizeText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[.,!?:;«»\[\]()]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   /// Получает абзацы до цитаты (контекст "до")

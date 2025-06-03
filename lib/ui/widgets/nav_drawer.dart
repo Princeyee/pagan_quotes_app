@@ -1,12 +1,9 @@
 
 // lib/ui/widgets/nav_drawer.dart - ЭЛЕГАНТНАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
-
 import '../screens/about_page.dart';
 import '../screens/favorites_page.dart';
-import '../screens/quote_page.dart';
 import '../screens/theme_selector_page.dart';
 import '../screens/library_page.dart';
 import '../screens/notes_page.dart';

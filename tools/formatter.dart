@@ -1,7 +1,7 @@
-
 // tools/formatter.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math';
 
 class BookFormatter {
   static Future<void> processBook(String sourcePath, String category, String author, String bookName) async {
@@ -18,8 +18,8 @@ class BookFormatter {
       final sourceContent = await sourceFile.readAsString(encoding: utf8);
       print('📖 Прочитано символов: ${sourceContent.length}');
       
-      // Создаем папку назначения
-      final targetDir = 'assets/full_texts/$category/$author';
+      // Создаем папку назначения в корневой директории проекта
+      final targetDir = '../assets/full_texts/$category/$author';
       await Directory(targetDir).create(recursive: true);
       
       // Пути для файлов
@@ -48,26 +48,23 @@ class BookFormatter {
   static String _processForRaw(String text) {
     print('🔍 Создаем RAW версию (для поиска)...');
     
-    // 1. Убираем ВСЕ квадратные скобки
-    text = _removeAllBrackets(text);
-    
-    // 2. Нормализуем символы
+    // 1. Нормализуем символы
     text = _normalizeCharacters(text);
     
-    // 3. Агрессивная очистка
+    // 2. Агрессивная очистка
     text = _aggressiveClean(text);
     
-    // 4. Нормализуем переносы
+    // 3. Нормализуем переносы
     text = text.replaceAll(RegExp(r'\r\n|\r'), '\n');
     text = text.replaceAll(RegExp(r'\n{4,}'), '\n\n\n');
     
-    // 5. Склеиваем строки
+    // 4. Склеиваем строки
     text = _joinLines(text);
     
-    // 6. Создаем абзацы
+    // 5. Создаем абзацы
     text = _makeParagraphs(text);
     
-    // 7. Добавляем маркеры
+    // 6. Добавляем маркеры
     text = _addMarkers(text);
     
     return text;
@@ -78,38 +75,45 @@ class BookFormatter {
     print('📖 Создаем CLEANED версию (для чтения)...');
     
     // Извлекаем позиции из RAW версии
-    final rawParagraphs = _extractRawParagraphs(rawText);
+    final rawParagraphs = <Map<String, dynamic>>[];
+    final rawLines = rawText.split('\n\n');
+    final posPattern = RegExp(r'\[pos:(\d+)\]\s*(.*)');
+    
+    for (final line in rawLines) {
+      final match = posPattern.firstMatch(line.trim());
+      if (match != null) {
+        rawParagraphs.add({
+          'position': int.parse(match.group(1)!),
+          'content': match.group(2)!.trim()
+        });
+      }
+    }
+    
     print('📊 Найдено RAW абзацев: ${rawParagraphs.length}');
     
     String cleanedText = originalText;
     
-    // 1. Убираем квадратные скобки (как в RAW)
-    cleanedText = _removeAllBrackets(cleanedText);
-    
-    // 2. Нормализуем символы
+    // 1. Нормализуем символы
     cleanedText = _normalizeCharacters(cleanedText);
     
-    // 3. Деликатная очистка
+    // 2. Деликатная очистка
     cleanedText = _gentleClean(cleanedText);
     
-    // 4. Нормализуем переносы
+    // 3. Нормализуем переносы
     cleanedText = cleanedText.replaceAll(RegExp(r'\r\n|\r'), '\n');
     
-    // 5. Деликатное склеивание
+    // 4. Деликатное склеивание
     cleanedText = _gentleJoinLines(cleanedText);
     
-    // 6. Синхронизируем с RAW позициями
-    cleanedText = _synchronizeWithRaw(cleanedText, rawParagraphs);
+    // 5. Разбиваем на абзацы, сохраняя пустые строки
+    final paragraphs = cleanedText.split(RegExp(r'\n\s*\n'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList();
     
-    return cleanedText;
-  }
-  
-  // Убираем ВСЕ квадратные скобки
-  static String _removeAllBrackets(String text) {
-    text = text.replaceAll(RegExp(r'\[[^\]]*\]'), '');
-    text = text.replaceAll('[', '').replaceAll(']', '');
-    text = text.replaceAll('［', '').replaceAll('］', '');
-    return text;
+    // 6. Синхронизируем позиции с RAW версией
+    final rawParagraphsList = rawLines.map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
+    return _synchronizeWithRaw(paragraphs.join('\n\n'), rawParagraphsList);
   }
   
   // Нормализуем символы
@@ -124,10 +128,7 @@ class BookFormatter {
   // Агрессивная очистка для поиска
   static String _aggressiveClean(String text) {
     // Номера страниц
-    text = text.
-
-
-replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n');
+    text = text.replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n');
     text = text.replaceAll(RegExp(r'\n\s*-\s*\d+\s*-\s*\n'), '\n\n');
     
     // Служебные символы
@@ -261,51 +262,74 @@ replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n');
     return result.join('\n\n');
   }
   
-  // Извлечение абзацев из RAW
-  static List<String> _extractRawParagraphs(String rawText) {
-    final paragraphs = <String>[];
-    final lines = rawText.split('\n\n');
-    
-    for (final line in lines) {
-      final match = RegExp(r'\[pos:\d+\]\s*(.*)').firstMatch(line.trim());
-
-
-if (match != null) {
-        paragraphs.add(match.group(1)!.trim());
-      }
-    }
-    
-    return paragraphs;
-  }
-  
   // Синхронизация CLEANED с RAW позициями
   static String _synchronizeWithRaw(String cleanedText, List<String> rawParagraphs) {
-    final lines = cleanedText.split('\n').where((line) => line.trim().isNotEmpty).toList();
+    // Разбиваем текст на параграфы, сохраняя пустые строки
+    final paragraphs = cleanedText.split(RegExp(r'\n\s*\n'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList();
     
-    if (rawParagraphs.isEmpty || lines.isEmpty) {
+    if (paragraphs.isEmpty) {
+      print('⚠️ No paragraphs found in cleaned text');
       return cleanedText;
     }
+
+    // Извлекаем позиции из RAW параграфов
+    final rawPositions = <int>[];
+    final rawContents = <String>[];
+    final rawPositionPattern = RegExp(r'\[pos:(\d+)\]\s*(.*)');
     
-    final result = <String>[];
-    final linesPerParagraph = (lines.length / rawParagraphs.length).ceil();
-    
-    int lineIndex = 0;
-    
-    for (int i = 0; i < rawParagraphs.length; i++) {
-      final endIndex = (lineIndex + linesPerParagraph).clamp(0, lines.length);
-      
-      if (lineIndex < lines.length) {
-        final paragraphLines = lines.sublist(lineIndex, endIndex);
-        final paragraphText = paragraphLines.join(' ').trim();
-        
-        if (paragraphText.isNotEmpty) {
-          result.add('[pos:${i + 1}] $paragraphText');
-        }
-        
-        lineIndex = endIndex;
+    for (final raw in rawParagraphs) {
+      final match = rawPositionPattern.firstMatch(raw);
+      if (match != null) {
+        rawPositions.add(int.parse(match.group(1)!));
+        rawContents.add(match.group(2)!.trim());
       }
     }
-    
+
+    // Проверяем, что у нас есть позиции
+    if (rawPositions.isEmpty) {
+      print('⚠️ No positions found in RAW paragraphs');
+      // Если позиций нет, создаем новые
+      final result = <String>[];
+      for (int i = 0; i < paragraphs.length; i++) {
+        if (paragraphs[i].trim().isNotEmpty) {
+          result.add('[pos:${i + 1}] ${paragraphs[i].trim()}');
+        }
+      }
+      return result.join('\n\n');
+    }
+
+    print('📊 Found ${rawPositions.length} positions (${rawPositions.first} - ${rawPositions.last})');
+    print('📊 Processing ${paragraphs.length} cleaned paragraphs');
+
+    // Сопоставляем параграфы с позициями
+    final result = <String>[];
+    final minLength = min(paragraphs.length, rawPositions.length);
+
+    for (int i = 0; i < minLength; i++) {
+      final position = rawPositions[i];
+      final content = paragraphs[i].trim();
+      
+      if (content.isNotEmpty) {
+        result.add('[pos:$position] $content');
+      }
+    }
+
+    // Если остались параграфы без позиций, используем последнюю позицию + инкремент
+    if (paragraphs.length > rawPositions.length) {
+      var nextPosition = rawPositions.last + 1;
+      
+      for (int i = rawPositions.length; i < paragraphs.length; i++) {
+        final content = paragraphs[i].trim();
+        if (content.isNotEmpty) {
+          result.add('[pos:$nextPosition] $content');
+          nextPosition++;
+        }
+      }
+    }
+
     return result.join('\n\n');
   }
 }
@@ -336,3 +360,4 @@ void main(List<String> args) async {
     exit(1);
   }
 }
+

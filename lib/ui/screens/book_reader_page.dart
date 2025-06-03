@@ -1,7 +1,6 @@
 // lib/ui/screens/book_reader_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
+
 import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
 import '../../services/text_file_service.dart';
@@ -741,6 +740,7 @@ class _BookReaderPageState extends State<BookReaderPage>
     if (text.isEmpty) return const SizedBox.shrink();
     
     return Container(
+      key: ValueKey('paragraph_$position'),
       margin: const EdgeInsets.only(bottom: 16.0),
       child: RichText(
         text: TextSpan(
