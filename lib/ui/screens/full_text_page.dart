@@ -264,41 +264,38 @@ class _FullTextPageState extends State<FullTextPage>
     });
   }
 
-  // ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ парсинг текста
   void _parseTextOnce() {
-    if (_fullText == null) return;
+  if (_fullText == null) return;
+  
+  _parsedItems.clear();
+  
+  // Разбиваем текст по [pos:
+  final parts = _fullText!.split('[pos:');
+  
+  for (final part in parts) {
+    if (part.trim().isEmpty) continue;
     
-    print('\n🔄 === ПАРСИНГ ТЕКСТА ===');
+    // Находим номер позиции
+    final endOfNumber = part.indexOf(']');
+    if (endOfNumber == -1) continue;
     
-    _parsedItems.clear();
-    final regex = RegExp(r'\[pos:(\d+)\]([^\[]+)');
-    final matches = regex.allMatches(_fullText!).toList();
+    final positionStr = part.substring(0, endOfNumber);
+    final position = int.tryParse(positionStr);
+    if (position == null) continue;
     
-    print('Найдено позиций в тексте: ${matches.length}');
+    // Берём текст после ]
+    final content = part.substring(endOfNumber + 1).trim();
+    if (content.isEmpty) continue;
     
-    // Парсим ВСЕ позиции подряд, НЕ пропускаем контекстные
-    for (final match in matches) {
-      final position = int.parse(match.group(1)!);
-      final rawText = match.group(2)!.trim();
-      
-      if (rawText.isEmpty) continue;
-      
-      final cleanText = rawText; // ✅ НЕ ОЧИЩАЕМ!
-      if (cleanText.isEmpty) continue;
-      
-      // Определяем тип элемента
-      final isQuotePosition = position == widget.context.quote.position;
-      
-      _parsedItems.add(ParsedTextItem(
-        position: position,
-        content: cleanText,
-        isQuoteBlock: isQuotePosition,
-      ));
-    }
+    final isQuotePosition = position == widget.context.quote.position;
     
-    print('✅ Парсинг завершен. Элементов в массиве: ${_parsedItems.length}');
-    print('=== ПАРСИНГ ЗАВЕРШЕН ===\n');
+    _parsedItems.add(ParsedTextItem(
+      position: position,
+      content: content,
+      isQuoteBlock: isQuotePosition,
+    ));
   }
+}
 
   // ИСПРАВЛЕННЫЙ поиск индекса цитаты
   void _findTargetQuoteIndex() {
