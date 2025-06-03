@@ -1,3 +1,4 @@
+
 // lib/ui/screens/full_text_page.dart
 import 'dart:math';
 import 'dart:async';
@@ -13,6 +14,23 @@ import 'package:flutter/services.dart';
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
 import '../screens/context_page.dart';
+
+// ПРОСТАЯ СТРУКТУРА ЭЛЕМЕНТА ТЕКСТА
+class ParsedTextItem {
+  final int position;
+  final String content;
+  final bool isQuoteBlock;
+  final bool isContextBefore;
+  final bool isContextAfter;
+  
+  ParsedTextItem({
+    required this.position,
+    required this.content,
+    this.isQuoteBlock = false,
+    this.isContextBefore = false,
+    this.isContextAfter = false,
+  });
+}
 
 class PreloadedFullTextData {
   final String fullText;
@@ -49,8 +67,12 @@ class _FullTextPageState extends State<FullTextPage>
   late Animation<double> _fadeAnimation;
   late Animation<double> _themeAnimation;
 
+  // УПРОЩЕННАЯ СТРУКТУРА ДАННЫХ
   String? _fullText;
   BookSource? _bookSource;
+  List<ParsedTextItem> _parsedItems = [];
+  int? _targetItemIndex;
+  
   bool _isLoading = true;
   String? _error;
   bool _autoScrolled = false;
@@ -63,24 +85,9 @@ class _FullTextPageState extends State<FullTextPage>
   Color? _customBackgroundColor;
   bool _useCustomColors = false;
 
-  double _initialScrollPosition = 0.0;
-  
-  // Кэш для нормализованных текстов
-  String? _normalizedQuoteCache;
-  final Map<String, String> _normalizedTextCache = {};
-  
   // Для выделения текста
   bool _isSelectionMode = false;
   String? _selectedText;
-
-  // ИСПРАВЛЕННЫЕ переменные для поиска
-  bool _isScrolling = false;
-  int? _targetItemIndex;
-  Timer? _scrollRetryTimer;
-
-  // Список всех параграфов для правильной индексации
-  List<ParsedTextItem> _parsedItems = [];
-  bool _isParsed = false;
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -92,30 +99,12 @@ class _FullTextPageState extends State<FullTextPage>
 
   Color get _uiTextColor => _currentTheme.textColor;
 
-  // Добавляем переменные для throttling
-  double _lastProgress = 0.0;
-  
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _loadTheme();
     _loadFullText();
-    // Инициализируем кэш нормализованной цитаты
-    _normalizedQuoteCache = _normalizeText(widget.context.quote.text);
-    
-    // Слушаем скролл для обновления прогресса с throttling
-    _scrollController.addListener(() {
-      if (mounted) {
-        final currentProgress = _getReadingProgress();
-        // Обновляем UI только если прогресс изменился на 1% или больше
-        if ((currentProgress - _lastProgress).abs() >= 0.01) {
-          setState(() {
-            _lastProgress = currentProgress;
-          });
-        }
-      }
-    });
   }
 
   void _initializeAnimations() {
@@ -202,15 +191,6 @@ class _FullTextPageState extends State<FullTextPage>
     await _themeController.reverse();
   }
 
-  // Очистка текста от артефактов
-  String _cleanTextArtifacts(String text) {
-    return text
-        .replaceAll('>', '') // убираем только символ >
-        .replaceAll('<', '') // убираем только символ <
-        .replaceAll(RegExp(r'\s+'), ' ') // нормализуем пробелы
-        .trim();
-  }
-
   Future<void> _loadFullText() async {
     setState(() {
       _isLoading = true;
@@ -218,16 +198,12 @@ class _FullTextPageState extends State<FullTextPage>
     });
 
     try {
-      // Диагностика QuoteContext
-      print('📊 QuoteContext информация:');
-      print('   - startPosition: ${widget.context.startPosition}');
-      print('   - endPosition: ${widget.context.endPosition}');
-      print('   - contextParagraphs: ${widget.context.contextParagraphs.length}');
+      print('🔄 Загружаем текст БЕЗ дополнительной очистки...');
       
       if (widget.preloadedData != null) {
         setState(() {
           _bookSource = widget.preloadedData!.bookSource;
-          _fullText = _cleanTextArtifacts(widget.preloadedData!.fullText);
+          _fullText = widget.preloadedData!.fullText; // ✅ БЕЗ ОЧИСТКИ!
           _isLoading = false;
         });
 
@@ -251,7 +227,7 @@ class _FullTextPageState extends State<FullTextPage>
       
       setState(() {
         _bookSource = source;
-        _fullText = _cleanTextArtifacts(cleanedText);
+        _fullText = cleanedText; // ✅ БЕЗ ОЧИСТКИ!
         _isLoading = false;
       });
 
@@ -290,7 +266,7 @@ class _FullTextPageState extends State<FullTextPage>
 
   // ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ парсинг текста
   void _parseTextOnce() {
-    if (_isParsed || _fullText == null) return;
+    if (_fullText == null) return;
     
     print('\n🔄 === ПАРСИНГ ТЕКСТА ===');
     
@@ -307,23 +283,19 @@ class _FullTextPageState extends State<FullTextPage>
       
       if (rawText.isEmpty) continue;
       
-      final cleanText = _cleanTextArtifacts(rawText);
+      final cleanText = rawText; // ✅ НЕ ОЧИЩАЕМ!
       if (cleanText.isEmpty) continue;
       
       // Определяем тип элемента
-      final isQuotePosition = position == widget.context.startPosition;
-      final isContextPosition = position >= widget.context.startPosition && 
-                              position <= widget.context.endPosition;
+      final isQuotePosition = position == widget.context.quote.position;
       
       _parsedItems.add(ParsedTextItem(
         position: position,
-        text: cleanText,
-        isQuote: isQuotePosition,
-        isContext: isContextPosition,
+        content: cleanText,
+        isQuoteBlock: isQuotePosition,
       ));
     }
     
-    _isParsed = true;
     print('✅ Парсинг завершен. Элементов в массиве: ${_parsedItems.length}');
     print('=== ПАРСИНГ ЗАВЕРШЕН ===\n');
   }
@@ -331,18 +303,18 @@ class _FullTextPageState extends State<FullTextPage>
   // ИСПРАВЛЕННЫЙ поиск индекса цитаты
   void _findTargetQuoteIndex() {
     print('\n🎯 === ПОИСК ЦИТАТЫ ===');
-    print('Ищем позицию: ${widget.context.startPosition}');
+    print('Ищем позицию: ${widget.context.quote.position}');
     
     for (int i = 0; i < _parsedItems.length; i++) {
-      if (_parsedItems[i].position == widget.context.startPosition) {
+      if (_parsedItems[i].position == widget.context.quote.position) {
         _targetItemIndex = i;
-        print('✅ НАЙДЕНО! Позиция ${widget.context.startPosition} находится на индексе $i');
+        print('✅ НАЙДЕНО! Позиция ${widget.context.quote.position} находится на индексе $i');
         break;
       }
     }
     
     if (_targetItemIndex == null) {
-      print('❌ ОШИБКА: Позиция ${widget.context.startPosition} НЕ НАЙДЕНА!');
+      print('❌ ОШИБКА: Позиция ${widget.context.quote.position} НЕ НАЙДЕНА!');
     }
     
     print('=== ПОИСК ЗАВЕРШЕН ===\n');
@@ -354,7 +326,7 @@ class _FullTextPageState extends State<FullTextPage>
       return;
     }
     
-    _scrollRetryTimer?.cancel();
+    Timer? scrollRetryTimer;
     int attemptCount = 0;
     
     void attemptScroll() {
@@ -374,7 +346,7 @@ class _FullTextPageState extends State<FullTextPage>
         
       } else {
         if (attemptCount < 15) {
-          _scrollRetryTimer = Timer(const Duration(milliseconds: 150), attemptScroll);
+          scrollRetryTimer = Timer(const Duration(milliseconds: 150), attemptScroll);
         } else {
           print('❌ ListView не готов, используем аварийный скролл');
           _emergencyScrollToPosition();
@@ -389,8 +361,6 @@ class _FullTextPageState extends State<FullTextPage>
     if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
       return;
     }
-    
-    _isScrolling = true;
     
     print('\n🎯 === СКРОЛЛ К ЦИТАТЕ ===');
     
@@ -421,7 +391,6 @@ class _FullTextPageState extends State<FullTextPage>
       curve: Curves.easeOutCubic,
     ).then((_) {
       print('✅ Скролл завершен');
-      _isScrolling = false;
       _autoScrolled = true;
       
       // Закрываем диалог поиска
@@ -429,7 +398,6 @@ class _FullTextPageState extends State<FullTextPage>
       
     }).catchError((error) {
       print('❌ Ошибка скролла: $error');
-      _isScrolling = false;
       if (mounted) Navigator.of(context).pop();
     });
     
@@ -699,37 +667,6 @@ class _FullTextPageState extends State<FullTextPage>
 
   void _goBack() {
     Navigator.of(context).pop();
-  }
-
-  String _normalizeText(String text) {
-    if (_normalizedTextCache.containsKey(text)) {
-      return _normalizedTextCache[text]!;
-    }
-    
-    final normalized = text.toLowerCase()
-        .replaceAll('«', '"')
-        .replaceAll('»', '"')
-        .replaceAll('"', '"')
-        .replaceAll('"', '"')
-        .replaceAll('„', '"')
-        .replaceAll("'", '"')
-        .replaceAll('`', '"')
-        .replaceAll('—', '-')
-        .replaceAll('–', '-')
-        .replaceAll('−', '-')
-        .replaceAll('…', '...')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    
-    _normalizedTextCache[text] = normalized;
-    return normalized;
-  }
-
-  double _getReadingProgress() {
-    if (!_scrollController.hasClients) return 0.0;
-    final max = _scrollController.position.maxScrollExtent;
-    if (max <= 0) return 0.0;
-    return (_scrollController.position.pixels / max).clamp(0.0, 1.0);
   }
 
   @override
@@ -1206,7 +1143,7 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildTextContent() {
-    if (_fullText == null || !_isParsed) return const SizedBox.shrink();
+    if (!_parsedItems.isNotEmpty) return const SizedBox.shrink();
 
     return GestureDetector(
       onVerticalDragEnd: (details) {
@@ -1239,20 +1176,15 @@ class _FullTextPageState extends State<FullTextPage>
     final item = _parsedItems[index];
     
     // Если это цитата, строим контекстный блок
-    if (item.isQuote) {
+    if (item.isQuoteBlock) {
       return _buildContextBlock(
         widget.context.contextParagraphs, 
         widget.context.contextParagraphs.indexOf(widget.context.quoteParagraph)
       );
     }
     
-    // Если это часть контекста (но не сама цитата), пропускаем
-    if (item.isContext) {
-      return const SizedBox.shrink();
-    }
-    
     // Обычный параграф
-    return _buildOptimizedParagraph(item.text, item.position);
+    return _buildOptimizedParagraph(item.content, item.position);
   }
 
   // Оптимизированный виджет параграфа
@@ -1333,7 +1265,7 @@ class _FullTextPageState extends State<FullTextPage>
             ),
             const SizedBox(width: 6),
             Text(
-              'Контекст цитаты (${widget.context.startPosition})',
+              'Контекст цитаты (${widget.context.quote.position})',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -1469,28 +1401,12 @@ class _FullTextPageState extends State<FullTextPage>
 
   @override
   void dispose() {
-    _scrollRetryTimer?.cancel();
     _fadeController.dispose();
     _themeController.dispose();
     _settingsController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
-}
-
-// Класс для хранения распарсенных элементов текста
-class ParsedTextItem {
-  final int position;
-  final String text;
-  final bool isQuote;
-  final bool isContext;
-
-  ParsedTextItem({
-    required this.position,
-    required this.text,
-    required this.isQuote,
-    required this.isContext,
-  });
 }
 
 class _SearchProgressWidget extends StatefulWidget {
