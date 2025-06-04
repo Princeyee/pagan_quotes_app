@@ -5,10 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/daily_quote.dart';
 import '../../models/quote_context.dart';
 import '../../services/quote_extraction_service.dart';
-import '../../services/text_file_service.dart';
 import '../../services/sound_manager.dart';
 import '../../utils/custom_cache.dart';
-import 'full_text_page.dart';
+// import 'full_text_page.dart';
+import 'full_text_page_2.dart';
 
 class ContextPage extends StatefulWidget {
   final DailyQuote dailyQuote;
@@ -25,7 +25,7 @@ class ContextPage extends StatefulWidget {
 class _ContextPageState extends State<ContextPage> 
     with SingleTickerProviderStateMixin {
   final QuoteExtractionService _quoteService = QuoteExtractionService();
-  final TextFileService _textService = TextFileService();
+
   final CustomCachePrefs _cache = CustomCache.prefs;
   final SoundManager _soundManager = SoundManager();
   
@@ -38,10 +38,6 @@ class _ContextPageState extends State<ContextPage>
   String? _error;
   bool _showSwipeHint = true;
   bool _showTapHint = true;
-  
-  PreloadedFullTextData? _preloadedData;
-  bool _isPreloading = false;
-  bool _preloadCompleted = false;
 
   @override
   void initState() {
@@ -133,7 +129,6 @@ class _ContextPageState extends State<ContextPage>
           _isLoading = false;
         });
         _animationController.forward();
-        _startPreloadingFullText();
         return;
       }
 
@@ -145,7 +140,6 @@ class _ContextPageState extends State<ContextPage>
           _isLoading = false;
         });
         _animationController.forward();
-        _startPreloadingFullText();
       } else {
         setState(() {
           _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
@@ -165,50 +159,6 @@ class _ContextPageState extends State<ContextPage>
     }
   }
 
-  Future<void> _startPreloadingFullText() async {
-    if (_context == null || _isPreloading || _preloadCompleted) return;
-    
-    setState(() => _isPreloading = true);
-    
-    try {
-      Future.microtask(() async {
-        try {
-          final sources = await _textService.loadBookSources();
-          
-          final source = sources.firstWhere(
-            (s) => s.author == _context!.quote.author && 
-                   s.title == _context!.quote.source,
-            orElse: () => throw Exception('Book source not found'),
-          );
-
-          final cleanedText = await _textService.loadTextFile(source.cleanedFilePath);
-          
-          if (mounted) {
-            _preloadedData = PreloadedFullTextData(
-              fullText: cleanedText,
-              bookSource: source,
-            );
-            
-            setState(() {
-              _preloadCompleted = true;
-              _isPreloading = false;
-            });
-            
-            print('✅ Полный текст предзагружен (${cleanedText.length} символов)');
-          }
-        } catch (e) {
-          if (mounted) {
-            setState(() => _isPreloading = false);
-            print('❌ Ошибка предзагрузки: $e');
-          }
-        }
-      });
-    } catch (e) {
-      setState(() => _isPreloading = false);
-      print('❌ Ошибка инициализации предзагрузки: $e');
-    }
-  }
-
   void _goBack() {
     _soundManager.stopSound('candle_sound');
     Navigator.of(context).pop();
@@ -216,15 +166,12 @@ class _ContextPageState extends State<ContextPage>
 
   void _navigateToFullText() async {
     if (_context == null) return;
-    
     await _soundManager.stopSound('candle_sound');
-    
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
-            FullTextPage(
+            FullTextPage2(
               context: _context!,
-              preloadedData: _preloadedData,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
