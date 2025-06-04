@@ -58,6 +58,12 @@ class _FullTextPage2State extends State<FullTextPage2>
   List<int> _contextIndices = [];
   bool _autoScrollCompleted = false;
 
+  // Для точного скролла
+  final Map<int, GlobalKey> _paragraphKeys = {};
+  final Map<int, double> _paragraphOffsets = {};
+  bool _offsetsReady = false;
+  bool _findingQuote = false;
+
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
       : _currentTheme.textColor;
@@ -185,22 +191,17 @@ class _FullTextPage2State extends State<FullTextPage2>
 
   void _parseText() {
     if (_fullText == null) return;
-    
     _paragraphs.clear();
-    
-    // Используем существующий метод для парсинга позиций
+    _paragraphKeys.clear();
+    _paragraphOffsets.clear();
+    _offsetsReady = false;
     final rawParagraphs = _textService.extractParagraphsWithPositions(_fullText!);
-    
     _logger.info('Найдено ${rawParagraphs.length} параграфов');
-    
     for (int i = 0; i < rawParagraphs.length; i++) {
       final raw = rawParagraphs[i];
       final position = raw['position'] as int;
       final content = raw['content'] as String;
-      
-      // Пропускаем пустые параграфы
       if (content.trim().isEmpty) continue;
-      
       _paragraphs.add(TextParagraph(
         position: position,
         content: content,
@@ -208,79 +209,77 @@ class _FullTextPage2State extends State<FullTextPage2>
         isQuote: false,
         isContext: false,
       ));
+      _paragraphKeys[i] = GlobalKey();
     }
-    
     _logger.info('Обработано ${_paragraphs.length} параграфов');
   }
 
   void _findQuoteAndContext() {
     if (_paragraphs.isEmpty) return;
-    
     final quotePosition = widget.context.quote.position;
     final contextStartPos = widget.context.startPosition;
     final contextEndPos = widget.context.endPosition;
-    
     _logger.info('Ищем цитату на позиции: $quotePosition');
     _logger.info('Контекст: $contextStartPos - $contextEndPos');
-    
-    // Находим индекс цитаты
     for (int i = 0; i < _paragraphs.length; i++) {
       final para = _paragraphs[i];
-      
-      // Цитата
       if (para.position == quotePosition) {
         _targetParagraphIndex = i;
         para.isQuote = true;
         _logger.info('Найдена цитата на индексе: $i');
       }
-      
-      // Контекст
       if (para.position >= contextStartPos && para.position <= contextEndPos) {
         para.isContext = true;
         _contextIndices.add(i);
       }
     }
-    
     _logger.info('Найден контекст: ${_contextIndices.length} параграфов');
     _logger.info('Индекс цитаты: $_targetParagraphIndex');
   }
 
-  void _scrollToQuote() {
+  void _scrollToQuote() async {
     if (_targetParagraphIndex == null || !_scrollController.hasClients) {
       _logger.warning('Не удалось скроллить: targetIndex=$_targetParagraphIndex, hasClients=${_scrollController.hasClients}');
       return;
     }
-    
     if (_autoScrollCompleted) return;
-    
-    // Даем время на построение виджетов
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted || !_scrollController.hasClients) return;
-      
-      final viewportHeight = _scrollController.position.viewportDimension;
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      
-      // Примерная высота одного параграфа
-      final avgParaHeight = 80.0; // приблизительно
-      final targetOffset = (_targetParagraphIndex! * avgParaHeight) - (viewportHeight / 2);
-      
-      final clampedOffset = targetOffset.clamp(0.0, maxScroll);
-      
-      _logger.info('Скроллим к позиции: $clampedOffset (из $maxScroll)');
-      
-      _scrollController.animateTo(
-        clampedOffset,
-        duration: const Duration(milliseconds: 1200),
-        curve: Curves.easeOutCubic,
-      ).then((_) {
-        setState(() {
-          _autoScrollCompleted = true;
-        });
-        
-        // Показываем подсказку
-        _showScrollHint();
+    // Ждём, пока построятся параграфы и появятся размеры
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!_offsetsReady) {
+      _calculateParagraphOffsets();
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    final offset = _paragraphOffsets[_targetParagraphIndex!] ?? 0.0;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final clampedOffset = (offset - viewportHeight / 2).clamp(0.0, maxScroll);
+    _logger.info('Точный скролл к offset: $clampedOffset (реальный offset: $offset, maxScroll: $maxScroll)');
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 1200),
+      curve: Curves.easeOutCubic,
+    ).then((_) {
+      setState(() {
+        _autoScrollCompleted = true;
       });
+      _showScrollHint();
     });
+  }
+
+  void _calculateParagraphOffsets() {
+    double offset = 0.0;
+    for (int i = 0; i < _paragraphs.length; i++) {
+      final key = _paragraphKeys[i];
+      if (key != null && key.currentContext != null) {
+        final box = key.currentContext!.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          _paragraphOffsets[i] = offset;
+          offset += box.size.height;
+        }
+      }
+    }
+    _offsetsReady = true;
+    _logger.info('Построена карта offsets для ${_paragraphOffsets.length} параграфов');
   }
 
   void _showScrollHint() {
@@ -425,16 +424,30 @@ class _FullTextPage2State extends State<FullTextPage2>
   }
 
   Widget _buildFullTextContent() {
-    return Column(
+    return Stack(
       children: [
-        _buildHeader(),
-        if (_showSettings) _buildReadingSettings(),
-        Expanded(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: _buildTextContent(),
-          ),
+        Column(
+          children: [
+            _buildHeader(),
+            if (_showSettings) _buildReadingSettings(),
+            Expanded(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: _buildTextContent(),
+              ),
+            ),
+          ],
         ),
+        if (!_autoScrollCompleted && !_findingQuote)
+          Positioned(
+            bottom: 24,
+            right: 24,
+            child: FloatingActionButton.extended(
+              onPressed: _findQuoteManually,
+              icon: const Icon(Icons.search),
+              label: const Text('Найти цитату'),
+            ),
+          ),
       ],
     );
   }
@@ -633,16 +646,13 @@ class _FullTextPage2State extends State<FullTextPage2>
 
   Widget _buildParagraph(int index) {
     final paragraph = _paragraphs[index];
-    
-    // Пропускаем заголовки глав
+    final key = _paragraphKeys[index];
     if (TextFileService.isHeader(paragraph.content)) {
       return const SizedBox.shrink();
     }
-
-    // Цитата - выделяем особо
     if (paragraph.isQuote) {
       return Container(
-        key: ValueKey('quote_$index'),
+        key: key,
         margin: const EdgeInsets.symmetric(vertical: 12.0),
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -695,11 +705,9 @@ class _FullTextPage2State extends State<FullTextPage2>
         ),
       );
     }
-    
-    // Контекст - слегка выделяем
     if (paragraph.isContext) {
       return Container(
-        key: ValueKey('context_$index'),
+        key: key,
         margin: const EdgeInsets.symmetric(vertical: 6.0),
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
@@ -736,10 +744,8 @@ class _FullTextPage2State extends State<FullTextPage2>
         ),
       );
     }
-    
-    // Обычный параграф
     return Container(
-      key: ValueKey('paragraph_$index'),
+      key: key,
       margin: const EdgeInsets.only(bottom: 8.0),
       child: SelectableText(
         paragraph.content,
@@ -750,6 +756,33 @@ class _FullTextPage2State extends State<FullTextPage2>
         ),
       ),
     );
+  }
+
+  void _findQuoteManually() async {
+    if (_targetParagraphIndex == null) return;
+    setState(() => _findingQuote = true);
+    for (int i = _targetParagraphIndex!; i < _paragraphs.length; i++) {
+      final key = _paragraphKeys[i];
+      if (key != null && key.currentContext != null) {
+        final box = key.currentContext!.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          final offset = _paragraphOffsets[i] ?? 0.0;
+          await _scrollController.animateTo(
+            offset,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+          await Future.delayed(const Duration(milliseconds: 200));
+          // Проверяем, видна ли цитата
+          if (i == _targetParagraphIndex) break;
+        }
+      }
+    }
+    setState(() {
+      _autoScrollCompleted = true;
+      _findingQuote = false;
+    });
+    _showScrollHint();
   }
 
   @override
