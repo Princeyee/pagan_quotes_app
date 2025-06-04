@@ -1,6 +1,5 @@
 // lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
