@@ -331,7 +331,6 @@ class _FullTextPageState extends State<FullTextPage>
     if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
       return;
     }
-    // Предотвращаем множественные вызовы
     if (_isScrolling || _scrollCompleted) {
       debugPrint('Scroll already in progress or completed, skipping');
       return;
@@ -339,58 +338,62 @@ class _FullTextPageState extends State<FullTextPage>
     setState(() => _isScrolling = true);
     final viewportHeight = _scrollController.position.viewportDimension;
     final maxScroll = _scrollController.position.maxScrollExtent;
-    debugPrint('=== SCROLL CALCULATION ===');
-    debugPrint('Target index: [1m$_targetItemIndex of ${_parsedItems.length}');
+    debugPrint('=== ADVANCED SCROLL CALCULATION ===');
+    debugPrint('Target index: $_targetItemIndex of ${_parsedItems.length}');
     debugPrint('Target position: ${widget.context.quote.position}');
     debugPrint('Viewport: $viewportHeight, MaxScroll: $maxScroll');
-    // ВАЖНО: Считаем количество ВИДИМЫХ элементов до целевого
+    // Подсчитываем видимые элементы
     int visibleItemsBefore = 0;
     int totalVisibleItems = 0;
+    int headersBeforeTarget = 0;
     for (int i = 0; i < _parsedItems.length; i++) {
-      // Пропускаем главы, как в _buildStaticTextItem
-      if (!TextFileService.isHeader(_parsedItems[i].content)) {
+      final isHeader = TextFileService.isHeader(_parsedItems[i].content);
+      if (isHeader && i < _targetItemIndex!) {
+        headersBeforeTarget++;
+      }
+      if (!isHeader) {
         totalVisibleItems++;
         if (i < _targetItemIndex!) {
           visibleItemsBefore++;
         }
       }
     }
-    debugPrint('Visible items before target: $visibleItemsBefore');
+    debugPrint('Headers before target: $headersBeforeTarget');
+    debugPrint('Visible items before: $visibleItemsBefore');
     debugPrint('Total visible items: $totalVisibleItems');
-    // Расчет позиции на основе ВИДИМЫХ элементов
+    // НОВЫЙ АЛГОРИТМ: учитываем реальное распределение контента
     double targetOffset;
-    double visiblePercent = 0.0;
-    if (totalVisibleItems == 0) {
-      debugPrint('ERROR: No visible items!');
-      targetOffset = 0;
+    // Для Аристотеля (много глав в начале) используем специальную формулу
+    if (_bookSource?.author == "Аристотель") {
+      // Эмпирическая формула для Метафизики
+      final adjustedIndex = _targetItemIndex! - headersBeforeTarget;
+      final adjustedTotal = _parsedItems.length - (_parsedItems.length * 0.1); // ~10% это главы
+      final progressPercent = adjustedIndex / adjustedTotal;
+      // Нелинейная интерполяция для учета неравномерного распределения
+      if (progressPercent < 0.5) {
+        // Первая половина книги занимает меньше места из-за глав
+        targetOffset = maxScroll * progressPercent * 0.8;
+      } else {
+        // Вторая половина более плотная
+        targetOffset = maxScroll * 0.4 + (maxScroll * 0.6 * (progressPercent - 0.5) * 2);
+      }
     } else {
-      // Процент прокрутки на основе видимых элементов
-      visiblePercent = visibleItemsBefore / totalVisibleItems;
-      // Базовый расчет
+      // Стандартный расчет для других книг
+      final visiblePercent = visibleItemsBefore / totalVisibleItems;
       targetOffset = maxScroll * visiblePercent;
-      // Корректировка для элементов в середине и конце списка
-      if (visiblePercent > 0.5) {
-        // Для второй половины списка применяем коррекцию
-        // так как элементы накапливают погрешность
-        final correctionFactor = 1.0 - (visiblePercent - 0.5) * 0.15;
-        targetOffset *= correctionFactor;
-      }
-      // Дополнительная коррекция для точности
-      // Средняя высота видимого элемента
-      final avgItemHeight = maxScroll / (totalVisibleItems * 0.85); // 0.85 - эмпирический коэффициент
-      // Для элементов в начале списка используем более точный расчет
-      if (visibleItemsBefore < 50) {
-        targetOffset = visibleItemsBefore * avgItemHeight;
-      }
-      // Центрируем элемент в viewport
-      targetOffset = (targetOffset - viewportHeight / 2).clamp(0.0, maxScroll);
     }
-    debugPrint('Calculated offset: $targetOffset');
-    debugPrint('Percent through list: ${(visiblePercent * 100).toStringAsFixed(1)}%');
+    // Финальная корректировка для центрирования
+    targetOffset = (targetOffset - viewportHeight / 2).clamp(0.0, maxScroll);
+    // Для элементов в конце списка делаем дополнительную коррекцию
+    if (_targetItemIndex! > _parsedItems.length * 0.8) {
+      // Сдвигаем вниз для компенсации
+      targetOffset = math.min(targetOffset + viewportHeight, maxScroll - viewportHeight);
+    }
+    debugPrint('Final offset: $targetOffset (${(targetOffset/maxScroll*100).toStringAsFixed(1)}% of max)');
     // Выполняем скролл
     _scrollController.animateTo(
       targetOffset,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       curve: Curves.easeOutCubic,
     ).then((_) {
       setState(() {
@@ -398,12 +401,11 @@ class _FullTextPageState extends State<FullTextPage>
         _scrollCompleted = true;
         _autoScrolled = true;
       });
-      // Подсвечиваем цитату
       _highlightQuoteOnce();
-      // Проверяем точность через небольшую задержку
-      Future.delayed(const Duration(milliseconds: 500), () {
+      // Делаем финальную проверку и корректировку
+      Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) {
-          _checkScrollAccuracy();
+          _performFinalAdjustment();
         }
       });
     }).catchError((error) {
@@ -415,43 +417,99 @@ class _FullTextPageState extends State<FullTextPage>
     });
   }
 
-  void _highlightQuoteOnce() {
-    if (_targetItemIndex == null) return;
-    
-    setState(() {
-      for (var item in _parsedItems) {
-        item.isQuoteBlock = false;
+  void _performFinalAdjustment() {
+    if (!_scrollController.hasClients || _targetItemIndex == null) return;
+    final currentOffset = _scrollController.offset;
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    // Используем RenderBox для точного определения позиции
+    final targetKey = ValueKey('quote_$_targetItemIndex');
+    final contextElement = _findElementByKey(context, targetKey);
+    if (contextElement != null) {
+      final renderObject = contextElement.findRenderObject();
+      if (renderObject != null && renderObject is RenderBox) {
+        final position = renderObject.localToGlobal(Offset.zero);
+        final itemTop = position.dy;
+        final itemHeight = renderObject.size.height;
+        debugPrint('=== FINAL ADJUSTMENT CHECK ===');
+        debugPrint('Item position on screen: $itemTop');
+        debugPrint('Item height: $itemHeight');
+        debugPrint('Viewport height: $viewportHeight');
+        // Если элемент не в центре экрана, корректируем
+        if (itemTop < 100 || itemTop > viewportHeight - 100) {
+          final idealPosition = (viewportHeight - itemHeight) / 2;
+          final adjustment = idealPosition - itemTop;
+          final newOffset = (currentOffset - adjustment).clamp(0.0, maxScroll);
+          debugPrint('Adjusting by: $adjustment pixels');
+          _scrollController.animateTo(
+            newOffset,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+          );
+        }
+        return;
       }
-      _parsedItems[_targetItemIndex!].isQuoteBlock = true;
-    });
+    }
+    // Fallback: показываем подсказку
+    _showScrollHint();
+  }
+
+  // Вспомогательная функция для поиска элемента по ключу
+  Element? _findElementByKey(BuildContext root, Key key) {
+    Element? result;
+    void search(Element element) {
+      if (element.widget.key == key) {
+        result = element;
+        return;
+      }
+      element.visitChildren(search);
+    }
+    (root as Element).visitChildren(search);
+    return result;
+  }
+
+  void _showScrollHint() {
+    if (!mounted) return;
+    final currentOffset = _scrollController.offset;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final scrollPercent = (currentOffset / (maxScroll == 0 ? 1 : maxScroll) * 100).toStringAsFixed(0);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Цитата находится на ~$scrollPercent% страницы. Прокрутите немного для поиска выделенного текста.'),
+        duration: const Duration(seconds: 4),
+        backgroundColor: _currentTheme.quoteHighlightColor,
+        action: SnackBarAction(
+          label: 'Искать вручную',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
+    );
   }
 
   void _checkScrollAccuracy() {
     if (!_scrollController.hasClients || _targetItemIndex == null) return;
     final currentOffset = _scrollController.offset;
     final viewportHeight = _scrollController.position.viewportDimension;
-    // Оцениваем видимый диапазон элементов
-    // Предполагаем, что на экран помещается примерно 3-5 параграфов
-    final avgItemHeight = 200.0; // Примерная высота параграфа
-    final firstVisibleIndex = (currentOffset / avgItemHeight).floor();
-    final lastVisibleIndex = ((currentOffset + viewportHeight) / avgItemHeight).ceil();
+    // Более точная оценка видимого диапазона
+    // Учитываем, что главы пропускаются
+    final avgVisibleItemHeight = viewportHeight / 3; // примерно 3 параграфа на экран
+    final scrolledItems = (currentOffset / avgVisibleItemHeight).round();
     debugPrint('=== SCROLL ACCURACY CHECK ===');
     debugPrint('Current offset: $currentOffset');
-    debugPrint('Estimated visible range: $firstVisibleIndex - $lastVisibleIndex');
-    debugPrint('Target should be at index: $_targetItemIndex');
-    // Если цель далеко от видимого диапазона, делаем коррекцию
-    if (_targetItemIndex! < firstVisibleIndex - 5 || _targetItemIndex! > lastVisibleIndex + 5) {
-      debugPrint('Target might not be visible, consider manual scrolling');
-      // Показываем подсказку пользователю
+    debugPrint('Estimated scrolled items: $scrolledItems');
+    debugPrint('Target index: $_targetItemIndex');
+    // Оцениваем, насколько далеко цель
+    final distance = (_targetItemIndex! - scrolledItems).abs();
+    if (distance > 10) {
+      final direction = _targetItemIndex! < scrolledItems ? "вверх" : "вниз";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Цитата выделена в тексте. Прокрутите немного [1m${_targetItemIndex! < firstVisibleIndex ? "вверх" : "вниз"}[0m при необходимости.'),
+          content: Text('Цитата выделена в тексте. Прокрутите $direction для поиска.'),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.orange,
         ),
       );
-    } else {
-      debugPrint('Target should be visible or very close');
     }
   }
 
@@ -942,6 +1000,16 @@ class _FullTextPageState extends State<FullTextPage>
         .replaceAll(RegExp(r'\s+'), ' ')
         .replaceAll(RegExp(r'[^\w\sа-яё]', unicode: true), '')
         .trim();
+  }
+
+  void _highlightQuoteOnce() {
+    if (_targetItemIndex == null) return;
+    setState(() {
+      for (var item in _parsedItems) {
+        item.isQuoteBlock = false;
+      }
+      _parsedItems[_targetItemIndex!].isQuoteBlock = true;
+    });
   }
 }
 
