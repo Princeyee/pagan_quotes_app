@@ -59,11 +59,6 @@ class _FullTextPageState extends State<FullTextPage>
   final ScrollController _scrollController = ScrollController();
   final _logger = LoggerService();
 
-  // Новые поля для улучшенного скролла
-  Timer? _scrollDebouncer;
-  int _scrollRetryCount = 0;
-  final int _maxScrollRetries = 3;
-
   late AnimationController _fadeController;
   late AnimationController _themeController;
   late AnimationController _settingsController;
@@ -458,92 +453,45 @@ class _FullTextPageState extends State<FullTextPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
 
-      // Calculate initial scroll position
-      double estimatedOffset = 0.0;
-      final itemHeight = 120.0; // Увеличенная базовая высота параграфа
-      estimatedOffset = targetIndex * itemHeight;
-      
-      // Adjust to show more context above the quote
-      final viewportHeight = _scrollController.position.viewportDimension;
-      estimatedOffset = (estimatedOffset - viewportHeight * 0.3).clamp(
-        0.0, 
-        _scrollController.position.maxScrollExtent
-      );
-      
-      _logger.info('Scrolling to estimated offset: $estimatedOffset');
-
-      // Perform scroll in two steps
-      _scrollController.jumpTo(0); // Reset position
-      
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (!mounted || !_scrollController.hasClients) return;
-        
-        _scrollController.animateTo(
-          estimatedOffset,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOutCubic,
-        ).then((_) {
-          if (!mounted) return;
-          
-          setState(() {
-            _autoScrolled = true;
-            _isLoading = false;
-          });
-          
-          _logger.success('Scroll completed');
-        });
-      });
+      // Используем пошаговый скролл для более точного позиционирования
+      _progressiveScrollToTarget(targetIndex);
     });
   }
 
-  void _schedulePositionCheck(double targetOffset) {
-    // Cancel previous timer if exists
-    _scrollDebouncer?.cancel();
+  void _progressiveScrollToTarget(int targetIndex) {
+    if (!mounted || !_scrollController.hasClients) return;
     
-    // Schedule new check after scroll animation
-    _scrollDebouncer = Timer(const Duration(milliseconds: 1200), () {
-      _verifyAndAdjustPosition(targetOffset);
-    });
-  }
-
-  void _verifyAndAdjustPosition(double targetOffset) {
-    if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) return;
-    
-    final currentOffset = _scrollController.offset;
-    final difference = (currentOffset - targetOffset).abs();
+    // Calculate initial scroll position based on viewport
+    final viewportHeight = _scrollController.position.viewportDimension;
     final maxScroll = _scrollController.position.maxScrollExtent;
     
-    _logger.info('=== SCROLL POSITION CHECK ===');
-    _logger.info('Target offset: $targetOffset');
-    _logger.info('Current offset: $currentOffset');
-    _logger.info('Difference: $difference');
+    // Estimate item height based on font size and line height
+    final estimatedItemHeight = (_fontSize * _lineHeight) * 2;
     
-    // If significant difference and within retry limit
-    if (difference > maxScroll * 0.1 && _scrollRetryCount < _maxScrollRetries) {
-      _logger.warning('Position correction needed (attempt ${_scrollRetryCount + 1}/$_maxScrollRetries)');
-      
-      _scrollRetryCount++;
-      
-      // Try more precise scroll with shorter duration
-      _scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeOutCubic,
-      ).then((_) {
-        // Check again
-        _schedulePositionCheck(targetOffset);
-      });
-    } else {
-      _scrollRetryCount = 0;
-      _logger.success('Scroll position finalized');
-      
-      // Highlight the target paragraph
+    // Calculate target position
+    double targetOffset = (targetIndex * estimatedItemHeight).clamp(0.0, maxScroll);
+    
+    // Adjust to center in viewport
+    targetOffset = (targetOffset - (viewportHeight / 2)).clamp(0.0, maxScroll);
+    
+    _logger.info('Scrolling to target offset: $targetOffset');
+    
+    // Use single smooth scroll instead of progressive
+    _scrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
+    ).then((_) {
       setState(() {
-        for (var item in _parsedItems) {
-          item.isQuoteBlock = item.position == widget.context.quote.position;
-        }
+        _autoScrolled = true;
+        _isLoading = false;
       });
-    }
+      _logger.success('Scroll completed');
+    });
+  }
+
+  void _finalizeScroll(int targetIndex) {
+    // This method is now unused
   }
 
   void _showSearchAnimation() {
@@ -1716,7 +1664,6 @@ class _FullTextPageState extends State<FullTextPage>
 
   @override
   void dispose() {
-    _scrollDebouncer?.cancel();
     _fadeController.dispose();
     _themeController.dispose();
     _settingsController.dispose();

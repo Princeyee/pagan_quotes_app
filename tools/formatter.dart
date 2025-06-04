@@ -1,4 +1,4 @@
-// tools/formatter.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// tools/formatter.dart - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
 import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
@@ -9,14 +9,15 @@ class BookFormatter {
     print('📁 Исходник: $sourcePath');
     
     try {
-      // Читаем исходный файл
+      // Читаем исходный файл с отслеживанием прогресса
       final sourceFile = File(sourcePath);
       if (!await sourceFile.exists()) {
         throw Exception('Исходный файл не найден: $sourcePath');
       }
       
+      print('📖 Чтение файла...');
       final sourceContent = await sourceFile.readAsString(encoding: utf8);
-      print('📖 Прочитано символов: ${sourceContent.length}');
+      print('📊 Прочитано символов: ${sourceContent.length}');
       
       // Создаем папку назначения в корневой директории проекта
       final targetDir = '../assets/full_texts/$category/$author';
@@ -26,311 +27,216 @@ class BookFormatter {
       final rawPath = '$targetDir/${bookName}_raw.txt';
       final cleanedPath = '$targetDir/${bookName}_cleaned.txt';
       
-      // Обрабатываем для RAW версии (агрессивная очистка)
-      final rawText = _processForRaw(sourceContent);
-      await File(rawPath).writeAsString(rawText, encoding: utf8);
-      print('✅ RAW файл: $rawPath');
+      // Извлекаем оригинальные позиции с отслеживанием прогресса
+      print('🔍 Извлечение оригинальных позиций...');
+      final originalPositions = _extractOriginalPositions(sourceContent);
+      print('📍 Найдено ${originalPositions.length} оригинальных позиций');
       
-      // Создаем CLEANED версию (деликатная обработка, но с теми же позициями)
-      final cleanedText = _processForCleaned(sourceContent, rawText);
+      // Обрабатываем для RAW версии (агрессивная очистка) с отслеживанием
+      print('🔄 Создание RAW версии...');
+      final rawText = await _processForRaw(sourceContent, originalPositions);
+      print('💾 Сохранение RAW файла...');
+      await File(rawPath).writeAsString(rawText, encoding: utf8);
+      print('✅ RAW файл создан: $rawPath');
+      
+      // Создаем CLEANED версию с отслеживанием
+      print('🔄 Создание CLEANED версии...');
+      final cleanedText = await _processForCleaned(sourceContent, originalPositions);
+      print('💾 Сохранение CLEANED файла...');
       await File(cleanedPath).writeAsString(cleanedText, encoding: utf8);
-      print('✅ CLEANED файл: $cleanedPath');
+      print('✅ CLEANED файл создан: $cleanedPath');
       
       print('🎉 Готово! Создано 2 синхронизированных файла для $bookName');
       
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('❌ Ошибка: $e');
+      print('📜 Stack trace: $stackTrace');
       rethrow;
     }
   }
   
+  // Извлечение оригинальных позиций из исходного текста
+  static List<Map<String, dynamic>> _extractOriginalPositions(String text) {
+    final positions = <Map<String, dynamic>>[];
+    final paragraphs = text.split(RegExp(r'\n\s*\n'));
+    var currentPosition = 1;
+    var processedCount = 0;
+    final totalParagraphs = paragraphs.length;
+    
+    for (final paragraph in paragraphs) {
+      processedCount++;
+      if (processedCount % 100 == 0) {
+        print('📊 Обработано параграфов: $processedCount / $totalParagraphs');
+      }
+      
+      final trimmed = paragraph.trim();
+      if (trimmed.isEmpty) continue;
+      
+      // Пропускаем служебную информацию
+      if (_isServiceInfo(trimmed)) continue;
+      
+      positions.add({
+        'position': currentPosition,
+        'content': trimmed,
+      });
+      currentPosition++;
+    }
+    
+    return positions;
+  }
+  
+  // Проверка на служебную информацию
+  static bool _isServiceInfo(String text) {
+    return RegExp(r'^(ISBN|Copyright|©|\(c\)|ГЛАВА\s+\w+)', caseSensitive: false).hasMatch(text) ||
+           RegExp(r'^[-=_*]{3,}$').hasMatch(text) ||
+           RegExp(r'^\d+$').hasMatch(text);
+  }
+  
   // Агрессивная обработка для RAW версии (для поиска)
-  static String _processForRaw(String text) {
+  static Future<String> _processForRaw(String text, List<Map<String, dynamic>> originalPositions) async {
     print('🔍 Создаем RAW версию (для поиска)...');
     
     // 1. Нормализуем символы
+    print('📝 Нормализация символов...');
     text = _normalizeCharacters(text);
     
     // 2. Агрессивная очистка
+    print('🧹 Агрессивная очистка...');
     text = _aggressiveClean(text);
     
-    // 3. Нормализуем переносы
-    text = text.replaceAll(RegExp(r'\r\n|\r'), '\n');
-    text = text.replaceAll(RegExp(r'\n{4,}'), '\n\n\n');
-    
-    // 4. Склеиваем строки
-    text = _joinLines(text);
-    
-    // 5. Создаем абзацы
-    text = _makeParagraphs(text);
-    
-    // 6. Добавляем маркеры
-    text = _addMarkers(text);
-    
-    return text;
+    // 3. Разбиваем на абзацы с сохранением оригинальных позиций
+    print('📑 Создание абзацев с позициями...');
+    return await _createPositionedParagraphs(text, originalPositions, aggressive: true);
   }
   
   // Деликатная обработка для CLEANED версии (для чтения)
-  static String _processForCleaned(String originalText, String rawText) {
+  static Future<String> _processForCleaned(String text, List<Map<String, dynamic>> originalPositions) async {
     print('📖 Создаем CLEANED версию (для чтения)...');
     
-    // Извлекаем позиции из RAW версии
-    final rawParagraphs = <Map<String, dynamic>>[];
-    final rawLines = rawText.split('\n\n');
-    final posPattern = RegExp(r'\[pos:(\d+)\]\s*(.*)');
-    
-    for (final line in rawLines) {
-      final match = posPattern.firstMatch(line.trim());
-      if (match != null) {
-        rawParagraphs.add({
-          'position': int.parse(match.group(1)!),
-          'content': match.group(2)!.trim()
-        });
-      }
-    }
-    
-    print('📊 Найдено RAW абзацев: ${rawParagraphs.length}');
-    
-    String cleanedText = originalText;
-    
     // 1. Нормализуем символы
-    cleanedText = _normalizeCharacters(cleanedText);
+    print('📝 Нормализация символов...');
+    text = _normalizeCharacters(text);
     
     // 2. Деликатная очистка
-    cleanedText = _gentleClean(cleanedText);
+    print('🧹 Деликатная очистка...');
+    text = _gentleClean(text);
     
-    // 3. Нормализуем переносы
-    cleanedText = cleanedText.replaceAll(RegExp(r'\r\n|\r'), '\n');
-    
-    // 4. Деликатное склеивание
-    cleanedText = _gentleJoinLines(cleanedText);
-    
-    // 5. Разбиваем на абзацы, сохраняя пустые строки
-    final paragraphs = cleanedText.split(RegExp(r'\n\s*\n'))
-        .map((p) => p.trim())
-        .where((p) => p.isNotEmpty)
-        .toList();
-    
-    // 6. Синхронизируем позиции с RAW версией
-    final rawParagraphsList = rawLines.map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
-    return _synchronizeWithRaw(paragraphs.join('\n\n'), rawParagraphsList);
+    // 3. Разбиваем на абзацы с сохранением оригинальных позиций
+    print('📑 Создание абзацев с позициями...');
+    return await _createPositionedParagraphs(text, originalPositions, aggressive: false);
   }
   
-  // Нормализуем символы
+  // Создание абзацев с сохранением позиций (оптимизированная версия)
+  static Future<String> _createPositionedParagraphs(
+    String text,
+    List<Map<String, dynamic>> originalPositions,
+    {required bool aggressive}
+  ) async {
+    final paragraphs = text.split(RegExp(r'\n\s*\n'));
+    final result = <String>[];
+    var currentParagraphIndex = 0;
+    var processedCount = 0;
+    final totalPositions = originalPositions.length;
+    
+    for (final position in originalPositions) {
+      processedCount++;
+      if (processedCount % 50 == 0) {
+        print('📊 Обработано позиций: $processedCount / $totalPositions');
+        // Даем шанс другим операциям выполниться
+        await Future.delayed(Duration.zero);
+      }
+      
+      if (currentParagraphIndex >= paragraphs.length) break;
+      
+      // Ищем наиболее похожий абзац в ограниченном окне
+      var bestMatch = '';
+      var bestScore = 0.0;
+      final windowSize = 10; // Ограничиваем окно поиска
+      
+      final searchEnd = min(currentParagraphIndex + windowSize, paragraphs.length);
+      for (var i = currentParagraphIndex; i < searchEnd; i++) {
+        final score = _calculateMatchScore(
+          _normalizeText(position['content']),
+          _normalizeText(paragraphs[i])
+        );
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = paragraphs[i];
+          currentParagraphIndex = i + 1;
+        }
+        
+        // Если нашли очень хорошее совпадение, прекращаем поиск
+        if (score > 0.8) break;
+      }
+      
+      // Если нашли подходящий абзац
+      if (bestMatch.isNotEmpty) {
+        final content = aggressive ? _aggressiveCleanParagraph(bestMatch) : bestMatch.trim();
+        result.add('[pos:${position['position']}] $content');
+      }
+    }
+    
+    return result.join('\n\n');
+  }
+  
+  // Нормализация текста для сравнения (оптимизированная версия)
+  static String _normalizeText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]'), '') // Удаляем все, кроме букв, цифр и пробелов
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+  
+  // Подсчет схожести текстов (оптимизированная версия)
+  static double _calculateMatchScore(String text1, String text2) {
+    if ((text1.length - text2.length).abs() > text1.length * 0.5) {
+      return 0.0; // Слишком разные по длине
+    }
+    
+    final words1 = text1.split(' ');
+    final words2 = text2.split(' ');
+    
+    final Set<String> commonWords = Set<String>.from(words1).intersection(Set<String>.from(words2));
+    return 2 * commonWords.length / (words1.length + words2.length);
+  }
+  
+  // Агрессивная очистка одного абзаца
+  static String _aggressiveCleanParagraph(String text) {
+    return text
+        .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
+        .replaceAll(RegExp(r'[ \t]+'), ' ')
+        .trim();
+  }
+  
+  // Нормализация символов
   static String _normalizeCharacters(String text) {
-    text = text.replaceAll(RegExp(r'[""„"]'), '"');
-    text = text.replaceAll(RegExp(r'[''`]'), "'");
-    text = text.replaceAll(RegExp(r'[—–−]'), '-');
-    text = text.replaceAll('…', '...');
-    return text;
+    return text
+        .replaceAll(RegExp(r'[""„"]'), '"')
+        .replaceAll(RegExp(r'[''`]'), "'")
+        .replaceAll(RegExp(r'[—–−]'), '-')
+        .replaceAll('…', '...');
   }
   
-  // Агрессивная очистка для поиска
+  // Агрессивная очистка
   static String _aggressiveClean(String text) {
-    // Номера страниц
-    text = text.replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n');
-    text = text.replaceAll(RegExp(r'\n\s*-\s*\d+\s*-\s*\n'), '\n\n');
-    
-    // Служебные символы
-    text = text.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '');
-    
-    // Множественные пробелы
-    text = text.replaceAll(RegExp(r'[ \t]+'), ' ');
-    
-    // Линии разделителей
-    text = text.replaceAll(RegExp(r'\n\s*[-=_*]{3,}\s*\n'), '\n\n');
-    
-    // Служебная информация
-    text = text.replaceAll(RegExp(r'\n\s*(ISBN|Copyright|©|\(c\)).*\n', caseSensitive: false), '\n');
-    
-    return text;
+    return text
+        .replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n')
+        .replaceAll(RegExp(r'\n\s*-\s*\d+\s*-\s*\n'), '\n\n')
+        .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
+        .replaceAll(RegExp(r'[ \t]+'), ' ')
+        .replaceAll(RegExp(r'\n\s*[-=_*]{3,}\s*\n'), '\n\n')
+        .replaceAll(RegExp(r'\n\s*(ISBN|Copyright|©|\(c\)).*\n', caseSensitive: false), '\n');
   }
   
-  // Деликатная очистка для чтения
+  // Деликатная очистка
   static String _gentleClean(String text) {
-    // Только самое необходимое
-    text = text.replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n'); // Номера страниц
-    text = text.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), ''); // Служебные символы
-    text = text.replaceAll(RegExp(r'[ \t]+'), ' '); // Множественные пробелы
-    text = text.replaceAll(RegExp(r'\n\s*(ISBN|Copyright|©|\(c\)).*\n', caseSensitive: false), '\n'); // Служебная информация
-    
-    return text;
-  }
-  
-  // Склеивание строк для RAW
-  static String _joinLines(String text) {
-    final lines = text.split('\n');
-    final result = <String>[];
-    
-    for (int i = 0; i < lines.length; i++) {
-      final current = lines[i].trim();
-      
-      if (current.isEmpty) {
-        result.add('');
-        continue;
-      }
-      
-      // ИСПРАВЛЕНО: добавил закрывающую скобку в RegExp
-      if (i < lines.length - 1 && 
-          !RegExp(r'[.!?;:,]$').hasMatch(current) &&
-          lines[i + 1].trim().isNotEmpty &&
-          !RegExp(r'^[A-ZА-Я]').hasMatch(lines[i + 1].trim()) &&
-          current.length > 10) {
-        
-        final next = lines[i + 1].trim();
-        result.add('$current $next');
-        i++;
-      } else {
-        result.add(current);
-      }
-    }
-    
-    return result.join('\n');
-  }
-  
-  // Деликатное склеивание для CLEANED
-  static String _gentleJoinLines(String text) {
-    final lines = text.split('\n');
-    final result = <String>[];
-    
-    for (int i = 0; i < lines.length; i++) {
-      final current = lines[i].trim();
-      
-      if (current.isEmpty) {
-        result.add('');
-        continue;
-      }
-      
-      // Более деликатное склеивание
-      if (i < lines.length - 1 && 
-          current.length > 20 &&
-          !RegExp(r'[.!?;:]$').hasMatch(current) &&
-          lines[i + 1].trim().isNotEmpty &&
-          !RegExp(r'^[A-ZА-Я]').hasMatch(lines[i + 1].trim()) &&
-          lines[i + 1].trim().length > 10) {
-        
-        final next = lines[i + 1].trim();
-        result.add('$current $next');
-        i++;
-      } else {
-        result.add(current);
-      }
-    }
-    
-    return result.join('\n');
-  }
-  
-  // Создание абзацев
-  static String _makeParagraphs(String text) {
-    final lines = text.split('\n');
-    final paragraphs = <String>[];
-    final current = <String>[];
-    
-    for (final line in lines) {
-      final trimmed = line.trim();
-      
-      if (trimmed.isEmpty) {
-        if (current.isNotEmpty) {
-          paragraphs.add(current.join(' ').trim());
-          current.clear();
-        }
-      } else {
-        current.add(trimmed);
-      }
-    }
-    
-    if (current.isNotEmpty) {
-      paragraphs.add(current.join(' ').trim());
-    }
-    
-    final filtered = paragraphs.where((p) => p.length > 5).toList();
-    return filtered.join('\n\n');
-  }
-  
-  // Добавление маркеров
-  static String _addMarkers(String text) {
-    final paragraphs = text.split('\n\n');
-    final result = <String>[];
-    
-    for (int i = 0; i < paragraphs.length; i++) {
-      final paragraph = paragraphs[i].trim();
-      if (paragraph.isNotEmpty) {
-        result.add('[pos:${i + 1}] $paragraph');
-      }
-    }
-    
-    return result.join('\n\n');
-  }
-  
-  // Синхронизация CLEANED с RAW позициями
-  static String _synchronizeWithRaw(String cleanedText, List<String> rawParagraphs) {
-    // Разбиваем текст на параграфы, сохраняя пустые строки
-    final paragraphs = cleanedText.split(RegExp(r'\n\s*\n'))
-        .map((p) => p.trim())
-        .where((p) => p.isNotEmpty)
-        .toList();
-    
-    if (paragraphs.isEmpty) {
-      print('⚠️ No paragraphs found in cleaned text');
-      return cleanedText;
-    }
-
-    // Извлекаем позиции из RAW параграфов
-    final rawPositions = <int>[];
-    final rawContents = <String>[];
-    final rawPositionPattern = RegExp(r'\[pos:(\d+)\]\s*(.*)');
-    
-    for (final raw in rawParagraphs) {
-      final match = rawPositionPattern.firstMatch(raw);
-      if (match != null) {
-        rawPositions.add(int.parse(match.group(1)!));
-        rawContents.add(match.group(2)!.trim());
-      }
-    }
-
-    // Проверяем, что у нас есть позиции
-    if (rawPositions.isEmpty) {
-      print('⚠️ No positions found in RAW paragraphs');
-      // Если позиций нет, создаем новые
-      final result = <String>[];
-      for (int i = 0; i < paragraphs.length; i++) {
-        if (paragraphs[i].trim().isNotEmpty) {
-          result.add('[pos:${i + 1}] ${paragraphs[i].trim()}');
-        }
-      }
-      return result.join('\n\n');
-    }
-
-    print('📊 Found ${rawPositions.length} positions (${rawPositions.first} - ${rawPositions.last})');
-    print('📊 Processing ${paragraphs.length} cleaned paragraphs');
-
-    // Сопоставляем параграфы с позициями
-    final result = <String>[];
-    final minLength = min(paragraphs.length, rawPositions.length);
-
-    for (int i = 0; i < minLength; i++) {
-      final position = rawPositions[i];
-      final content = paragraphs[i].trim();
-      
-      if (content.isNotEmpty) {
-        result.add('[pos:$position] $content');
-      }
-    }
-
-    // Если остались параграфы без позиций, используем последнюю позицию + инкремент
-    if (paragraphs.length > rawPositions.length) {
-      var nextPosition = rawPositions.last + 1;
-      
-      for (int i = rawPositions.length; i < paragraphs.length; i++) {
-        final content = paragraphs[i].trim();
-        if (content.isNotEmpty) {
-          result.add('[pos:$nextPosition] $content');
-          nextPosition++;
-        }
-      }
-    }
-
-    return result.join('\n\n');
+    return text
+        .replaceAll(RegExp(r'\n\s*\d+\s*\n'), '\n\n')
+        .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
+        .replaceAll(RegExp(r'[ \t]+'), ' ')
+        .replaceAll(RegExp(r'\n\s*(ISBN|Copyright|©|\(c\)).*\n', caseSensitive: false), '\n');
   }
 }
 
