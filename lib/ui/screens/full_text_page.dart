@@ -331,31 +331,63 @@ class _FullTextPageState extends State<FullTextPage>
     if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
       return;
     }
-    
     // Предотвращаем множественные вызовы
     if (_isScrolling || _scrollCompleted) {
       debugPrint('Scroll already in progress or completed, skipping');
       return;
     }
-    
     setState(() => _isScrolling = true);
-    
     final viewportHeight = _scrollController.position.viewportDimension;
     final maxScroll = _scrollController.position.maxScrollExtent;
-    
-    // Простой расчет позиции
-    final totalItems = _parsedItems.length;
-    final targetPercent = _targetItemIndex! / totalItems;
-    
-    // Линейная интерполяция для начальной позиции
-    double targetOffset = maxScroll * targetPercent;
-    
-    // Небольшая коррекция для центрирования
-    targetOffset = (targetOffset - viewportHeight / 3).clamp(0.0, maxScroll);
-    
-    debugPrint('Scrolling to index $_targetItemIndex at offset $targetOffset');
-    
-    // Выполняем ОДИН скролл
+    debugPrint('=== SCROLL CALCULATION ===');
+    debugPrint('Target index: [1m$_targetItemIndex of ${_parsedItems.length}');
+    debugPrint('Target position: ${widget.context.quote.position}');
+    debugPrint('Viewport: $viewportHeight, MaxScroll: $maxScroll');
+    // ВАЖНО: Считаем количество ВИДИМЫХ элементов до целевого
+    int visibleItemsBefore = 0;
+    int totalVisibleItems = 0;
+    for (int i = 0; i < _parsedItems.length; i++) {
+      // Пропускаем главы, как в _buildStaticTextItem
+      if (!TextFileService.isHeader(_parsedItems[i].content)) {
+        totalVisibleItems++;
+        if (i < _targetItemIndex!) {
+          visibleItemsBefore++;
+        }
+      }
+    }
+    debugPrint('Visible items before target: $visibleItemsBefore');
+    debugPrint('Total visible items: $totalVisibleItems');
+    // Расчет позиции на основе ВИДИМЫХ элементов
+    double targetOffset;
+    double visiblePercent = 0.0;
+    if (totalVisibleItems == 0) {
+      debugPrint('ERROR: No visible items!');
+      targetOffset = 0;
+    } else {
+      // Процент прокрутки на основе видимых элементов
+      visiblePercent = visibleItemsBefore / totalVisibleItems;
+      // Базовый расчет
+      targetOffset = maxScroll * visiblePercent;
+      // Корректировка для элементов в середине и конце списка
+      if (visiblePercent > 0.5) {
+        // Для второй половины списка применяем коррекцию
+        // так как элементы накапливают погрешность
+        final correctionFactor = 1.0 - (visiblePercent - 0.5) * 0.15;
+        targetOffset *= correctionFactor;
+      }
+      // Дополнительная коррекция для точности
+      // Средняя высота видимого элемента
+      final avgItemHeight = maxScroll / (totalVisibleItems * 0.85); // 0.85 - эмпирический коэффициент
+      // Для элементов в начале списка используем более точный расчет
+      if (visibleItemsBefore < 50) {
+        targetOffset = visibleItemsBefore * avgItemHeight;
+      }
+      // Центрируем элемент в viewport
+      targetOffset = (targetOffset - viewportHeight / 2).clamp(0.0, maxScroll);
+    }
+    debugPrint('Calculated offset: $targetOffset');
+    debugPrint('Percent through list: ${(visiblePercent * 100).toStringAsFixed(1)}%');
+    // Выполняем скролл
     _scrollController.animateTo(
       targetOffset,
       duration: const Duration(milliseconds: 800),
@@ -366,9 +398,14 @@ class _FullTextPageState extends State<FullTextPage>
         _scrollCompleted = true;
         _autoScrolled = true;
       });
-      
-      // Подсвечиваем цитату ОДИН раз
+      // Подсвечиваем цитату
       _highlightQuoteOnce();
+      // Проверяем точность через небольшую задержку
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _checkScrollAccuracy();
+        }
+      });
     }).catchError((error) {
       debugPrint('Scroll error: $error');
       setState(() {
@@ -387,6 +424,35 @@ class _FullTextPageState extends State<FullTextPage>
       }
       _parsedItems[_targetItemIndex!].isQuoteBlock = true;
     });
+  }
+
+  void _checkScrollAccuracy() {
+    if (!_scrollController.hasClients || _targetItemIndex == null) return;
+    final currentOffset = _scrollController.offset;
+    final viewportHeight = _scrollController.position.viewportDimension;
+    // Оцениваем видимый диапазон элементов
+    // Предполагаем, что на экран помещается примерно 3-5 параграфов
+    final avgItemHeight = 200.0; // Примерная высота параграфа
+    final firstVisibleIndex = (currentOffset / avgItemHeight).floor();
+    final lastVisibleIndex = ((currentOffset + viewportHeight) / avgItemHeight).ceil();
+    debugPrint('=== SCROLL ACCURACY CHECK ===');
+    debugPrint('Current offset: $currentOffset');
+    debugPrint('Estimated visible range: $firstVisibleIndex - $lastVisibleIndex');
+    debugPrint('Target should be at index: $_targetItemIndex');
+    // Если цель далеко от видимого диапазона, делаем коррекцию
+    if (_targetItemIndex! < firstVisibleIndex - 5 || _targetItemIndex! > lastVisibleIndex + 5) {
+      debugPrint('Target might not be visible, consider manual scrolling');
+      // Показываем подсказку пользователю
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Цитата выделена в тексте. Прокрутите немного [1m${_targetItemIndex! < firstVisibleIndex ? "вверх" : "вниз"}[0m при необходимости.'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } else {
+      debugPrint('Target should be visible or very close');
+    }
   }
 
   Widget _buildTextContent() {
@@ -416,9 +482,50 @@ class _FullTextPageState extends State<FullTextPage>
     // Если это цитата
     if (item.isQuoteBlock && index == _targetItemIndex) {
       return Container(
-        key: ValueKey('quote_$index'),
+        key: ValueKey('quote_[1m$index'),
         margin: const EdgeInsets.symmetric(vertical: 24.0),
-        child: _buildHighlightedQuote(item),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: _currentTheme.quoteHighlightColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _currentTheme.quoteHighlightColor,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.format_quote,
+                  color: _currentTheme.quoteHighlightColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Искомая цитата',
+                  style: TextStyle(
+                    color: _currentTheme.quoteHighlightColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SelectableText(
+              item.content,
+              style: TextStyle(
+                fontSize: _fontSize + 1,
+                height: _lineHeight,
+                color: _effectiveTextColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       );
     }
     // Обычный параграф
@@ -431,21 +538,6 @@ class _FullTextPageState extends State<FullTextPage>
           fontSize: _fontSize,
           height: _lineHeight,
           color: _effectiveTextColor,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHighlightedQuote(ParsedTextItem item) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 24.0),
-      child: Text(
-        item.content,
-        style: TextStyle(
-          fontSize: _fontSize,
-          height: _lineHeight,
-          color: _effectiveTextColor,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
