@@ -7,6 +7,7 @@ import '../../services/text_file_service.dart';
 import '../../services/logger_service.dart';
 import '../../utils/custom_cache.dart';
 import 'package:flutter/services.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 // Экспорт для использования в ContextPage
 export 'full_text_page_2.dart';
@@ -60,8 +61,11 @@ class _FullTextPage2State extends State<FullTextPage2>
   // Для точного скролла
   final Map<int, GlobalKey> _paragraphKeys = {};
   final Map<int, double> _paragraphOffsets = {};
-  bool _offsetsReady = false;
   bool _findingQuote = false;
+
+  // Для scrollable_positioned_list
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -193,7 +197,7 @@ class _FullTextPage2State extends State<FullTextPage2>
     _paragraphs.clear();
     _paragraphKeys.clear();
     _paragraphOffsets.clear();
-    _offsetsReady = false;
+
     final rawParagraphs = _textService.extractParagraphsWithPositions(_fullText!);
     _logger.info('Найдено ${rawParagraphs.length} параграфов');
     for (int i = 0; i < rawParagraphs.length; i++) {
@@ -237,71 +241,21 @@ class _FullTextPage2State extends State<FullTextPage2>
   }
 
   void _scrollToQuote() async {
-    if (_targetParagraphIndex == null || !_scrollController.hasClients) {
-      _logger.warning('Не удалось скроллить: targetIndex=$_targetParagraphIndex, hasClients=${_scrollController.hasClients}');
-      return;
-    }
-    if (_autoScrollCompleted) return;
-    // Ждём, пока построятся параграфы и появятся размеры
-    await Future.delayed(const Duration(milliseconds: 1000));
-    int attempts = 0;
-    const maxAttempts = 10;
-    double? offset;
-    while (attempts < maxAttempts) {
-      if (!_offsetsReady) {
-        _calculateParagraphOffsets();
-        await Future.delayed(const Duration(milliseconds: 200));
-      }
-      offset = _paragraphOffsets[_targetParagraphIndex!];
-      if (offset != null && offset > 0) break;
-      debugPrint('Жду offset для targetParagraphIndex=$_targetParagraphIndex (попытка $attempts)');
-      await Future.delayed(const Duration(milliseconds: 300));
-      attempts++;
-    }
-    if (offset == null || offset == 0.0) {
-      debugPrint('!!! Не найден offset для targetParagraphIndex=$_targetParagraphIndex');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Не удалось найти позицию цитаты. Попробуйте "Найти цитату".'), backgroundColor: Colors.red),
-        );
-      }
-      return;
-    }
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final viewportHeight = _scrollController.position.viewportDimension;
-    final clampedOffset = (offset - viewportHeight / 2).clamp(0.0, maxScroll);
-    _logger.info('Точный скролл к offset: $clampedOffset (реальный offset: $offset, maxScroll: $maxScroll)');
-    _scrollController.animateTo(
-      clampedOffset,
+    if (_targetParagraphIndex == null) return;
+    await Future.delayed(const Duration(milliseconds: 500));
+    _itemScrollController.scrollTo(
+      index: _targetParagraphIndex!,
       duration: const Duration(milliseconds: 1200),
       curve: Curves.easeOutCubic,
-    ).then((_) {
-      setState(() {
-        _autoScrollCompleted = true;
-      });
-      _showScrollHint();
+      alignment: 0.3, // чтобы цитата была чуть ниже центра
+    );
+    setState(() {
+      _autoScrollCompleted = true;
     });
+    _showScrollHint();
   }
 
-  void _calculateParagraphOffsets() {
-    double offset = 0.0;
-    int count = 0;
-    for (int i = 0; i < _paragraphs.length; i++) {
-      final key = _paragraphKeys[i];
-      if (key != null && key.currentContext != null) {
-        final box = key.currentContext!.findRenderObject() as RenderBox?;
-        if (box != null && box.hasSize) {
-          _paragraphOffsets[i] = offset;
-          offset += box.size.height;
-          count++;
-        }
-      }
-    }
-    _offsetsReady = true;
-    debugPrint('Построена карта offsets для $count параграфов из ${_paragraphs.length}');
-    debugPrint('Offset для targetParagraphIndex=$_targetParagraphIndex: ${_paragraphOffsets[_targetParagraphIndex!] ?? "нет"}');
-    _logger.info('Построена карта offsets для $count параграфов');
-  }
+  
 
   void _showScrollHint() {
     if (!mounted) return;
@@ -656,11 +610,10 @@ class _FullTextPage2State extends State<FullTextPage2>
         ),
       );
     }
-
-    return ListView.builder(
-      controller: _scrollController,
+    return ScrollablePositionedList.builder(
+      itemScrollController: _itemScrollController,
+      itemPositionsListener: _itemPositionsListener,
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      physics: const ClampingScrollPhysics(),
       itemCount: _paragraphs.length,
       itemBuilder: (context, index) => _buildParagraph(index),
     );
