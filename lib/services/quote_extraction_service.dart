@@ -135,11 +135,12 @@ class QuoteExtractionService {
     final content = paragraph['content'] as String;
     final position = paragraph['position'] as int;
     
-    String quoteText = _extractBestSentence(content);
+    // Извлекаем лучшее предложение для отображения
+    String displayText = _extractBestSentence(content);
     
     return Quote(
       id: '${source.id}_${position}_${DateTime.now().millisecondsSinceEpoch}',
-      text: quoteText.trim(),
+      text: displayText.trim(),
       author: source.author,
       source: source.title,
       category: source.category,
@@ -147,6 +148,8 @@ class QuoteExtractionService {
       translation: source.translator,
       dateAdded: DateTime.now(),
       theme: source.category,
+      // ВАЖНО: Сохраняем полный текст параграфа
+      fullParagraphText: content, // Новое поле!
     );
   }
 

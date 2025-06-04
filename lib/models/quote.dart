@@ -11,6 +11,7 @@ class Quote {
   final bool isFavorite;
   final String theme; // Добавляем theme для совместимости
   final String context; // Добавляем context для совместимости
+  final String? fullParagraphText; // Полный текст параграфа для точного поиска
 
   const Quote({
     required this.id,
@@ -24,6 +25,7 @@ class Quote {
     this.isFavorite = false,
     required this.theme,
     this.context = '',
+    this.fullParagraphText,
   });
 
   // Добавляем геттер theme который возвращает category
@@ -44,6 +46,7 @@ class Quote {
       isFavorite: json['isFavorite'] as bool? ?? false,
       theme: json['theme'] as String? ?? json['category'] as String,
       context: json['context'] as String? ?? '',
+      fullParagraphText: json['fullParagraphText'] as String?,
     );
   }
 
@@ -60,6 +63,7 @@ class Quote {
       'isFavorite': isFavorite,
       'theme': theme,
       'context': context,
+      'fullParagraphText': fullParagraphText,
     };
   }
 
@@ -75,6 +79,7 @@ class Quote {
     bool? isFavorite,
     String? theme,
     String? context,
+    String? fullParagraphText,
   }) {
     return Quote(
       id: id ?? this.id,
@@ -88,6 +93,7 @@ class Quote {
       isFavorite: isFavorite ?? this.isFavorite,
       theme: theme ?? this.theme,
       context: context ?? this.context,
+      fullParagraphText: fullParagraphText ?? this.fullParagraphText,
     );
   }
 
