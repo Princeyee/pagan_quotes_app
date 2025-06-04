@@ -1,5 +1,5 @@
 // lib/ui/screens/full_text_page.dart
-import 'dart:math';
+import 'dart:math' as math;
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,9 +86,13 @@ class _FullTextPageState extends State<FullTextPage>
   // Для выделения текста
   String? _selectedText;
 
-  // Новые поля для улучшенного поиска
+  // Новые поля для точного скролла
+  final Map<int, double> _measuredHeights = {};
   final Map<int, GlobalKey> _itemKeys = {};
-  bool _useGlobalKeyScroll = false;
+  bool _scrollDebugMode = true; // Включить для диагностики
+  Timer? _scrollCheckTimer;
+  int _scrollAttempts = 0;
+  final int _maxScrollAttempts = 3;
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -261,10 +265,9 @@ class _FullTextPageState extends State<FullTextPage>
     
     _parsedItems.clear();
     
-    _logger.info('Starting text parsing, length: ${_fullText!.length}');
+    _logger.info('Starting text parsing, length: [1m${_fullText!.length}[0m');
     
     try {
-      // Используем TextFileService для парсинга, чтобы гарантировать единообразие
       final paragraphs = _textService.extractParagraphsWithPositions(_fullText!);
       
       _logger.info('Found ${paragraphs.length} paragraphs to parse');
@@ -274,10 +277,7 @@ class _FullTextPageState extends State<FullTextPage>
         return;
       }
       
-      _logger.info('Position range: ${paragraphs.first['position']} - ${paragraphs.last['position']}');
-      _logger.info('Target quote position: ${widget.context.quote.position}');
-      
-      // Преобразуем параграфы в ParsedTextItem
+      // ВАЖНО: Сохраняем ВСЕ параграфы для корректного поиска
       for (final paragraph in paragraphs) {
         final position = paragraph['position'] as int;
         final content = paragraph['content'] as String;
@@ -287,13 +287,7 @@ class _FullTextPageState extends State<FullTextPage>
           continue;
         }
         
-        // Skip chapter headers
-        if (_isChapterHeader(content)) {
-          _logger.debug('Skipping chapter header at position $position');
-          continue;
-        }
-        
-        // Add the item
+        // Добавляем ВСЕ элементы, включая главы
         _parsedItems.add(ParsedTextItem(
           position: position,
           content: content,
@@ -305,12 +299,17 @@ class _FullTextPageState extends State<FullTextPage>
       
       _logger.info('Parsing completed. Total items: ${_parsedItems.length}');
       
-      // Проверяем, что позиция цитаты находится в допустимом диапазоне
-      final minPos = _parsedItems.first.position;
-      final maxPos = _parsedItems.last.position;
-      
-      if (widget.context.quote.position < minPos || widget.context.quote.position > maxPos) {
-        _logger.error('Quote position ${widget.context.quote.position} is outside valid range ($minPos - $maxPos)');
+      // Отладочная информация о позициях вокруг цитаты
+      if (_scrollDebugMode) {
+        final targetPos = widget.context.quote.position;
+        final nearbyItems = _parsedItems.where((item) => 
+          (item.position - targetPos).abs() <= 5
+        ).toList();
+        
+        _logger.info('=== POSITIONS NEAR TARGET $targetPos ===');
+        for (final item in nearbyItems) {
+          _logger.info('Pos ${item.position}: "${item.content.substring(0, math.min(50, item.content.length))}..."');
+        }
       }
       
     } catch (e, stackTrace) {
@@ -324,10 +323,10 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   void _findTargetQuoteIndex() {
-    _logger.info('=== ADVANCED QUOTE SEARCH ===');
-    _logger.info('Quote position: [1m${widget.context.quote.position}[0m');
+    _logger.info('=== CONTEXT-AWARE QUOTE SEARCH ===');
+    _logger.info('Quote position: ${widget.context.quote.position}');
     _logger.info('Quote text: "${widget.context.quote.text}"');
-    _logger.info('Full paragraph text available: ${widget.context.quote.fullParagraphText != null}');
+    _logger.info('Context paragraphs: ${widget.context.contextParagraphs.length}');
     
     _targetItemIndex = null;
     
@@ -340,192 +339,47 @@ class _FullTextPageState extends State<FullTextPage>
     for (int i = 0; i < _parsedItems.length; i++) {
       if (_parsedItems[i].position == widget.context.quote.position) {
         _targetItemIndex = i;
-        _logger.info('Found exact position match at index $i');
-        
-        // Проверяем совпадение текста
-        final itemContent = _parsedItems[i].content;
-        final quoteText = widget.context.quote.text;
-        final fullText = widget.context.quote.fullParagraphText;
-        
-        // Если есть полный текст параграфа, сравниваем с ним
-        if (fullText != null) {
-          if (_normalizeForComparison(itemContent) == _normalizeForComparison(fullText)) {
-            _logger.success('Full paragraph text matched perfectly!');
-            return;
-          }
-        }
-        
-        // Проверяем, содержит ли параграф текст цитаты
-        if (_paragraphContainsQuote(itemContent, quoteText)) {
-          _logger.success('Quote text found in paragraph');
+        _logger.success('Found exact position match at index $i');
+        return;
+      }
+    }
+    
+    // Метод 2: Поиск через контекст
+    if (_targetItemIndex == null && widget.context.contextParagraphs.isNotEmpty) {
+      _logger.info('Attempting context-based search');
+      
+      // Ищем центральный параграф контекста
+      final contextMiddleIndex = widget.context.contextParagraphs.length ~/ 2;
+      final targetContextParagraph = widget.context.contextParagraphs[contextMiddleIndex];
+      
+      for (int i = 0; i < _parsedItems.length; i++) {
+        if (_normalizeForComparison(_parsedItems[i].content) == 
+            _normalizeForComparison(targetContextParagraph)) {
+          _targetItemIndex = i;
+          _logger.success('Found via context match at index $i');
           return;
         }
-        
-        _logger.warning('Position matched but text verification failed');
-        // Продолжаем использовать эту позицию как основную
-        break;
       }
     }
     
-    // Метод 2: Поиск ближайшей позиции
+    // Метод 3: Поиск по тексту цитаты
     if (_targetItemIndex == null) {
-      _logger.info('No exact position match, searching for closest');
-      _targetItemIndex = _findClosestPosition(widget.context.quote.position);
-      _logger.info('Using closest position at index $_targetItemIndex');
-    }
-    
-    // Метод 3: Интеллектуальный поиск текста в окрестности
-    final betterMatch = _intelligentTextSearch(
-      widget.context.quote.text,
-      _targetItemIndex!,
-      searchRadius: 10
-    );
-    
-    if (betterMatch != null && betterMatch != _targetItemIndex) {
-      _logger.info('Found better match through text search at index $betterMatch');
-      _targetItemIndex = betterMatch;
-    }
-    
-    // Метод 4: Fallback - полнотекстовый поиск
-    if (_targetItemIndex == null || !_verifyTargetIndex(_targetItemIndex!)) {
-      _logger.warning('Primary search failed, attempting full text search');
-      _targetItemIndex = _fullTextSearch(widget.context.quote.text);
-    }
-    
-    _logger.info('Final target index: $_targetItemIndex');
-  }
-
-  // Новый метод для проверки, содержит ли параграф цитату
-  bool _paragraphContainsQuote(String paragraphText, String quoteText) {
-    final normalizedParagraph = _normalizeForComparison(paragraphText);
-    final normalizedQuote = _normalizeForComparison(quoteText);
-    
-    // Проверяем точное вхождение
-    if (normalizedParagraph.contains(normalizedQuote)) {
-      return true;
-    }
-    
-    // Проверяем частичное совпадение (80% слов)
-    final quoteWords = normalizedQuote.split(' ').where((w) => w.length > 2).toSet();
-    final paragraphWords = normalizedParagraph.split(' ').toSet();
-    
-    final commonWords = quoteWords.intersection(paragraphWords);
-    final matchRatio = commonWords.length / quoteWords.length;
-    
-    return matchRatio >= 0.8;
-  }
-
-  // Поиск ближайшей позиции
-  int _findClosestPosition(int targetPosition) {
-    int closestIndex = 0;
-    int minDiff = (_parsedItems[0].position - targetPosition).abs();
-    
-    for (int i = 1; i < _parsedItems.length; i++) {
-      final diff = (_parsedItems[i].position - targetPosition).abs();
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = i;
-      }
-    }
-    
-    return closestIndex;
-  }
-
-  // Интеллектуальный поиск текста
-  int? _intelligentTextSearch(String quoteText, int centerIndex, {int searchRadius = 10}) {
-    final normalizedQuote = _normalizeForComparison(quoteText);
-    final quoteWords = normalizedQuote.split(' ').where((w) => w.length > 2).toList();
-    
-    if (quoteWords.isEmpty) return null;
-    
-    int bestMatchIndex = centerIndex;
-    double bestMatchScore = 0.0;
-    
-    final searchStart = (centerIndex - searchRadius).clamp(0, _parsedItems.length - 1);
-    final searchEnd = (centerIndex + searchRadius).clamp(0, _parsedItems.length - 1);
-    
-    for (int i = searchStart; i <= searchEnd; i++) {
-      final normalizedContent = _normalizeForComparison(_parsedItems[i].content);
+      _logger.info('Attempting text-based search');
       
-      // Расчет оценки совпадения
-      double score = 0.0;
+      final normalizedQuote = _normalizeForComparison(widget.context.quote.text);
       
-      // 1. Проверка точного вхождения
-      if (normalizedContent.contains(normalizedQuote)) {
-        score = 1.0;
-      } else {
-        // 2. Проверка по словам
-        final contentWords = normalizedContent.split(' ').toSet();
-        final commonWords = quoteWords.toSet().intersection(contentWords);
-        score = commonWords.length / quoteWords.length;
+      for (int i = 0; i < _parsedItems.length; i++) {
+        final normalizedContent = _normalizeForComparison(_parsedItems[i].content);
         
-        // 3. Бонус за последовательность слов
-        if (score > 0.5) {
-          int sequenceBonus = _countWordSequences(quoteWords, normalizedContent);
-          score += sequenceBonus * 0.1;
-        }
-      }
-      
-      // 4. Штраф за расстояние от ожидаемой позиции
-      final distancePenalty = (i - centerIndex).abs() / searchRadius * 0.2;
-      score -= distancePenalty;
-      
-      if (score > bestMatchScore) {
-        bestMatchScore = score;
-        bestMatchIndex = i;
-      }
-    }
-    
-    return bestMatchScore > 0.6 ? bestMatchIndex : null;
-  }
-
-  // Подсчет последовательностей слов
-  int _countWordSequences(List<String> quoteWords, String content) {
-    int maxSequence = 0;
-    
-    for (int start = 0; start < quoteWords.length; start++) {
-      for (int length = 2; length <= quoteWords.length - start; length++) {
-        final sequence = quoteWords.sublist(start, start + length).join(' ');
-        if (content.contains(sequence)) {
-          maxSequence = max(maxSequence, length);
+        if (normalizedContent.contains(normalizedQuote)) {
+          _targetItemIndex = i;
+          _logger.success('Found via text match at index $i');
+          return;
         }
       }
     }
     
-    return maxSequence;
-  }
-
-  // Полнотекстовый поиск как последний вариант
-  int? _fullTextSearch(String quoteText) {
-    final normalizedQuote = _normalizeForComparison(quoteText);
-    
-    for (int i = 0; i < _parsedItems.length; i++) {
-      final normalizedContent = _normalizeForComparison(_parsedItems[i].content);
-      if (normalizedContent.contains(normalizedQuote)) {
-        return i;
-      }
-    }
-    
-    return null;
-  }
-
-  // Проверка корректности найденного индекса
-  bool _verifyTargetIndex(int index) {
-    if (index < 0 || index >= _parsedItems.length) return false;
-    
-    final item = _parsedItems[index];
-    final quoteText = widget.context.quote.text;
-    
-    return _paragraphContainsQuote(item.content, quoteText);
-  }
-
-  // Улучшенная нормализация текста
-  String _normalizeForComparison(String text) {
-    return text
-        .toLowerCase()
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .replaceAll(RegExp(r'[^\w\sа-яёА-ЯЁ]', unicode: true), '')
-        .trim();
+    _logger.error('Failed to find quote in parsed items');
   }
 
   void _scheduleScrollToQuote() {
@@ -539,206 +393,249 @@ class _FullTextPageState extends State<FullTextPage>
       return;
     }
     
-    // Даем время на полное построение ListView
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _performScrollToQuote();
-      }
-    });
-  }
-
-  void _performScrollToQuote() {
-    if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
-      _logger.error('Cannot perform scroll: mounted=$mounted, targetIndex=$_targetItemIndex, hasClients=${_scrollController.hasClients}');
-      return;
-    }
+    // Добавляем GlobalKey для целевого элемента
+    _itemKeys[_targetItemIndex!] = GlobalKey();
     
-    _logger.info('=== SCROLL TO QUOTE ===');
-    
-    final targetIndex = _targetItemIndex!;
-    final targetPosition = _parsedItems[targetIndex].position;
-    
-    _logger.info('Target index: $targetIndex');
-    _logger.info('Target position: $targetPosition');
-    _logger.info('Total items: ${_parsedItems.length}');
-
-    // Сначала выделяем цитату
-    setState(() {
-      for (var item in _parsedItems) {
-        item.isQuoteBlock = item.position == targetPosition;
-      }
-    });
-
-    // Ensure ListView is ready
+    // Ждем построения ListView
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
-
-      // Используем пошаговый скролл для более точного позиционирования
-      _progressiveScrollToTarget(targetIndex);
-    });
-  }
-
-  void _progressiveScrollToTarget(int targetIndex) {
-    if (!mounted || !_scrollController.hasClients) return;
-    
-    // Попробуем использовать GlobalKey для точного скролла
-    if (_useGlobalKeyScroll && _itemKeys.containsKey(targetIndex)) {
-      _scrollToGlobalKey(targetIndex);
-      return;
-    }
-    
-    // Fallback на расчетный скролл
-    _calculatedScroll(targetIndex);
-  }
-
-  // Скролл с использованием GlobalKey
-  void _scrollToGlobalKey(int targetIndex) {
-    final key = _itemKeys[targetIndex];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOutCubic,
-        alignment: 0.5, // Центрировать элемент
-      ).then((_) {
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
-          setState(() => _autoScrolled = true);
-          _logger.success('GlobalKey scroll completed');
+          _performAdaptiveScroll();
         }
       });
-    } else {
-      // Если GlobalKey не готов, используем расчетный метод
-      _calculatedScroll(targetIndex);
-    }
+    });
   }
 
-  // Улучшенный расчетный скролл
-  void _calculatedScroll(int targetIndex) {
-    final viewportHeight = _scrollController.position.viewportDimension;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    
-    // Более точный расчет высоты элементов
-    double targetOffset = 0;
-    final itemPadding = 24.0 * 2; // padding из ListView
-    
-    // Считаем высоту каждого элемента до целевого
-    for (int i = 0; i < targetIndex && i < _parsedItems.length; i++) {
-      final item = _parsedItems[i];
-      
-      if (item.isQuoteBlock) {
-        // Примерная высота контекстного блока
-        targetOffset += _estimateContextBlockHeight(i);
-      } else {
-        // Высота обычного параграфа
-        targetOffset += _estimateParagraphHeight(item.content);
-      }
+  void _performAdaptiveScroll() {
+    if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
+      return;
     }
     
-    // Добавляем отступы
-    targetOffset += itemPadding;
+    _logger.info('=== ADAPTIVE SCROLL START ===');
+    _scrollAttempts++;
     
-    // Центрируем элемент в viewport
-    targetOffset = (targetOffset - (viewportHeight / 2)).clamp(0.0, maxScroll);
+    // Стратегия 1: Попробуем Scrollable.ensureVisible
+    final targetKey = _itemKeys[_targetItemIndex!];
+    if (targetKey?.currentContext != null) {
+      _logger.info('Using Scrollable.ensureVisible');
+      
+      Scrollable.ensureVisible(
+        targetKey!.currentContext!,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOutCubic,
+        alignment: 0.5, // Центрировать
+      ).then((_) {
+        _verifyScrollSuccess();
+      });
+      
+      return;
+    }
     
-    _logger.info('Calculated scroll offset: $targetOffset for index: $targetIndex');
+    // Стратегия 2: Расчетный скролл
+    _logger.info('Using calculated scroll');
+    _performCalculatedScroll();
+  }
+
+  void _performCalculatedScroll() {
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final totalItems = _parsedItems.length;
+    final targetIndex = _targetItemIndex!;
     
-    // Выполняем скролл с промежуточными проверками
+    // Базовые расчеты
+    final itemsBeforeViewport = maxScroll / viewportHeight * 2; // Примерное количество экранов
+    final avgItemsPerScreen = totalItems / (itemsBeforeViewport + 1);
+    final avgItemHeight = viewportHeight / avgItemsPerScreen;
+    
+    _logger.info('Viewport: $viewportHeight, MaxScroll: $maxScroll');
+    _logger.info('Estimated items per screen: ${avgItemsPerScreen.toStringAsFixed(1)}');
+    _logger.info('Estimated item height: ${avgItemHeight.toStringAsFixed(1)}');
+    
+    // Расчет целевой позиции с учетом нелинейности
+    double targetOffset;
+    
+    if (targetIndex < totalItems * 0.1) {
+      // Начало списка - простой расчет
+      targetOffset = targetIndex * avgItemHeight;
+    } else if (targetIndex > totalItems * 0.9) {
+      // Конец списка - обратный расчет
+      final itemsFromEnd = totalItems - targetIndex;
+      targetOffset = maxScroll - (itemsFromEnd * avgItemHeight);
+    } else {
+      // Середина - используем процентное соотношение
+      final targetPercent = targetIndex / totalItems;
+      targetOffset = maxScroll * targetPercent;
+      
+      // Корректировка для учета накопления ошибки
+      final correctionFactor = 1.0 - (targetPercent - 0.5).abs() * 0.1;
+      targetOffset *= correctionFactor;
+    }
+    
+    // Центрируем элемент
+    targetOffset = (targetOffset - viewportHeight / 2).clamp(0.0, maxScroll);
+    
+    _logger.info('Calculated offset: ${targetOffset.toStringAsFixed(1)}');
+    
+    // Выполняем скролл
     _scrollController.animateTo(
       targetOffset,
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeOutCubic,
     ).then((_) {
+      // Проверяем успешность через небольшую задержку
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _verifyScrollSuccess();
+      });
+    });
+  }
+
+  void _verifyScrollSuccess() {
+    if (!mounted || _targetItemIndex == null || !_scrollController.hasClients) {
+      return;
+    }
+    
+    // Оцениваем видимые элементы
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final currentOffset = _scrollController.offset;
+    final avgItemHeight = viewportHeight / 5; // Примерно 5 элементов на экран
+    
+    final firstVisibleIndex = (currentOffset / avgItemHeight).floor();
+    final lastVisibleIndex = ((currentOffset + viewportHeight) / avgItemHeight).ceil();
+    
+    final isVisible = _targetItemIndex! >= firstVisibleIndex && 
+                     _targetItemIndex! <= lastVisibleIndex;
+    
+    _logger.info('Target visible check: $isVisible (visible range: $firstVisibleIndex-$lastVisibleIndex)');
+    
+    if (isVisible) {
+      setState(() => _autoScrolled = true);
+      _logger.success('Scroll completed successfully!');
+      _highlightTargetItem();
+    } else if (_scrollAttempts < _maxScrollAttempts) {
+      _logger.warning('Target not visible, attempting correction (attempt $_scrollAttempts)');
+      _performScrollCorrection(firstVisibleIndex, lastVisibleIndex);
+    } else {
+      setState(() => _autoScrolled = true);
+      _logger.error('Max scroll attempts reached. Manual scrolling may be needed.');
+      _showScrollHint();
+    }
+  }
+
+  void _performScrollCorrection(int firstVisible, int lastVisible) {
+    if (_targetItemIndex == null) return;
+    
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final currentOffset = _scrollController.offset;
+    final avgItemHeight = viewportHeight / 5;
+    
+    double correctionOffset;
+    
+    if (_targetItemIndex! < firstVisible) {
+      // Скроллим вверх
+      final distance = firstVisible - _targetItemIndex!;
+      correctionOffset = currentOffset - (distance * avgItemHeight * 1.2); // Немного с запасом
+    } else {
+      // Скроллим вниз
+      final distance = _targetItemIndex! - lastVisible;
+      correctionOffset = currentOffset + (distance * avgItemHeight * 1.2);
+    }
+    
+    correctionOffset = correctionOffset.clamp(
+      0.0, 
+      _scrollController.position.maxScrollExtent
+    );
+    
+    _logger.info('Applying correction: ${(correctionOffset - currentOffset).toStringAsFixed(1)}px');
+    
+    _scrollController.animateTo(
+      correctionOffset,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        _performAdaptiveScroll(); // Повторная попытка
+      });
+    });
+  }
+
+  void _highlightTargetItem() {
+    if (_targetItemIndex == null) return;
+    
+    setState(() {
+      // Сбрасываем все выделения
+      for (var item in _parsedItems) {
+        item.isQuoteBlock = false;
+      }
+      // Выделяем целевой элемент
+      _parsedItems[_targetItemIndex!].isQuoteBlock = true;
+    });
+    
+    // Анимация мигания для привлечения внимания
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() => _autoScrolled = true);
-        
-        // Финальная корректировка
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _finetuneScrollPosition(targetIndex);
+        setState(() {
+          _parsedItems[_targetItemIndex!].isQuoteBlock = false;
+        });
+      }
+    });
+    
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (mounted) {
+        setState(() {
+          _parsedItems[_targetItemIndex!].isQuoteBlock = true;
         });
       }
     });
   }
 
-  // Оценка высоты контекстного блока
-  double _estimateContextBlockHeight(int quoteIndex) {
-    double height = 0;
-    
-    // Заголовок
-    height += 40;
-    
-    // Контекст до (если есть)
-    if (quoteIndex > 0) {
-      height += _estimateParagraphHeight(_parsedItems[quoteIndex - 1].content);
-      height += 12; // margin
-    }
-    
-    // Сама цитата с оформлением
-    height += _estimateParagraphHeight(_parsedItems[quoteIndex].content);
-    height += 40; // padding и decorations
-    
-    // Контекст после (если есть)
-    if (quoteIndex < _parsedItems.length - 1) {
-      height += _estimateParagraphHeight(_parsedItems[quoteIndex + 1].content);
-      height += 12; // margin
-    }
-    
-    // Общие отступы блока
-    height += 88; // padding (20*2) + margin (24*2)
-    
-    return height;
-  }
-
-  // Оценка высоты параграфа
-  double _estimateParagraphHeight(String text) {
-    // Средняя ширина символа относительно размера шрифта
-    final avgCharWidth = _fontSize * 0.55;
-    final viewportWidth = MediaQuery.of(context).size.width - 48; // minus padding
-    final charsPerLine = (viewportWidth / avgCharWidth).floor();
-    final lines = (text.length / charsPerLine).ceil();
-    
-    return lines * (_fontSize * _lineHeight) + 16; // + margin
-  }
-
-  // Финальная корректировка позиции
-  void _finetuneScrollPosition(int targetIndex) {
-    if (!mounted || !_scrollController.hasClients) return;
-    
-    // Получаем текущую позицию элемента на экране
-    final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    
-    // Здесь можно добавить дополнительную логику корректировки
-    // если элемент не полностью видим
-    
-    _logger.success('Scroll finalized at position: ${_scrollController.offset}');
+  void _showScrollHint() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Цитата находится рядом. Прокрутите немного для поиска.'),
+        duration: const Duration(seconds: 3),
+        backgroundColor: _currentTheme.quoteHighlightColor,
+        action: SnackBarAction(
+          label: 'Найти',
+          onPressed: () {
+            // Сброс и повторная попытка
+            setState(() {
+              _scrollAttempts = 0;
+              _autoScrolled = false;
+            });
+            _performAdaptiveScroll();
+          },
+        ),
+      ),
+    );
   }
 
   Widget _buildTextItem(int index) {
     final item = _parsedItems[index];
     
-    // Создаем GlobalKey для целевого элемента и соседних
+    // Добавляем GlobalKey для элементов около цели
     if (_targetItemIndex != null && 
-        (index - _targetItemIndex!).abs() <= 2) {
+        (index - _targetItemIndex!).abs() <= 5) {
       _itemKeys[index] ??= GlobalKey();
-      _useGlobalKeyScroll = true;
     }
     
-    final widget = item.isQuoteBlock 
+    // Фильтруем главы при отображении (но не при поиске!)
+    if (_isChapterHeader(item.content)) {
+      return const SizedBox.shrink(); // Пустой виджет для глав
+    }
+    
+    // Строим виджет с GlobalKey если есть
+    Widget itemWidget = item.isQuoteBlock 
         ? _buildQuoteContextBlock(index)
         : _buildOptimizedParagraph(item.content, item.position);
     
-    // Оборачиваем в KeyedSubtree с GlobalKey если нужно
     if (_itemKeys.containsKey(index)) {
-      return KeyedSubtree(
+      return Container(
         key: _itemKeys[index],
-        child: widget,
+        child: itemWidget,
       );
     }
     
-    return KeyedSubtree(
-      key: ValueKey('item_$index'),
-      child: widget,
-    );
+    return itemWidget;
   }
 
   // Добавьте метод для сброса поиска при необходимости
@@ -747,7 +644,6 @@ class _FullTextPageState extends State<FullTextPage>
       _targetItemIndex = null;
       _autoScrolled = false;
       _itemKeys.clear();
-      _useGlobalKeyScroll = false;
     });
     
     _findTargetQuoteIndex();
@@ -931,36 +827,20 @@ class _FullTextPageState extends State<FullTextPage>
       animation: _themeAnimation,
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: Color.lerp(
-            _effectiveBackgroundColor,
-            _currentTheme.highlightColor,
-            _themeAnimation.value * 0.3,
-          ),
+          backgroundColor: _effectiveBackgroundColor,
           body: SafeArea(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: Curves.easeInOutCubic,
-              switchOutCurve: Curves.easeInOutCubic,
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.0, 0.1),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeInOutCubic,
-                    )),
-                    child: child,
-                  ),
-                );
-              },
-              child: _isLoading 
-                  ? _buildLoadingState()
-                  : _error != null 
-                      ? _buildErrorState()
-                      : _buildFullTextContent(),
+            child: Stack(
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 600),
+                  child: _isLoading 
+                      ? _buildLoadingState()
+                      : _error != null 
+                          ? _buildErrorState()
+                          : _buildFullTextContent(),
+                ),
+                _buildDebugControls(), // Добавляем отладочные кнопки
+              ],
             ),
           ),
         );
@@ -1293,7 +1173,7 @@ class _FullTextPageState extends State<FullTextPage>
       final item = _parsedItems[i];
       buffer.writeln('Индекс $i: Позиция ${item.position}${_targetItemIndex == i ? ' (ЦЕЛЬ)' : ''}');
       if (_targetItemIndex == i || i == 0 || i == _parsedItems.length - 1) {
-        buffer.writeln('  Контент: "${item.content.substring(0, min(50, item.content.length))}..."');
+        buffer.writeln('  Контент: "${item.content.substring(0, math.min(50, item.content.length))}..."');
       }
     }
     
@@ -1910,6 +1790,36 @@ class _FullTextPageState extends State<FullTextPage>
     );
   }
 
+  Widget _buildDebugControls() {
+    if (!_scrollDebugMode) return const SizedBox.shrink();
+    
+    return Positioned(
+      bottom: 20,
+      right: 20,
+      child: Column(
+        children: [
+          FloatingActionButton.small(
+            onPressed: () {
+              setState(() {
+                _scrollAttempts = 0;
+                _autoScrolled = false;
+              });
+              _performAdaptiveScroll();
+            },
+            child: const Icon(Icons.search),
+            tooltip: 'Повторить поиск',
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton.small(
+            onPressed: _showDebugInfo,
+            child: const Icon(Icons.bug_report),
+            tooltip: 'Отладка',
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -1918,6 +1828,15 @@ class _FullTextPageState extends State<FullTextPage>
     _scrollController.dispose();
     _itemKeys.clear(); // Очистка GlobalKeys
     super.dispose();
+  }
+
+  // Нормализация текста для поиска и сравнения
+  String _normalizeForComparison(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[^\w\sа-яёА-ЯЁ]', unicode: true), '')
+        .trim();
   }
 }
 
