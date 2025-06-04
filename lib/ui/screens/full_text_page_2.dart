@@ -624,7 +624,7 @@ class _FullTextPage2State extends State<FullTextPage2>
 
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       physics: const ClampingScrollPhysics(),
       itemCount: _paragraphs.length,
       itemBuilder: (context, index) => _buildParagraph(index),
@@ -643,8 +643,8 @@ class _FullTextPage2State extends State<FullTextPage2>
     if (paragraph.isQuote) {
       return Container(
         key: ValueKey('quote_$index'),
-        margin: const EdgeInsets.symmetric(vertical: 24.0),
-        padding: const EdgeInsets.all(20.0),
+        margin: const EdgeInsets.symmetric(vertical: 12.0),
+        padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: _currentTheme.quoteHighlightColor.withOpacity(0.15),
           borderRadius: BorderRadius.circular(16),
@@ -681,7 +681,7 @@ class _FullTextPage2State extends State<FullTextPage2>
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             SelectableText(
               paragraph.content,
               style: TextStyle(
@@ -700,8 +700,8 @@ class _FullTextPage2State extends State<FullTextPage2>
     if (paragraph.isContext) {
       return Container(
         key: ValueKey('context_$index'),
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.symmetric(vertical: 6.0),
+        padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
           color: _currentTheme.contextHighlightColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
@@ -740,7 +740,7 @@ class _FullTextPage2State extends State<FullTextPage2>
     // Обычный параграф
     return Container(
       key: ValueKey('paragraph_$index'),
-      margin: const EdgeInsets.only(bottom: 16.0),
+      margin: const EdgeInsets.only(bottom: 8.0),
       child: SelectableText(
         paragraph.content,
         style: TextStyle(
