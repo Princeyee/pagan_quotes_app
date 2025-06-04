@@ -10,6 +10,7 @@ import '../../models/reading_theme.dart';
 import '../../services/text_file_service.dart';
 import 'package:flutter/services.dart';
 import '../../services/logger_service.dart';
+import 'package:flutter/rendering.dart';
 
 
 // ПРОСТАЯ СТРУКТУРА ЭЛЕМЕНТА ТЕКСТА
@@ -296,11 +297,6 @@ class _FullTextPageState extends State<FullTextPage>
     }
   }
 
-  bool _isChapterHeader(String text) {
-    final headerPattern = RegExp(r'^ГЛАВА\s+', caseSensitive: true);
-    return headerPattern.hasMatch(text.trim());
-  }
-
   void _findTargetQuoteIndex() {
     _targetItemIndex = null;
     
@@ -394,117 +390,64 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildTextContent() {
-    debugPrint('Building text content, parsed items: [1m${_parsedItems.length}[0m');
-    if (_parsedItems.isEmpty) {
-      return Center(
-        child: Text(
-          'Нет текста для отображения',
-          style: TextStyle(color: _effectiveTextColor),
-        ),
-      );
-    }
-
-    // Используем ListView.builder для поддержки больших текстов
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(24.0),
-      physics: const ClampingScrollPhysics(),
-      itemCount: _parsedItems.length,
-      itemBuilder: (context, i) => _buildStaticTextItem(i),
-    );
-  }
-
-  Widget _buildStaticTextItem(int index) {
-    final item = _parsedItems[index];
-    
-    // Пропускаем главы
-    if (_isChapterHeader(item.content)) {
-      return const SizedBox.shrink();
-    }
-    
-    // Если это цитата
-    if (item.isQuoteBlock && index == _targetItemIndex) {
-      return Container(
-        key: ValueKey('quote_$index'),
-        margin: const EdgeInsets.symmetric(vertical: 24.0),
-        child: _buildHighlightedQuote(item),
-      );
-    }
-    
-    // Обычный параграф
+    // Диагностика: крупный текст если функция вызвана
     return Container(
-      key: ValueKey('paragraph_$index'),
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: SelectableText(
-        item.content,
-        style: TextStyle(
-          fontSize: _fontSize,
-          height: _lineHeight,
-          color: _effectiveTextColor,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHighlightedQuote(ParsedTextItem item) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _currentTheme.quoteHighlightColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _currentTheme.quoteHighlightColor.withOpacity(0.3),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Маркер цитаты
-          Row(
-            children: [
-              Icon(
-                Icons.format_quote,
-                size: 20,
-                color: _currentTheme.quoteHighlightColor,
+      color: Colors.red[900],
+      child: _parsedItems.isEmpty
+          ? Center(
+              child: Text(
+                'СПИСОК ПУСТОЙ',
+                style: TextStyle(fontSize: 32, color: Colors.yellow, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Искомая цитата',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: _currentTheme.quoteHighlightColor,
+            )
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'ТЕКСТ СТРОИТСЯ',
+                    style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          
-          // Текст цитаты
-          SelectableText(
-            item.content,
-            style: TextStyle(
-              fontSize: _fontSize + 1,
-              height: _lineHeight,
-              color: _effectiveTextColor,
-              fontWeight: FontWeight.w500,
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(24.0),
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: _parsedItems.length,
+                    itemBuilder: (context, i) {
+                      final item = _parsedItems[i];
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.green, width: 2),
+                          color: i % 2 == 0 ? Colors.black : Colors.grey[900],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '[$i]',
+                                style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  item.content.length > 100 ? item.content.substring(0, 100) + '...' : item.content,
+                                  style: TextStyle(color: Colors.white, fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // Информация об источнике
-          Text(
-            '${widget.context.quote.author}, ${widget.context.quote.source}',
-            style: TextStyle(
-              fontSize: _fontSize - 2,
-              color: _currentTheme.quoteHighlightColor.withOpacity(0.8),
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -630,681 +573,13 @@ class _FullTextPageState extends State<FullTextPage>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _themeAnimation,
-      builder: (context, child) {
-        return Scaffold(
-          backgroundColor: _effectiveBackgroundColor,
-          body: SafeArea(
-            child: Stack(
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 600),
-                  child: _isLoading 
-                      ? _buildLoadingState()
-                      : _error != null 
-                          ? _buildErrorState()
-                          : _buildFullTextContent(),
-                ),
-                _buildDebugControls(), // Добавляем отладочные кнопки
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: _currentTheme.quoteHighlightColor),
-          const SizedBox(height: 16),
-          Text(
-            'Загружаем полный текст...',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: _currentTheme.textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: _currentTheme.quoteHighlightColor),
-            const SizedBox(height: 16),
-            Text(_error!, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: _effectiveTextColor)),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: _goBack,
-                  child: Text('Назад', style: TextStyle(color: _effectiveTextColor.withOpacity(0.7))),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _loadFullText,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _currentTheme.quoteHighlightColor,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Попробовать снова'),
-                ),
-              ],
-            ),
-          ],
+    return Scaffold(
+      backgroundColor: Colors.red,
+      body: Center(
+        child: Text(
+          'DEBUG: Я СТРОЮСЬ',
+          style: TextStyle(fontSize: 40, color: Colors.yellow, fontWeight: FontWeight.bold),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFullTextContent() {
-    return Column(
-      children: [
-        _buildHeader(),
-        if (_showSettings) _buildReadingSettings(),
-        Expanded(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: _buildTextContent(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: _currentTheme.cardColor,
-        border: Border(bottom: BorderSide(color: _currentTheme.borderColor, width: 1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: _goBack,
-            icon: Icon(Icons.arrow_back, color: _effectiveTextColor),
-            tooltip: 'Назад',
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _bookSource?.title ?? 'Полный текст',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _effectiveTextColor),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  _bookSource?.author ?? '',
-                  style: TextStyle(fontSize: 14, color: _effectiveTextColor.withOpacity(0.7)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: _showDebugInfo,
-            icon: Icon(Icons.bug_report, color: _effectiveTextColor),
-            tooltip: 'Отладка',
-          ),
-          IconButton(
-            onPressed: () {
-              setState(() => _showSettings = !_showSettings);
-              if (_showSettings) {
-                _settingsController.forward();
-              } else {
-                _settingsController.reverse();
-              }
-            },
-            icon: Icon(_showSettings ? Icons.close : Icons.settings, color: _effectiveTextColor),
-            tooltip: 'Настройки чтения',
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDebugInfo() {
-    showDialog(
-      context: context,
-      builder: (context) => Material(
-        color: Colors.transparent,
-        child: Container(
-          margin: const EdgeInsets.all(24),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _currentTheme.cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _currentTheme.borderColor),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Отладочная информация',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: _effectiveTextColor,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _exportDebugInfo,
-                    icon: Icon(Icons.copy_all, color: _effectiveTextColor),
-                    tooltip: 'Копировать все',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildCopyableDebugItem('Целевая позиция', widget.context.quote.position.toString()),
-              _buildCopyableDebugItem('Целевой индекс', _targetItemIndex?.toString() ?? 'не найден'),
-              _buildCopyableDebugItem('Всего элементов', _parsedItems.length.toString()),
-              _buildCopyableDebugItem('Текущий скролл', _scrollController.hasClients 
-                ? _scrollController.offset.toStringAsFixed(1) 
-                : 'нет данных'),
-              _buildCopyableDebugItem('Макс. скролл', _scrollController.hasClients 
-                ? _scrollController.position.maxScrollExtent.toStringAsFixed(1) 
-                : 'нет данных'),
-              _buildCopyableDebugItem('Размер экрана', _scrollController.hasClients 
-                ? _scrollController.position.viewportDimension.toStringAsFixed(1) 
-                : 'нет данных'),
-              const SizedBox(height: 8),
-              const Divider(),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Позиции элементов:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: _effectiveTextColor,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => _copyPositionsToClipboard(),
-                    icon: Icon(Icons.copy, color: _effectiveTextColor),
-                    tooltip: 'Копировать позиции',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 200,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (int i = 0; i < _parsedItems.length; i++)
-                        _buildCopyableDebugItem(
-                          'Индекс $i',
-                          'Позиция ${_parsedItems[i].position}${_targetItemIndex == i ? ' (ЦЕЛЬ)' : ''}',
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Закрыть',
-                      style: TextStyle(color: _effectiveTextColor),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCopyableDebugItem(String label, String value) {
-    return InkWell(
-      onTap: () => _copyToClipboard('$label: $value'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    '$label: ',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: _effectiveTextColor.withOpacity(0.7),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: _effectiveTextColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              iconSize: 16,
-              visualDensity: VisualDensity.compact,
-              onPressed: () => _copyToClipboard('$label: $value'),
-              icon: Icon(Icons.copy, color: _effectiveTextColor.withOpacity(0.5)),
-              tooltip: 'Копировать',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Скопировано в буфер обмена'),
-        duration: const Duration(seconds: 1),
-        backgroundColor: _currentTheme.quoteHighlightColor,
-      ),
-    );
-  }
-
-  void _copyPositionsToClipboard() {
-    final buffer = StringBuffer();
-    buffer.writeln('=== Позиции элементов ===');
-    for (int i = 0; i < _parsedItems.length; i++) {
-      buffer.writeln('Индекс $i: Позиция ${_parsedItems[i].position}${_targetItemIndex == i ? ' (ЦЕЛЬ)' : ''}');
-    }
-    _copyToClipboard(buffer.toString());
-  }
-
-  void _exportDebugInfo() {
-    final buffer = StringBuffer();
-    buffer.writeln('=== ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ===');
-    buffer.writeln('Время: ${DateTime.now()}');
-    buffer.writeln();
-    
-    buffer.writeln('=== ОСНОВНЫЕ ПАРАМЕТРЫ ===');
-    buffer.writeln('Целевая позиция: ${widget.context.quote.position}');
-    buffer.writeln('Целевой индекс: ${_targetItemIndex?.toString() ?? 'не найден'}');
-    buffer.writeln('Всего элементов: ${_parsedItems.length}');
-    
-    if (_scrollController.hasClients) {
-      buffer.writeln('Текущий скролл: ${_scrollController.offset.toStringAsFixed(1)}');
-      buffer.writeln('Макс. скролл: ${_scrollController.position.maxScrollExtent.toStringAsFixed(1)}');
-      buffer.writeln('Размер экрана: ${_scrollController.position.viewportDimension.toStringAsFixed(1)}');
-    } else {
-      buffer.writeln('Скролл: нет данных');
-    }
-    
-    buffer.writeln();
-    buffer.writeln('=== ЦИТАТА ===');
-    buffer.writeln('Текст: "${widget.context.quote.text}"');
-    buffer.writeln('Автор: ${widget.context.quote.author}');
-    buffer.writeln('Источник: ${widget.context.quote.source}');
-    
-    buffer.writeln();
-    buffer.writeln('=== ПОЗИЦИИ ЭЛЕМЕНТОВ ===');
-    for (int i = 0; i < _parsedItems.length; i++) {
-      final item = _parsedItems[i];
-      buffer.writeln('Индекс $i: Позиция ${item.position}${_targetItemIndex == i ? ' (ЦЕЛЬ)' : ''}');
-      if (_targetItemIndex == i || i == 0 || i == _parsedItems.length - 1) {
-        buffer.writeln('  Контент: "${item.content.substring(0, math.min(50, item.content.length))}..."');
-      }
-    }
-    
-    _copyToClipboard(buffer.toString());
-  }
-
-  Widget _buildReadingSettings() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: _currentTheme.cardColor,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _currentTheme.highlightColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.tune, size: 20, color: _effectiveTextColor.withOpacity(0.8)),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Настройки чтения',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _currentTheme.textColor),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildModernSettingCard(
-            'Размер текста',
-            Icons.format_size,
-            Row(
-              children: [
-                _buildModernButton(Icons.remove, () => _adjustFontSize(-1), _fontSize > 12),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _currentTheme.highlightColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    '${_fontSize.toInt()}px',
-                    style: TextStyle(fontWeight: FontWeight.w600, color: _effectiveTextColor, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                _buildModernButton(Icons.add, () => _adjustFontSize(1), _fontSize < 24),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildModernSettingCard(
-            'Межстрочный интервал',
-            Icons.format_line_spacing,
-            Row(
-              children: [
-                _buildModernButton(Icons.compress, () => _adjustLineHeight(-0.1), _lineHeight > 1.2),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _currentTheme.highlightColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    '${_lineHeight.toStringAsFixed(1)}x',
-                    style: TextStyle(fontWeight: FontWeight.w600, color: _effectiveTextColor, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                _buildModernButton(Icons.expand, () => _adjustLineHeight(0.1), _lineHeight < 2.0),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildModernSettingCard(
-            'Готовые темы',
-            Icons.palette_outlined,
-            SizedBox(
-              height: 120,
-              child: SingleChildScrollView(
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: ReadingTheme.allThemes.map((theme) {
-                    final isSelected = theme.type == _currentTheme.type && !_useCustomColors;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _currentTheme = theme;
-                          _useCustomColors = false;
-                        });
-                        _saveSettings();
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: theme.backgroundColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected 
-                                ? theme.quoteHighlightColor 
-                                : theme.borderColor.withOpacity(0.3),
-                            width: isSelected ? 3 : 1,
-                          ),
-                          boxShadow: isSelected ? [
-                            BoxShadow(
-                              color: theme.quoteHighlightColor.withOpacity(0.3),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                          ] : [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            theme.letter,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: theme.textColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildModernSettingCard(
-            'Кастомные цвета',
-            Icons.color_lens,
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Цвет текста',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _currentTheme.textColor.withOpacity(0.6),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildColorPicker(
-                            _customTextColor ?? _currentTheme.textColor,
-                            (color) {
-                              setState(() {
-                                _customTextColor = color;
-                                _useCustomColors = true;
-                              });
-                              _saveSettings();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Цвет фона',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _currentTheme.textColor.withOpacity(0.6),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildColorPicker(
-                            _customBackgroundColor ?? _currentTheme.backgroundColor,
-                            (color) {
-                              setState(() {
-                                _customBackgroundColor = color;
-                                _useCustomColors = true;
-                              });
-                              _saveSettings();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModernSettingCard(String title, IconData icon, Widget content) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _currentTheme.highlightColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: _uiTextColor.withOpacity(0.7)),
-              const SizedBox(width: 8),
-              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _uiTextColor.withOpacity(0.8))),
-            ],
-          ),
-          const SizedBox(height: 12),
-          content,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModernButton(IconData icon, VoidCallback onTap, bool enabled) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: enabled 
-              ? _currentTheme.highlightColor.withOpacity(0.8)
-              : _currentTheme.highlightColor.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
-          boxShadow: enabled ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))] : null,
-        ),
-        child: Icon(icon, size: 18, color: enabled ? _uiTextColor : _uiTextColor.withOpacity(0.4)),
-      ),
-    );
-  }
-
-  Widget _buildColorPicker(Color currentColor, Function(Color) onColorChanged) {
-    final colors = [
-      Colors.black,
-      Colors.white,
-      Colors.grey[800]!,
-      Colors.grey[200]!,
-      Colors.brown[800]!,
-      Colors.brown[100]!,
-      Colors.blue[900]!,
-      Colors.blue[50]!,
-      Colors.green[900]!,
-      Colors.green[50]!,
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: colors.map((color) {
-        final isSelected = currentColor.value == color.value;
-        return GestureDetector(
-          onTap: () => onColorChanged(color),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected 
-                    ? _currentTheme.quoteHighlightColor 
-                    : Colors.grey.withOpacity(0.3),
-                width: isSelected ? 3 : 1,
-              ),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
-            ),
-            child: isSelected
-                ? Icon(
-                    Icons.check,
-                    size: 16,
-                    color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-                  )
-                : null,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildDebugControls() {
-    // Оставляем только кнопку отладки
-    return Positioned(
-      bottom: 20,
-      right: 20,
-      child: FloatingActionButton.small(
-        onPressed: _showDebugInfo,
-        child: const Icon(Icons.bug_report),
-        tooltip: 'Отладка',
       ),
     );
   }
@@ -1326,6 +601,65 @@ class _FullTextPageState extends State<FullTextPage>
         .replaceAll(RegExp(r'\s+'), ' ')
         .replaceAll(RegExp(r'[^\w\sа-яё]', unicode: true), '')
         .trim();
+  }
+
+  Widget _buildPersistentDebugInfo() {
+    final buffer = StringBuffer();
+    buffer.writeln('=== ДИАГНОСТИКА FULL_TEXT_PAGE ===');
+    buffer.writeln('isLoading: $_isLoading');
+    buffer.writeln('error: ${_error ?? "нет"}');
+    buffer.writeln('_fullText: ${_fullText == null ? "нет" : "есть (${_fullText!.length} символов)"}');
+    buffer.writeln('_parsedItems: ${_parsedItems.length}');
+    buffer.writeln('targetItemIndex: ${_targetItemIndex ?? "нет"}');
+    buffer.writeln('targetPosition: ${widget.context.quote.position}');
+    buffer.writeln('scroll: ${_scrollController.hasClients ? _scrollController.offset.toStringAsFixed(1) : "нет"}');
+    buffer.writeln('maxScroll: ${_scrollController.hasClients ? _scrollController.position.maxScrollExtent.toStringAsFixed(1) : "нет"}');
+    buffer.writeln('viewport: ${_scrollController.hasClients ? _scrollController.position.viewportDimension.toStringAsFixed(1) : "нет"}');
+    if (_parsedItems.isNotEmpty) {
+      buffer.writeln('--- Первый элемент:');
+      buffer.writeln('pos: ${_parsedItems.first.position}, isHeader: ${TextFileService.isHeader(_parsedItems.first.content)}, text: "${_parsedItems.first.content.substring(0, _parsedItems.first.content.length > 50 ? 50 : _parsedItems.first.content.length)}"');
+      buffer.writeln('--- Последний элемент:');
+      buffer.writeln('pos: ${_parsedItems.last.position}, isHeader: ${TextFileService.isHeader(_parsedItems.last.content)}, text: "${_parsedItems.last.content.substring(0, _parsedItems.last.content.length > 50 ? 50 : _parsedItems.last.content.length)}"');
+      if (_targetItemIndex != null && _targetItemIndex! >= 0 && _targetItemIndex! < _parsedItems.length) {
+        final t = _parsedItems[_targetItemIndex!];
+        buffer.writeln('--- Целевой элемент:');
+        buffer.writeln('pos: ${t.position}, isHeader: ${TextFileService.isHeader(t.content)}, text: "${t.content.substring(0, t.content.length > 50 ? 50 : t.content.length)}"');
+      }
+    }
+    return Positioned(
+      left: 10,
+      right: 10,
+      bottom: 10,
+      child: Material(
+        color: Colors.black.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('ДИАГНОСТИКА', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              Text(buffer.toString(), style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace')),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.yellow),
+                  onPressed: () => _copyToClipboard(buffer.toString()),
+                  child: const Text('Скопировать диагностику'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
   }
 }
 

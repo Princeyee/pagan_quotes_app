@@ -14,17 +14,6 @@ class QuoteExtractionService {
   final TextFileService _textService = TextFileService();
   final Random _random = Random();
 
-  // Паттерны для фильтрации заголовков и нежелательного контента
-  final List<RegExp> _headerPatterns = [
-    RegExp(r'^(Глава|Chapter|Часть|Part)\s+\d+', caseSensitive: false),
-    RegExp(r'^(Книга|Book)\s+\d+', caseSensitive: false),
-    RegExp(r'^[IVXLCDM]+\.\s*$'), // Римские цифры
-    RegExp(r'^\d+\.\s*$'), // Просто числа с точкой
-    RegExp(r'^[A-ZА-Я\s]{5,}$'), // Только заглавные буквы (заголовки)
-    RegExp(r'^(СОДЕРЖАНИЕ|ОГЛАВЛЕНИЕ|CONTENT|INDEX)', caseSensitive: false),
-    RegExp(r'^(ПРЕДИСЛОВИЕ|ВВЕДЕНИЕ|ЗАКЛЮЧЕНИЕ|PREFACE|INTRODUCTION|CONCLUSION)', caseSensitive: false),
-  ];
-
   final List<String> _unwantedWords = [
     'глава', 'chapter', 'часть', 'part', 'книга', 'book',
     'содержание', 'оглавление', 'предисловие', 'введение',
@@ -78,7 +67,7 @@ class QuoteExtractionService {
       if (content.length > 500) return false;
       
       // Проверка на заголовки
-      if (_isHeader(content)) return false;
+      if (TextFileService.isHeader(content)) return false;
       
       // Проверка на нежелательные слова
       if (_containsUnwantedWords(content)) return false;
@@ -95,24 +84,6 @@ class QuoteExtractionService {
       
       return true;
     }).toList();
-  }
-
-  /// Проверяет, является ли текст заголовком
-  bool _isHeader(String text) {
-    // Проверка по паттернам
-    for (final pattern in _headerPatterns) {
-      if (pattern.hasMatch(text)) return true;
-    }
-    
-    // Проверка на короткие строки в верхнем регистре
-    if (text.length < 50 && text.toUpperCase() == text && text.contains(' ')) {
-      return true;
-    }
-    
-    // Проверка на строки, состоящие только из заглавной буквы и цифр
-    if (RegExp(r'^[A-ZА-Я]\d*\.?\s*$').hasMatch(text)) return true;
-    
-    return false;
   }
 
   /// Проверяет, содержит ли текст нежелательные слова
@@ -235,7 +206,7 @@ class QuoteExtractionService {
       if (!RegExp(r'[a-zA-Zа-яА-Я]').hasMatch(sentence)) return false;
       
       // Не должно быть заголовком
-      if (_isHeader(sentence)) return false;
+      if (TextFileService.isHeader(sentence)) return false;
       
       return true;
     }).toList();
@@ -373,7 +344,7 @@ class QuoteExtractionService {
     if (text.length < 50 || text.length > 300) return false;
     
     // Не должно быть заголовком
-    if (_isHeader(text)) return false;
+    if (TextFileService.isHeader(text)) return false;
     
     // Должно содержать осмысленный контент
     final wordCount = text.split(' ').length;

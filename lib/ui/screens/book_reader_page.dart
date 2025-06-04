@@ -736,8 +736,7 @@ class _BookReaderPageState extends State<BookReaderPage>
     final paragraph = _paragraphs[index];
     final text = paragraph['content'] as String;
     final position = paragraph['position'] as int;
-    
-    if (text.isEmpty) return const SizedBox.shrink();
+    if (text.isEmpty || TextFileService.isHeader(text)) return const SizedBox.shrink();
     
     return Container(
       key: ValueKey('paragraph_$position'),
