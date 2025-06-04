@@ -243,12 +243,30 @@ class _FullTextPage2State extends State<FullTextPage2>
     }
     if (_autoScrollCompleted) return;
     // Ждём, пока построятся параграфы и появятся размеры
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!_offsetsReady) {
-      _calculateParagraphOffsets();
-      await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 1000));
+    int attempts = 0;
+    const maxAttempts = 10;
+    double? offset;
+    while (attempts < maxAttempts) {
+      if (!_offsetsReady) {
+        _calculateParagraphOffsets();
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+      offset = _paragraphOffsets[_targetParagraphIndex!];
+      if (offset != null && offset > 0) break;
+      debugPrint('Жду offset для targetParagraphIndex=$_targetParagraphIndex (попытка $attempts)');
+      await Future.delayed(const Duration(milliseconds: 300));
+      attempts++;
     }
-    final offset = _paragraphOffsets[_targetParagraphIndex!] ?? 0.0;
+    if (offset == null || offset == 0.0) {
+      debugPrint('!!! Не найден offset для targetParagraphIndex=$_targetParagraphIndex');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Не удалось найти позицию цитаты. Попробуйте "Найти цитату".'), backgroundColor: Colors.red),
+        );
+      }
+      return;
+    }
     final maxScroll = _scrollController.position.maxScrollExtent;
     final viewportHeight = _scrollController.position.viewportDimension;
     final clampedOffset = (offset - viewportHeight / 2).clamp(0.0, maxScroll);
@@ -267,6 +285,7 @@ class _FullTextPage2State extends State<FullTextPage2>
 
   void _calculateParagraphOffsets() {
     double offset = 0.0;
+    int count = 0;
     for (int i = 0; i < _paragraphs.length; i++) {
       final key = _paragraphKeys[i];
       if (key != null && key.currentContext != null) {
@@ -274,11 +293,14 @@ class _FullTextPage2State extends State<FullTextPage2>
         if (box != null && box.hasSize) {
           _paragraphOffsets[i] = offset;
           offset += box.size.height;
+          count++;
         }
       }
     }
     _offsetsReady = true;
-    _logger.info('Построена карта offsets для ${_paragraphOffsets.length} параграфов');
+    debugPrint('Построена карта offsets для $count параграфов из ${_paragraphs.length}');
+    debugPrint('Offset для targetParagraphIndex=$_targetParagraphIndex: ${_paragraphOffsets[_targetParagraphIndex!] ?? "нет"}');
+    _logger.info('Построена карта offsets для $count параграфов');
   }
 
   void _showScrollHint() {
@@ -324,7 +346,8 @@ class _FullTextPage2State extends State<FullTextPage2>
     buffer.writeln('scroll: ${_scrollController.hasClients ? _scrollController.offset.toStringAsFixed(1) : "нет"}');
     buffer.writeln('maxScroll: ${_scrollController.hasClients ? _scrollController.position.maxScrollExtent.toStringAsFixed(1) : "нет"}');
     buffer.writeln('viewport: ${_scrollController.hasClients ? _scrollController.position.viewportDimension.toStringAsFixed(1) : "нет"}');
-    buffer.writeln('fontSize: $_fontSize, lineHeight: $_lineHeight, theme: ${_currentTheme.typeString}');
+    buffer.writeln('offsets построено: ${_paragraphOffsets.length}');
+    buffer.writeln('offset для target: ${_targetParagraphIndex != null ? _paragraphOffsets[_targetParagraphIndex!] : "нет"}');
     if (_paragraphs.isNotEmpty) {
       buffer.writeln('--- Первый параграф:');
       buffer.writeln('pos: ${_paragraphs.first.position}, text: "${_paragraphs.first.content.substring(0, _paragraphs.first.content.length > 50 ? 50 : _paragraphs.first.content.length)}"');
