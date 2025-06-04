@@ -394,6 +394,7 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildTextContent() {
+    debugPrint('Building text content, parsed items: [1m${_parsedItems.length}[0m');
     if (_parsedItems.isEmpty) {
       return Center(
         child: Text(
@@ -403,19 +404,13 @@ class _FullTextPageState extends State<FullTextPage>
       );
     }
 
-    // Используем SingleChildScrollView вместо ListView.builder
-    return SingleChildScrollView(
+    // Используем ListView.builder для поддержки больших текстов
+    return ListView.builder(
       controller: _scrollController,
-      physics: const ClampingScrollPhysics(), // Убираем "пружинящий" эффект
       padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Предварительно строим ВСЕ элементы
-          for (int i = 0; i < _parsedItems.length; i++)
-            _buildStaticTextItem(i),
-        ],
-      ),
+      physics: const ClampingScrollPhysics(),
+      itemCount: _parsedItems.length,
+      itemBuilder: (context, i) => _buildStaticTextItem(i),
     );
   }
 
