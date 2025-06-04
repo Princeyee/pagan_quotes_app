@@ -66,6 +66,7 @@ flutter:
     - assets/full_texts/philosophy/
     - assets/full_texts/greece/
     - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
+    - assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt
     - assets/config/book_sources.json
 
 

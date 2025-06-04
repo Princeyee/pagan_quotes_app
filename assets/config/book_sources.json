@@ -27,6 +27,19 @@
   },
   "pagan": {
     "displayName": "Язычество",
-    "books": []
+    "books": [
+      {
+        "id": "on_being_a_pagan",
+        "title": "Как можно быть язычником",
+        "author": "Ален де Бенуа",
+        "language": "ru",
+        "translator": "А.В. Кубицкий",
+        "rawFilePath": "assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/de_benua/on_being_a_pagan_raw.txt"
+        
+        
+        }
+      
+    ]
   }
 }

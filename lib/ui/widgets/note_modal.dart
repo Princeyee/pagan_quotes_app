@@ -26,6 +26,8 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
   
   final TextEditingController _noteController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  
   bool _isSaving = false;
   String? _existingNote;
 
@@ -58,7 +60,9 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
     
     // Автоматически показываем клавиатуру
     Future.delayed(const Duration(milliseconds: 400), () {
-      _focusNode.requestFocus();
+      if (mounted) {
+        _focusNode.requestFocus();
+      }
     });
   }
 
@@ -82,19 +86,13 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
     final cache = CustomCache.prefs;
     
     if (noteText.isEmpty) {
-      // Удаляем заметку если пустая
       await cache.setSetting('note_${widget.quote.id}', null);
     } else {
-      // Сохраняем заметку
       await cache.setSetting('note_${widget.quote.id}', noteText);
       
-      // Сохраняем в список всех заметок для страницы заметок
       final allNotes = cache.getSetting<List<dynamic>>('all_notes') ?? [];
-      
-      // Удаляем старую версию если есть
       allNotes.removeWhere((n) => n['quoteId'] == widget.quote.id);
       
-      // Добавляем новую
       allNotes.add({
         'quoteId': widget.quote.id,
         'quoteText': widget.quote.text,
@@ -107,10 +105,8 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
     }
     
     setState(() => _isSaving = false);
-    
     widget.onSaved?.call();
     
-    // Закрываем модалку с анимацией
     await _animController.reverse();
     if (mounted) Navigator.of(context).pop();
   }
@@ -120,6 +116,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
     _animController.dispose();
     _noteController.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -133,181 +130,250 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
           opacity: _fadeAnimation,
           child: Container(
             color: Colors.black.withOpacity(0.7),
-            child: Center(
-              child: GestureDetector(
-                onTap: () {}, // Предотвращаем закрытие при тапе на контент
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    margin: const EdgeInsets.all(24),
-                    padding: const EdgeInsets.all(24),
-                    constraints: const BoxConstraints(
-                      maxWidth: 500,
-                      maxHeight: 600,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Заголовок
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.edit_note,
-                              color: Colors.white70,
-                              size: 28,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              _existingNote != null ? 'Редактировать заметку' : 'Новая заметка',
-                              style: GoogleFonts.merriweather(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: const Icon(Icons.close, color: Colors.white54),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 20),
-                        
-                        // Цитата
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
+            child: SafeArea(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {}, // Предотвращаем закрытие при тапе на контент
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Container(
+                      margin: const EdgeInsets.all(20),
+                      constraints: BoxConstraints(
+                        maxWidth: 500,
+                        maxHeight: MediaQuery.of(context).size.height * 0.85,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
                             color: Colors.black.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
-                            ),
+                            blurRadius: 20,
+                            spreadRadius: 5,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '"${widget.quote.text}"',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.white70,
-                                  height: 1.5,
-                                ),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '— ${widget.quote.author}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 24),
-                        
-                        // Поле ввода заметки
-                        Text(
-                          'Ваши мысли:',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        
-                        Flexible(
-                          child: Container(
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Заголовок
+                          Container(
+                            padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.white.withOpacity(0.1),
+                                ),
                               ),
                             ),
-                            child: TextField(
-                              controller: _noteController,
-                              focusNode: _focusNode,
-                              maxLines: null,
-                              minLines: 5,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                height: 1.5,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Запишите свои размышления о этой цитате...',
-                                hintStyle: TextStyle(
-                                  color: Colors.white.withOpacity(0.3),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.edit_note,
+                                    color: Colors.white70,
+                                    size: 20,
+                                  ),
                                 ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.all(16),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _existingNote != null ? 'Редактировать заметку' : 'Новая заметка',
+                                    style: GoogleFonts.merriweather(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  icon: const Icon(Icons.close, color: Colors.white54),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Контент с возможностью скролла
+                          Expanded(
+                            child: SingleChildScrollView(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Цитата
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.1),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '"${widget.quote.text}"',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontStyle: FontStyle.italic,
+                                            color: Colors.white70,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          '— ${widget.quote.author}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.white54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  const SizedBox(height: 24),
+                                  
+                                  // Поле ввода заметки
+                                  Text(
+                                    'Ваши мысли:',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  
+                                  // Динамически расширяющееся текстовое поле
+                                  Container(
+                                    width: double.infinity,
+                                    constraints: const BoxConstraints(
+                                      minHeight: 120,
+                                      maxHeight: 300,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.2),
+                                      ),
+                                    ),
+                                    child: TextField(
+                                      controller: _noteController,
+                                      focusNode: _focusNode,
+                                      maxLines: null,
+                                      minLines: 6,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        height: 1.5,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Запишите свои размышления о этой цитате...',
+                                        hintStyle: TextStyle(
+                                          color: Colors.white.withOpacity(0.3),
+                                        ),
+                                        border: InputBorder.none,
+                                        contentPadding: const EdgeInsets.all(16),
+                                      ),
+                                      onChanged: (text) {
+                                        // Автоматически скроллим вниз при добавлении текста
+                                        Future.delayed(const Duration(milliseconds: 100), () {
+                                          if (_scrollController.hasClients) {
+                                            _scrollController.animateTo(
+                                              _scrollController.position.maxScrollExtent,
+                                              duration: const Duration(milliseconds: 300),
+                                              curve: Curves.easeOut,
+                                            );
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  
+                                  // Дополнительное пространство для клавиатуры
+                                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                        
-                        const SizedBox(height: 24),
-                        
-                        // Кнопки
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Text(
-                                'Отмена',
-                                style: TextStyle(color: Colors.white54),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: _isSaving ? null : _saveNote,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
+                          
+                          // Кнопки внизу
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
+                                  color: Colors.white.withOpacity(0.1),
                                 ),
                               ),
-                              child: _isSaving
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                                      ),
-                                    )
-                                  : const Text('Сохранить'),
                             ),
-                          ],
-                        ),
-                      ],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Отмена',
+                                    style: TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                ElevatedButton(
+                                  onPressed: _isSaving ? null : _saveNote,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  child: _isSaving
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Сохранить',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
