@@ -390,64 +390,64 @@ class _FullTextPageState extends State<FullTextPage>
   }
 
   Widget _buildTextContent() {
-    // Диагностика: крупный текст если функция вызвана
+    if (_parsedItems.isEmpty) {
+      return Center(
+        child: Text(
+          'Нет текста для отображения',
+          style: TextStyle(color: _effectiveTextColor),
+        ),
+      );
+    }
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(24.0),
+      physics: const ClampingScrollPhysics(),
+      itemCount: _parsedItems.length,
+      itemBuilder: (context, i) => _buildStaticTextItem(i),
+    );
+  }
+
+  Widget _buildStaticTextItem(int index) {
+    final item = _parsedItems[index];
+    // Пропускаем главы
+    if (TextFileService.isHeader(item.content)) {
+      return const SizedBox.shrink();
+    }
+    // Если это цитата
+    if (item.isQuoteBlock && index == _targetItemIndex) {
+      return Container(
+        key: ValueKey('quote_$index'),
+        margin: const EdgeInsets.symmetric(vertical: 24.0),
+        child: _buildHighlightedQuote(item),
+      );
+    }
+    // Обычный параграф
     return Container(
-      color: Colors.red[900],
-      child: _parsedItems.isEmpty
-          ? Center(
-              child: Text(
-                'СПИСОК ПУСТОЙ',
-                style: TextStyle(fontSize: 32, color: Colors.yellow, fontWeight: FontWeight.bold),
-              ),
-            )
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'ТЕКСТ СТРОИТСЯ',
-                    style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(24.0),
-                    physics: const ClampingScrollPhysics(),
-                    itemCount: _parsedItems.length,
-                    itemBuilder: (context, i) {
-                      final item = _parsedItems[i];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.green, width: 2),
-                          color: i % 2 == 0 ? Colors.black : Colors.grey[900],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '[$i]',
-                                style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  item.content.length > 100 ? item.content.substring(0, 100) + '...' : item.content,
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+      key: ValueKey('paragraph_$index'),
+      margin: const EdgeInsets.only(bottom: 16.0),
+      child: SelectableText(
+        item.content,
+        style: TextStyle(
+          fontSize: _fontSize,
+          height: _lineHeight,
+          color: _effectiveTextColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHighlightedQuote(ParsedTextItem item) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 24.0),
+      child: Text(
+        item.content,
+        style: TextStyle(
+          fontSize: _fontSize,
+          height: _lineHeight,
+          color: _effectiveTextColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -574,36 +574,236 @@ class _FullTextPageState extends State<FullTextPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.red,
-      body: Center(
-        child: Text(
-          'DEBUG: Я СТРОЮСЬ',
-          style: TextStyle(fontSize: 40, color: Colors.yellow, fontWeight: FontWeight.bold),
+      backgroundColor: _effectiveBackgroundColor,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            _isLoading
+                ? _buildLoadingState()
+                : _error != null
+                    ? _buildErrorState()
+                    : _buildFullTextContent(),
+            _buildDebugControls(),
+          ],
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(() {});
-    _scrollController.dispose();
-    _fadeController.dispose();
-    _themeController.dispose();
-    _settingsController.dispose();
-    super.dispose();
+  Widget _buildFullTextContent() {
+    return Column(
+      children: [
+        _buildHeader(),
+        if (_showSettings) _buildReadingSettings(),
+        Expanded(
+          child: _buildTextContent(),
+        ),
+      ],
+    );
   }
 
-  // Нормализация текста для поиска и сравнения
-  String _normalizeText(String text) {
-    return text
-        .toLowerCase()
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .replaceAll(RegExp(r'[^\w\sа-яё]', unicode: true), '')
-        .trim();
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        'ТЕКСТ СТРОИТСЯ',
+        style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+    );
   }
 
-  Widget _buildPersistentDebugInfo() {
+  Widget _buildReadingSettings() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(
+            'Настройки чтения',
+            style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                onPressed: () => _adjustFontSize(-0.5),
+                icon: const Icon(Icons.zoom_out),
+              ),
+              Text(
+                '${_fontSize.toStringAsFixed(1)}',
+                style: const TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              IconButton(
+                onPressed: () => _adjustFontSize(0.5),
+                icon: const Icon(Icons.zoom_in),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                onPressed: () => _adjustLineHeight(-0.1),
+                icon: const Icon(Icons.format_line_spacing),
+              ),
+              Text(
+                '${_lineHeight.toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 16, color: Colors.white),
+              ),
+              IconButton(
+                onPressed: () => _adjustLineHeight(0.1),
+                icon: const Icon(Icons.format_line_spacing),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            'Загрузка текста...',
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Ошибка загрузки: $_error',
+            style: const TextStyle(color: Colors.red, fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadFullText,
+            child: const Text('Повторить загрузку'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDebugControls() {
+    return Positioned(
+      left: 10,
+      right: 10,
+      bottom: 10,
+      child: Material(
+        color: Colors.black.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('ДИАГНОСТИКА', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              Text(
+                'isLoading: $_isLoading',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'error: ${_error ?? "нет"}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '_fullText: ${_fullText == null ? "нет" : "есть (${_fullText!.length} символов)"}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '_parsedItems: ${_parsedItems.length}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'targetItemIndex: ${_targetItemIndex ?? "нет"}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'targetPosition: ${widget.context.quote.position}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'scroll: ${_scrollController.hasClients ? _scrollController.offset.toStringAsFixed(1) : "нет"}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'maxScroll: ${_scrollController.hasClients ? _scrollController.position.maxScrollExtent.toStringAsFixed(1) : "нет"}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'viewport: ${_scrollController.hasClients ? _scrollController.position.viewportDimension.toStringAsFixed(1) : "нет"}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 6),
+              if (_parsedItems.isNotEmpty) ...[
+                Text(
+                  '--- Первый элемент:',
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                ),
+                Text(
+                  'pos: ${_parsedItems.first.position}, isHeader: ${TextFileService.isHeader(_parsedItems.first.content)}, text: "${_parsedItems.first.content.substring(0, _parsedItems.first.content.length > 50 ? 50 : _parsedItems.first.content.length)}"',
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                ),
+                Text(
+                  '--- Последний элемент:',
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                ),
+                Text(
+                  'pos: ${_parsedItems.last.position}, isHeader: ${TextFileService.isHeader(_parsedItems.last.content)}, text: "${_parsedItems.last.content.substring(0, _parsedItems.last.content.length > 50 ? 50 : _parsedItems.last.content.length)}"',
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                ),
+                if (_targetItemIndex != null && _targetItemIndex! >= 0 && _targetItemIndex! < _parsedItems.length) ...[
+                  Text(
+                    '--- Целевой элемент:',
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                  ),
+                  Text(
+                    'pos: ${_parsedItems[_targetItemIndex!].position}, isHeader: ${TextFileService.isHeader(_parsedItems[_targetItemIndex!].content)}, text: "${_parsedItems[_targetItemIndex!].content.substring(0, _parsedItems[_targetItemIndex!].content.length > 50 ? 50 : _parsedItems[_targetItemIndex!].content.length)}"',
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                  ),
+                ],
+              ],
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.yellow),
+                  onPressed: _copyPersistentDebugInfo,
+                  child: const Text('Скопировать диагностику'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _copyPersistentDebugInfo() {
     final buffer = StringBuffer();
     buffer.writeln('=== ДИАГНОСТИКА FULL_TEXT_PAGE ===');
     buffer.writeln('isLoading: $_isLoading');
@@ -626,40 +826,30 @@ class _FullTextPageState extends State<FullTextPage>
         buffer.writeln('pos: ${t.position}, isHeader: ${TextFileService.isHeader(t.content)}, text: "${t.content.substring(0, t.content.length > 50 ? 50 : t.content.length)}"');
       }
     }
-    return Positioned(
-      left: 10,
-      right: 10,
-      bottom: 10,
-      child: Material(
-        color: Colors.black.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('ДИАГНОСТИКА', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 13)),
-              const SizedBox(height: 4),
-              Text(buffer.toString(), style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace')),
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  style: TextButton.styleFrom(foregroundColor: Colors.yellow),
-                  onPressed: () => _copyToClipboard(buffer.toString()),
-                  child: const Text('Скопировать диагностику'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    _copyToClipboard(buffer.toString());
   }
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(() {});
+    _scrollController.dispose();
+    _fadeController.dispose();
+    _themeController.dispose();
+    _settingsController.dispose();
+    super.dispose();
+  }
+
+  // Нормализация текста для поиска и сравнения
+  String _normalizeText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[^\w\sа-яё]', unicode: true), '')
+        .trim();
   }
 }
 
