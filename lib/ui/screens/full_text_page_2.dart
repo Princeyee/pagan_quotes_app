@@ -1424,118 +1424,112 @@ class _FullTextPage2State extends State<FullTextPage2>
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: _currentTheme.cardColor,
-        border: Border(
-          bottom: BorderSide(color: _currentTheme.borderColor, width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(Icons.arrow_back, color: _effectiveTextColor),
-            tooltip: 'Назад',
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _bookSource?.title ?? 'Книга',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: _effectiveTextColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  _bookSource?.author ?? 'Автор',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _effectiveTextColor.withOpacity(0.7),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: _copyDebugInfo,
-            icon: Icon(Icons.bug_report, color: _effectiveTextColor),
-            tooltip: 'Скопировать диагностику',
-          ),
-          IconButton(
-            onPressed: () {
-              setState(() => _showSettings = !_showSettings);
-              if (_showSettings) {
-                _settingsController.forward();
-              } else {
-                _settingsController.reverse();
-              }
-            },
-            icon: Icon(
-              _showSettings ? Icons.close : Icons.settings,
-              color: _effectiveTextColor,
-            ),
-            tooltip: 'Настройки чтения',
-          ),
-        ],
-      ),
-    );
-  }
+ Widget _buildHeader() {
+ return Container(
+   padding: const EdgeInsets.all(16.0),
+   decoration: BoxDecoration(
+     color: _currentTheme.cardColor,
+     border: Border(
+       bottom: BorderSide(color: _currentTheme.borderColor, width: 1),
+     ),
+     boxShadow: [
+       BoxShadow(
+         color: Colors.black.withOpacity(0.1),
+         blurRadius: 8,
+         offset: const Offset(0, 2),
+       ),
+     ],
+   ),
+   child: Row(
+     children: [
+       IconButton(
+         onPressed: () => Navigator.of(context).pop(),
+         icon: Icon(Icons.arrow_back, color: _effectiveTextColor),
+         tooltip: 'Назад',
+       ),
+       Expanded(
+         child: Column(
+           crossAxisAlignment: CrossAxisAlignment.start,
+           children: [
+             Text(
+               _bookSource?.title ?? 'Книга',
+               style: TextStyle(
+                 fontSize: 16,
+                 fontWeight: FontWeight.w600,
+                 color: _effectiveTextColor,
+               ),
+               maxLines: 1,
+               overflow: TextOverflow.ellipsis,
+             ),
+             Text(
+               _bookSource?.author ?? 'Автор',
+               style: TextStyle(
+                 fontSize: 14,
+                 color: _effectiveTextColor.withOpacity(0.7),
+               ),
+               maxLines: 1,
+               overflow: TextOverflow.ellipsis,
+             ),
+           ],
+         ),
+       ),
+       IconButton(
+         onPressed: () {
+           setState(() => _showSettings = !_showSettings);
+           if (_showSettings) {
+             _settingsController.forward();
+           } else {
+             _settingsController.reverse();
+           }
+         },
+         icon: Icon(
+           _showSettings ? Icons.close : Icons.settings,
+           color: _effectiveTextColor,
+         ),
+         tooltip: 'Настройки чтения',
+       ),
+     ],
+   ),
+ );
+}
 
-  Widget _buildReadingSettings() {
-    return ReadingSettingsPanel(
-      fontSize: _fontSize,
-      lineHeight: _lineHeight,
-      currentTheme: _currentTheme,
-      useCustomColors: _useCustomColors,
-      customTextColor: _customTextColor,
-      customBackgroundColor: _customBackgroundColor,
-      onFontSizeChanged: (v) {
-        setState(() => _fontSize = v.clamp(12.0, 24.0));
-        _saveSettings();
-      },
-      onLineHeightChanged: (v) {
-        setState(() => _lineHeight = v.clamp(1.2, 2.0));
-        _saveSettings();
-      },
-      onThemeChanged: (theme) {
-        setState(() {
-          _currentTheme = theme;
-          _useCustomColors = false;
-        });
-        _saveSettings();
-      },
-      onUseCustomColorsChanged: (v) {
-        setState(() => _useCustomColors = v);
-        _saveSettings();
-      },
-      onCustomTextColorChanged: (color) {
-        setState(() => _customTextColor = color);
-        _saveSettings();
-      },
-      onCustomBackgroundColorChanged: (color) {
-        setState(() => _customBackgroundColor = color);
-        _saveSettings();
-      },
-    );
-  }
-
+Widget _buildReadingSettings() {
+ return ReadingSettingsPanel(
+   fontSize: _fontSize,
+   lineHeight: _lineHeight,
+   currentTheme: _currentTheme,
+   useCustomColors: _useCustomColors,
+   customTextColor: _customTextColor,
+   customBackgroundColor: _customBackgroundColor,
+   onFontSizeChanged: (v) {
+     setState(() => _fontSize = v.clamp(12.0, 24.0));
+     _saveSettings();
+   },
+   onLineHeightChanged: (v) {
+     setState(() => _lineHeight = v.clamp(1.2, 2.0));
+     _saveSettings();
+   },
+   onThemeChanged: (theme) {
+     setState(() {
+       _currentTheme = theme;
+       _useCustomColors = false;
+     });
+     _saveSettings();
+   },
+   onUseCustomColorsChanged: (v) {
+     setState(() => _useCustomColors = v);
+     _saveSettings();
+   },
+   onCustomTextColorChanged: (color) {
+     setState(() => _customTextColor = color);
+     _saveSettings();
+   },
+   onCustomBackgroundColorChanged: (color) {
+     setState(() => _customBackgroundColor = color);
+     _saveSettings();
+   },
+ );
+}
   Widget _buildTextContent() {
     if (_paragraphs.isEmpty) {
       return Center(

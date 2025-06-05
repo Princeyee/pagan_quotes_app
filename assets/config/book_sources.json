@@ -1,6 +1,4 @@
 
-
-# 
 {
   "greece": {
     "displayName": "Греция",
@@ -94,7 +92,7 @@
       {
         "id": "beowulf",
         "title": "Беовульф",
-        "author": "Аноним",
+        "author": "Мифопоэтика",
         "language": "ru",
         "translator": "В.Г. Тихомиров",
         "rawFilePath": "assets/full_texts/nordic/folk/beowulf_raw.txt",
@@ -108,16 +106,8 @@
         "translator": "А.И. Корсун",
         "rawFilePath": "assets/full_texts/nordic/folk/elder_edda_raw.txt",
         "cleanedFilePath": "assets/full_texts/nordic/folk/elder_edda_cleaned.txt"
-      },
-      {
-        "id": "elderedda",
-        "title": "Песни о богах и героях",
-        "author": "Мифопоэтика",
-        "language": "ru",
-        "translator": "А.И. Корсун",
-        "rawFilePath": "assets/full_texts/nordic/folk/elderedda_raw.txt",
-        "cleanedFilePath": "assets/full_texts/nordic/folk/elderedda_cleaned.txt"
       }
+      
     ]
   },
   "philosophy": {

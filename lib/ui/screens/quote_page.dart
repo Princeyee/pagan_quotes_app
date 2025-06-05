@@ -1,4 +1,5 @@
 
+// lib/ui/screens/quote_page.dart - АДАПТИВНАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
@@ -20,6 +21,8 @@ import '../../utils/custom_cache.dart';
 import '../widgets/nav_drawer.dart';
 import '../widgets/note_modal.dart';
 import 'context_page.dart';
+
+// [Все остальные классы остаются такими же: StrikeThroughPainter, AnimatedHeartButton, AnimatedShareButton, TutorialOverlay]
 
 class StrikeThroughPainter extends CustomPainter {
   final double progress;
@@ -52,7 +55,6 @@ class StrikeThroughPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
 
-// Современная анимированная кнопка лайка
 class AnimatedHeartButton extends StatefulWidget {
   final bool isLiked;
   final VoidCallback onTap;
@@ -187,7 +189,6 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
   }
 }
 
-// Современная анимированная кнопка поделиться
 class AnimatedShareButton extends StatefulWidget {
   final VoidCallback onTap;
   final Color color;
@@ -282,7 +283,6 @@ class _AnimatedShareButtonState extends State<AnimatedShareButton>
   }
 }
 
-// Компонент для отображения подсказок
 class TutorialOverlay extends StatefulWidget {
   final Widget child;
   final bool showTutorial;
@@ -480,6 +480,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   }
 }
 
+// ============ ГЛАВНЫЙ КЛАСС С АДАПТИВНОСТЬЮ ============
+
 class QuotePage extends StatefulWidget {
   const QuotePage({super.key});
 
@@ -507,7 +509,7 @@ class _QuotePageState extends State<QuotePage>
   bool _isFavorite = false;
   bool _isSoundMuted = false;
   bool _showTutorial = false;
-  bool _showTooltipHint = true; // Новая переменная для подсказки
+  bool _showTooltipHint = true;
 
   String? _error;
   Color _textColor = Colors.white;
@@ -524,6 +526,7 @@ class _QuotePageState extends State<QuotePage>
     _checkTutorial();
   }
 
+  // [Все методы инициализации остаются такими же]
   Future<void> _checkTutorial() async {
     final hasSeenTutorial = _cache.getSetting('tutorial_seen') ?? false;
     if (!hasSeenTutorial) {
@@ -676,10 +679,9 @@ class _QuotePageState extends State<QuotePage>
       _backgroundImageUrl = imageUrl;
       _textColor = textColor;
       _isFavorite = isFavorite;
-      _isLoading = false; // Теперь картинка начнет появляться
+      _isLoading = false;
     });
     
-    // Задержка перед стартом основной анимации контента
     await Future.delayed(const Duration(milliseconds: 400));
     _startAnimations();
     
@@ -904,7 +906,6 @@ class _QuotePageState extends State<QuotePage>
     );
   }
 
-  // ИСПРАВЛЕННЫЙ _buildLoadingState - просто черный экран
   Widget _buildLoadingState() {
     return Container(color: Colors.black);
   }
@@ -938,6 +939,7 @@ class _QuotePageState extends State<QuotePage>
     );
   }
 
+  // ============ АДАПТИВНЫЙ КОНТЕНТ ============
   Widget _buildQuoteContent() {
     final quote = _currentDailyQuote!.quote;
     
@@ -969,10 +971,10 @@ class _QuotePageState extends State<QuotePage>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Сначала черный фон
+            // Черный фон
             Container(color: Colors.black),
             
-            // Потом картинка с анимацией
+            // Картинка с анимацией
             if (_backgroundImageUrl != null)
               AnimatedOpacity(
                 opacity: _isLoading ? 0.0 : 1.0,
@@ -998,8 +1000,8 @@ class _QuotePageState extends State<QuotePage>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.4), // Менее темный верх
-                    Colors.black.withOpacity(0.7), // Более темный низ для читаемости
+                    Colors.black.withOpacity(0.4),
+                    Colors.black.withOpacity(0.7),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -1007,100 +1009,196 @@ class _QuotePageState extends State<QuotePage>
               ),
             ),
             
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  
-                  Expanded(
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: SlideTransition(
-                        position: _slideAnimation,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildQuoteText(quote),
-                            const SizedBox(height: 32),
-                            _buildQuoteAttribution(quote),
-                            const SizedBox(height: 48),
-                            _buildActionButtons(),
-                          ],
+            // АДАПТИВНАЯ КОМПОНОВКА
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  padding: EdgeInsets.all(_getResponsivePadding(constraints)),
+                  child: Column(
+                    children: [
+                      _buildHeader(constraints),
+                      
+                      Expanded(
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: _buildAdaptiveQuoteLayout(quote, constraints),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             
-            // ИСПРАВЛЕННАЯ подсказка внизу
+            // Подсказка внизу
             if (_currentDailyQuote != null && !_currentDailyQuote!.isViewed && !_showTutorial)
-              Positioned(
-                bottom: 40,
-                left: 0,
-                right: 0,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(seconds: 2),
-                  builder: (context, value, child) {
-                    return AnimatedOpacity(
-                      opacity: value > 0.5 ? 2.0 - (value * 2) : value * 2,
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(
-                            color: _textColor.withOpacity(0.2),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.keyboard_arrow_up,
-                              color: _textColor.withOpacity(0.8),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Свайп для контекста',
-                              style: GoogleFonts.merriweather(
-                                color: _textColor.withOpacity(0.8),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w300,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+              _buildSwipeHint(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  // ============ АДАПТИВНЫЕ МЕТОДЫ ============
+  
+  /// Получает отзывчивый отступ в зависимости от размера экрана
+  double _getResponsivePadding(BoxConstraints constraints) {
+    if (constraints.maxHeight < 600) return 16.0; // Маленькие экраны
+    if (constraints.maxHeight < 800) return 20.0; // Средние экраны  
+    return 24.0; // Большие экраны
+  }
+
+  /// Адаптивная компоновка цитаты
+  Widget _buildAdaptiveQuoteLayout(Quote quote, BoxConstraints constraints) {
+    final availableHeight = constraints.maxHeight - 120; // Вычитаем место для header'а
+    final isSmallScreen = constraints.maxHeight < 700;
+    final isVerySmallScreen = constraints.maxHeight < 600;
+    
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Адаптивная цитата
+        Flexible(
+          flex: isVerySmallScreen ? 3 : 4,
+          child: Center(
+            child: _buildAdaptiveQuoteText(quote, constraints),
+          ),
+        ),
+        
+        SizedBox(height: isVerySmallScreen ? 16 : 24),
+        
+        // Адаптивная атрибуция
+        _buildAdaptiveAttribution(quote, constraints),
+        
+        SizedBox(height: isSmallScreen ? 24 : 32),
+        
+        // Кнопки действий - всегда помещаются
+        _buildActionButtons(constraints),
+        
+        // Дополнительное пространство для маленьких экранов
+        if (isVerySmallScreen) const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Адаптивный текст цитаты с автоматическим размером
+  Widget _buildAdaptiveQuoteText(Quote quote, BoxConstraints constraints) {
+    final baseFontSize = _getAdaptiveFontSize(quote.text, constraints);
+    
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: constraints.maxWidth * 0.08, // 8% от ширины экрана
+        vertical: 16,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            color: _textColor.withOpacity(0.8),
+            width: 3,
+          ),
+        ),
+      ),
+      child: Text(
+        '"${quote.text}"',
+        style: GoogleFonts.merriweather(
+          fontSize: baseFontSize,
+          height: _getAdaptiveLineHeight(constraints),
+          fontWeight: FontWeight.w300,
+          fontStyle: FontStyle.italic,
+          color: _textColor,
+          decoration: TextDecoration.none,
+        ),
+        textAlign: TextAlign.center,
+        maxLines: _getMaxLines(constraints),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  /// Вычисляет адаптивный размер шрифта
+  double _getAdaptiveFontSize(String text, BoxConstraints constraints) {
+    // Базовые размеры в зависимости от высоты экрана
+    double baseFontSize;
+    if (constraints.maxHeight < 600) {
+      baseFontSize = 18.0; // Очень маленькие экраны
+    } else if (constraints.maxHeight < 700) {
+      baseFontSize = 20.0; // Маленькие экраны
+    } else if (constraints.maxHeight < 800) {
+      baseFontSize = 22.0; // Средние экраны
+    } else {
+      baseFontSize = 24.0; // Большие экраны
+    }
+
+    // Корректировка в зависимости от длины текста
+    if (text.length > 300) {
+      baseFontSize -= 4;
+    } else if (text.length > 200) {
+      baseFontSize -= 2;
+    } else if (text.length > 150) {
+      baseFontSize -= 1;
+    }
+
+    // Минимальный и максимальный размер
+    return baseFontSize.clamp(14.0, 28.0);
+  }
+
+  /// Получает адаптивную высоту строки
+  double _getAdaptiveLineHeight(BoxConstraints constraints) {
+    if (constraints.maxHeight < 600) return 1.3;
+    if (constraints.maxHeight < 700) return 1.4;
+    return 1.5;
+  }
+
+  /// Получает максимальное количество строк
+  int _getMaxLines(BoxConstraints constraints) {
+    if (constraints.maxHeight < 600) return 6;
+    if (constraints.maxHeight < 700) return 8;
+    return 10;
+  }
+
+  /// Адаптивная атрибуция автора
+  Widget _buildAdaptiveAttribution(Quote quote, BoxConstraints constraints) {
+    final authorFontSize = constraints.maxHeight < 600 ? 16.0 : 18.0;
+    final sourceFontSize = constraints.maxHeight < 600 ? 13.0 : 15.0;
+    
+    return Column(
+      children: [
+        Text(
+          quote.author,
+          style: TextStyle(
+            fontSize: authorFontSize,
+            fontWeight: FontWeight.w600,
+            color: _textColor,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          quote.source,
+          style: TextStyle(
+            fontSize: sourceFontSize,
+            color: _textColor.withOpacity(0.8),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  /// Адаптивный заголовок
+  Widget _buildHeader(BoxConstraints constraints) {
+    final isSmallScreen = constraints.maxHeight < 700;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1113,206 +1211,241 @@ class _QuotePageState extends State<QuotePage>
         
         Row(
           children: [
-            Column(
-              children: [
-                Text(
-                  'Сегодня',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _textColor.withOpacity(0.8),
-                    fontWeight: FontWeight.w300,
+            if (!isSmallScreen) // Скрываем дату на маленьких экранах
+              Column(
+                children: [
+                  Text(
+                    'Сегодня',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _textColor.withOpacity(0.8),
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-                Text(
-                  _currentDailyQuote!.formattedDate,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: _textColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            GestureDetector(
-              onTap: () async {
-                setState(() {
-                  _isSoundMuted = !_isSoundMuted;
-                });
-                
-                if (_isSoundMuted) {
-                  await SoundManager().setMuted(true);
-                  _soundButtonController.forward();
-                  await _stopAmbientSound();
-                } else {
-                  await SoundManager().setMuted(false);
-                  _soundButtonController.reverse();
-                  await _resumeAmbientIfNeeded();
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.3),
-                ),
-                child: AnimatedBuilder(
-                  animation: _soundButtonAnimation,
-                  builder: (context, child) {
-                    return Stack(
-                      children: [
-                        Icon(
-                          Icons.volume_up,
-                          color: _textColor,
-                          size: 20,
-                        ),
-                        if (_soundButtonAnimation.value > 0)
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: StrikeThroughPainter(_soundButtonAnimation.value),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-        
-        // ИСПРАВЛЕННАЯ подсказка в заголовке
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _showTooltipHint = false;
-            });
-          },
-          child: AnimatedOpacity(
-            opacity: _showTooltipHint ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 300),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.85), // Более темный фон
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3), // Белая рамка для контраста
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                  Text(
+                    _currentDailyQuote!.formattedDate,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _textColor,
+                    ),
                   ),
                 ],
               ),
+            SizedBox(width: isSmallScreen ? 0 : 16),
+            _buildSoundButton(),
+          ],
+        ),
+        
+        // Подсказка для заметок (адаптивная)
+        if (!isSmallScreen && _showTooltipHint)
+          _buildTooltipHint()
+        else
+          const SizedBox(width: 48), // Заглушка для выравнивания
+      ],
+    );
+  }
+
+  /// Кнопка звука
+  Widget _buildSoundButton() {
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          _isSoundMuted = !_isSoundMuted;
+        });
+        
+        if (_isSoundMuted) {
+          await SoundManager().setMuted(true);
+          _soundButtonController.forward();
+          await _stopAmbientSound();
+        } else {
+          await SoundManager().setMuted(false);
+          _soundButtonController.reverse();
+          await _resumeAmbientIfNeeded();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withOpacity(0.3),
+        ),
+        child: AnimatedBuilder(
+          animation: _soundButtonAnimation,
+          builder: (context, child) {
+            return Stack(
+              children: [
+                Icon(
+                  Icons.volume_up,
+                  color: _textColor,
+                  size: 20,
+                ),
+                if (_soundButtonAnimation.value > 0)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: StrikeThroughPainter(_soundButtonAnimation.value),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Подсказка для заметок
+  Widget _buildTooltipHint() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showTooltipHint = false;
+        });
+      },
+      child: AnimatedOpacity(
+        opacity: _showTooltipHint ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 300),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.85),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.touch_app,
+                color: Colors.white.withOpacity(0.9),
+                size: 14,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Долгое нажатие',
+                style: GoogleFonts.merriweather(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Кнопки действий (адаптивные)
+  Widget _buildActionButtons(BoxConstraints constraints) {
+    final buttonSize = constraints.maxHeight < 600 ? 48.0 : 56.0;
+    final spacing = constraints.maxHeight < 600 ? 24.0 : 32.0;
+    
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildAdaptiveHeartButton(buttonSize),
+        SizedBox(width: spacing),
+        _buildAdaptiveShareButton(buttonSize),
+      ],
+    );
+  }
+
+  /// Адаптивная кнопка лайка
+  Widget _buildAdaptiveHeartButton(double size) {
+    return GestureDetector(
+      onTap: _toggleFavorite,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withOpacity(0.3),
+        ),
+        child: Icon(
+          _isFavorite ? Icons.favorite : Icons.favorite_border,
+          color: _isFavorite ? Colors.red : _textColor,
+          size: size * 0.5,
+        ),
+      ),
+    );
+  }
+
+  /// Адаптивная кнопка поделиться
+  Widget _buildAdaptiveShareButton(double size) {
+    return GestureDetector(
+      onTap: _shareQuoteImage,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withOpacity(0.3),
+          border: Border.all(
+            color: _textColor.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          Icons.share_outlined,
+          color: _textColor,
+          size: size * 0.5,
+        ),
+      ),
+    );
+  }
+
+  /// Подсказка свайпа
+  Widget _buildSwipeHint() {
+    return Positioned(
+      bottom: 40,
+      left: 0,
+      right: 0,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(seconds: 2),
+        builder: (context, value, child) {
+          return AnimatedOpacity(
+            opacity: value > 0.5 ? 2.0 - (value * 2) : value * 2,
+            duration: const Duration(milliseconds: 300),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: _textColor.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.touch_app,
-                    color: Colors.white.withOpacity(0.9), // Белая иконка
-                    size: 16,
+                    Icons.keyboard_arrow_up,
+                    color: _textColor.withOpacity(0.8),
+                    size: 18,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Text(
-                    'Долгое нажатие для заметки',
+                    'Свайп для контекста',
                     style: GoogleFonts.merriweather(
-                      color: Colors.white.withOpacity(0.9), // Белый текст
-                      fontSize: 13,
+                      color: _textColor.withOpacity(0.8),
+                      fontSize: 12,
                       fontWeight: FontWeight.w300,
-                      decoration: TextDecoration.none,
-                      letterSpacing: 0.3,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ИСПРАВЛЕННЫЙ _buildQuoteText - убираем decoration
-  Widget _buildQuoteText(Quote quote) {
-    double fontSize = 24;
-    if (quote.text.length > 200) {
-      fontSize = 20;
-    } else if (quote.text.length > 300) {
-      fontSize = 18;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(
-            color: _textColor.withOpacity(0.8),
-            width: 3,
-          ),
-        ),
+          );
+        },
       ),
-      child: Text(
-        '"${quote.text}"',
-        style: GoogleFonts.merriweather(
-          fontSize: fontSize,
-          height: 1.5,
-          fontWeight: FontWeight.w300,
-          fontStyle: FontStyle.italic,
-          color: _textColor,
-          // Убираем все decoration чтобы не было подчеркиваний
-          decoration: TextDecoration.none,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildQuoteAttribution(Quote quote) {
-    return Column(
-      children: [
-        Text(
-          quote.author,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          quote.source,
-          style: TextStyle(
-            fontSize: 16,
-            color: _textColor.withOpacity(0.8),
-            fontStyle: FontStyle.italic,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        AnimatedHeartButton(
-          isLiked: _isFavorite,
-          onTap: _toggleFavorite,
-          color: _textColor,
-        ),
-        
-        const SizedBox(width: 32),
-        
-        AnimatedShareButton(
-          onTap: _shareQuoteImage,
-          color: _textColor,
-        ),
-      ],
     );
   }
 
