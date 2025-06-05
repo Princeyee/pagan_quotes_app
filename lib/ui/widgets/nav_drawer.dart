@@ -146,7 +146,7 @@ class _NavDrawerState extends State<NavDrawer>
                                   child: Center(
                                     child: ClipOval(
                                       child: Image.asset(
-                                        'assets/images/RuneIcon.png',
+                                        'assets/images/rune_icon.png',
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
