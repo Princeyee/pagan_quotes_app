@@ -75,10 +75,8 @@ class QuoteExtractionService {
     
     // Список файлов с кураторскими цитатами
     final curatedFiles = [
-      'assets/curated/aristotle_approved.json',
-      'assets/curated/evola_approved.json',
-      // Добавляй сюда новые файлы
-    ];
+  'assets/curated/my_quotes_approved.json',
+];
 
     for (final filePath in curatedFiles) {
       try {

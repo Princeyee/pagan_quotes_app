@@ -126,7 +126,7 @@ flutter:
     - assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt
     - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_raw.txt
     - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt
-    - assets/currated/my_quotes.json
+    - assets/curated/my_quotes_approved.json
 
 flutter_launcher_icons:
   android: true

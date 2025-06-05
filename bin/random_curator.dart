@@ -1,5 +1,4 @@
 
-# 
 // bin/random_curator.dart - СЛУЧАЙНЫЙ ОТБОР ИЗ ВСЕХ КНИГ
 import 'dart:io';
 import 'dart:convert';
@@ -86,6 +85,10 @@ class RandomCurator {
   List<Quote> processedQuotes = [];
   Set<String> processedIds = {};
   
+  // Для циклического отбора
+  Map<String, List<Paragraph>> paragraphsByBook = {};
+  int currentBookIndex = 0;
+  
   RandomCurator({required this.outputPath});
 
   Future<void> run() async {
@@ -153,26 +156,46 @@ class RandomCurator {
         final content = await file.readAsString();
         final parts = content.split(RegExp(r'\[pos:\d+\]'));
         
+        final bookParagraphs = <Paragraph>[];
+        
         for (int i = 0; i < parts.length; i++) {
           final text = parts[i].trim();
           if (text.isNotEmpty && text.length > 20) { // Минимальная длина
             final id = '${book.category}_${book.author}_${book.source}_$i';
-            allParagraphs.add(Paragraph(
+            final paragraph = Paragraph(
               text: text,
               book: book,
               position: i,
               id: id,
-            ));
+            );
+            allParagraphs.add(paragraph);
+            bookParagraphs.add(paragraph);
           }
         }
         
-        print('✅ ${book.author} - ${book.source}: ${parts.where((p) => p.trim().isNotEmpty).length} параграфов');
+        // Группируем по книгам для циклического отбора
+        final bookKey = '${book.author}_${book.source}';
+        paragraphsByBook[bookKey] = bookParagraphs;
+        
+        print('✅ ${book.author} - ${book.source}: ${bookParagraphs.length} параграфов');
       } catch (e) {
         print('❌ Ошибка загрузки ${book.path}: $e');
       }
     }
     
-    print('\n📊 Всего загружено: ${allParagraphs.length} параграфов из ${books.length} книг');
+    // Перемешиваем порядок книг для разнообразия
+    final bookKeys = paragraphsByBook.keys.toList();
+    bookKeys.shuffle(random);
+    
+    // Пересоздаем paragraphsByBook в новом порядке
+    final shuffledMap = <String, List<Paragraph>>{};
+    for (final key in bookKeys) {
+      shuffledMap[key] = paragraphsByBook[key]!;
+    }
+    paragraphsByBook = shuffledMap;
+    
+    print('\n📊 Всего загружено: ${allParagraphs.length} параграфов из ${paragraphsByBook.length} книг');
+    print('🔄 Установлен циклический режим отбора: по 1 цитате из каждой книги');
   }
 
   Future<void> loadExisting() async {
@@ -193,31 +216,46 @@ class RandomCurator {
   void showStats() {
     final approved = processedQuotes.where((q) => q.approved).length;
     final rejected = processedQuotes.where((q) => !q.approved).length;
-    final remaining = allParagraphs.where((p) => !processedIds.contains(p.id)).length;
+    final totalRemaining = allParagraphs.where((p) => !processedIds.contains(p.id)).length;
     
-    print('\n📊 СТАТИСТИКА:');
+    print('\n📊 ОБЩАЯ СТАТИСТИКА:');
     print('Всего параграфов: ${allParagraphs.length}');
     print('Обработано: ${processedQuotes.length}');
     print('Одобрено: $approved');
     print('Отклонено: $rejected');
-    print('Осталось: $remaining');
+    print('Осталось: $totalRemaining');
+    
+    print('\n📚 СТАТИСТИКА ПО КНИГАМ:');
+    for (final bookKey in paragraphsByBook.keys) {
+      final bookParagraphs = paragraphsByBook[bookKey]!;
+      final processed = bookParagraphs.where((p) => processedIds.contains(p.id)).length;
+      final remaining = bookParagraphs.length - processed;
+      final approved = processedQuotes
+          .where((q) => '${q.author}_${q.source}' == bookKey && q.approved)
+          .length;
+      
+      print('  📖 $bookKey:');
+      print('     Всего: ${bookParagraphs.length}, Обработано: $processed, Одобрено: $approved, Осталось: $remaining');
+    }
     print('-' * 50);
   }
 
   Future<void> mainLoop() async {
     print('\nАвтоматический режим отбора цитат:');
+    print('Для каждой цитаты: [y] - хорошая, [n] - плохая, [s] - пропустить');
+    print('');
+    print('КОМАНДЫ УПРАВЛЕНИЯ:');
     print('[s] - показать статистику');
-    print('[done] - экспорт и выход');
+    print('[done] - завершить и экспорт approved файла');
     print('[q] - выход без сохранения');
     print('');
-    print('Для каждой цитаты: [y] - хорошая, [n] - плохая, [s] - пропустить');
-    print('Начинаем...\n');
+    print('Начинаем циклический отбор...\n');
 
     // Автоматически показываем первую цитату
     await reviewRandom();
 
     while (true) {
-      stdout.write('> ');
+      stdout.write('Команда: ');
       final command = stdin.readLineSync()?.trim().toLowerCase() ?? '';
       
       switch (command) {
@@ -228,26 +266,75 @@ class RandomCurator {
           await exportAndQuit();
           return;
         case 'q':
+          print('Выход без сохранения...');
           return;
         default:
           print('❌ Неизвестная команда. Используйте [s], [done] или [q]');
+          print('Для цитат используйте [y], [n] или [s]');
       }
     }
   }
 
   Future<void> reviewRandom() async {
-    // Находим необработанные параграфы
-    final unprocessed = allParagraphs.where((p) => !processedIds.contains(p.id)).toList();
+    // Циклический отбор: берем случайную цитату из каждой книги по очереди
+    final bookKeys = paragraphsByBook.keys.toList();
     
-    if (unprocessed.isEmpty) {
+    if (bookKeys.isEmpty) {
+      print('✅ Все книги обработаны!');
+      print('Используйте команду [done] для экспорта результатов.');
+      return;
+    }
+    
+    Paragraph? selectedParagraph;
+    
+    // Ищем следующую книгу с необработанными параграфами
+    int attempts = 0;
+    while (attempts < bookKeys.length) {
+      final bookKey = bookKeys[currentBookIndex];
+      final bookParagraphs = paragraphsByBook[bookKey]!;
+      
+      // Находим все необработанные параграфы в этой книге
+      final unprocessedInBook = bookParagraphs
+          .where((p) => !processedIds.contains(p.id))
+          .toList();
+      
+      if (unprocessedInBook.isNotEmpty) {
+        // Выбираем СЛУЧАЙНЫЙ параграф из необработанных в этой книге
+        selectedParagraph = unprocessedInBook[random.nextInt(unprocessedInBook.length)];
+        break;
+      }
+      
+      // Если в текущей книге больше нет необработанных - переходим к следующей
+      currentBookIndex = (currentBookIndex + 1) % bookKeys.length;
+      attempts++;
+      
+      // Если прошли полный круг по всем книгам
+      if (currentBookIndex == 0) {
+        final hasUnprocessed = bookKeys.any((key) {
+          final bookParagraphs = paragraphsByBook[key]!;
+          return bookParagraphs.any((p) => !processedIds.contains(p.id));
+        });
+        
+        if (!hasUnprocessed) {
+          print('✅ Все параграфы обработаны!');
+          print('Используйте команду [done] для экспорта результатов.');
+          return;
+        }
+        
+        print('🔄 Новый цикл! Возвращаемся к книгам с оставшимися цитатами...');
+      }
+    }
+    
+    if (selectedParagraph == null) {
       print('✅ Все параграфы обработаны!');
       print('Используйте команду [done] для экспорта результатов.');
       return;
     }
     
-    // Выбираем случайный
-    final randomParagraph = unprocessed[random.nextInt(unprocessed.length)];
-    await reviewParagraph(randomParagraph);
+    // Переходим к следующей книге для следующего вызова
+    currentBookIndex = (currentBookIndex + 1) % bookKeys.length;
+    
+    await reviewParagraph(selectedParagraph);
   }
 
   Future<void> reviewParagraph(Paragraph paragraph) async {
@@ -268,7 +355,7 @@ class RandomCurator {
     print('\n' + '-' * 70);
     final remaining = allParagraphs.where((p) => !processedIds.contains(p.id)).length;
     print('Осталось необработанных: $remaining');
-    print('\n[y] ДА, отличная цитата!   [n] НЕТ, плохая   [s] Пропустить');
+    print('\n[y] ДА, отличная цитата!   [n] НЕТ, плохая   [s] Пропустить   [done] Завершить');
     
     while (true) {
       stdout.write('Ваше решение: ');
@@ -297,8 +384,15 @@ class RandomCurator {
           print('⏭️ Пропущено');
           shouldContinue = true;
           break;
+        case 'done':
+          print('🏁 Завершаем работу...');
+          await exportAndQuit();
+          return;
+        case 'q':
+          print('❌ Выход без сохранения...');
+          return;
         default:
-          print('❓ Введите y, n или s');
+          print('❓ Введите y, n, s, done или q');
           continue; // Повторяем ввод
       }
       
