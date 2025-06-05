@@ -1,3 +1,4 @@
+
 // lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
 import '../../models/quote_context.dart';
@@ -9,597 +10,431 @@ import '../../utils/custom_cache.dart';
 import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui' as ui;
 
 // Экспорт для использования в ContextPage
 export 'full_text_page_2.dart';
 
-// --- ЗАМЕНЁННЫЙ класс ElegantSearchAnimation ---
-class ElegantSearchAnimation extends StatefulWidget {
+// --- Новая элегантная анимация поиска в стиле Apple ---
+class AppleStyleSearchOverlay extends StatefulWidget {
   final String authorName;
   final String bookTitle;
   final ReadingTheme theme;
-  final VoidCallback? onCancel;
+  final VoidCallback? onComplete;
+  final bool showBackgroundScroll;
+  final Widget? backgroundContent;
 
-  const ElegantSearchAnimation({
+  const AppleStyleSearchOverlay({
     super.key,
     required this.authorName,
     required this.bookTitle,
     required this.theme,
-    this.onCancel,
+    this.onComplete,
+    this.showBackgroundScroll = true,
+    this.backgroundContent,
   });
 
   @override
-  State<ElegantSearchAnimation> createState() => _ElegantSearchAnimationState();
+  State<AppleStyleSearchOverlay> createState() => _AppleStyleSearchOverlayState();
 }
 
-class _ElegantSearchAnimationState extends State<ElegantSearchAnimation>
+class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
     with TickerProviderStateMixin {
-  late AnimationController _containerController;
-  late AnimationController _sequenceController;
-  late Animation<double> _containerAnimation;
+  late AnimationController _blurController;
+  late AnimationController _contentController;
+  late AnimationController _pulseController;
+  late AnimationController _textSequenceController;
+  
+  late Animation<double> _blurAnimation;
+  late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  int _currentStep = 0;
-  final List<String> _steps = ['Тема', 'Автор', 'Книга', '𝕽'];
+  late Animation<double> _pulseAnimation;
+  
+  bool _showContent = false;
+  String _themeText = '';
 
   @override
   void initState() {
     super.initState();
     
-    _containerController = AnimationController(
+    _blurController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     
-    _sequenceController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+    _contentController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _textSequenceController = AnimationController(
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
-    _containerAnimation = Tween<double>(
+    _blurAnimation = Tween<double>(
       begin: 0.0,
+      end: 15.0,
+    ).animate(CurvedAnimation(
+      parent: _blurController,
+      curve: Curves.easeInOut,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _containerController,
-      curve: Curves.easeOutCubic,
+      parent: _contentController,
+      curve: Curves.easeOutBack,
     ));
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _sequenceController,
-      curve: const Interval(0.0, 0.3, curve: Curves.easeInOut),
+      parent: _contentController,
+      curve: Curves.easeIn,
     ));
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0),
-      end: const Offset(0, -1.5),
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
     ).animate(CurvedAnimation(
-      parent: _sequenceController,
-      curve: const Interval(0.3, 0.7, curve: Curves.easeInOut),
+      parent: _pulseController,
+      curve: Curves.easeInOut,
     ));
 
+    _determineTheme();
     _startAnimation();
   }
 
+  void _determineTheme() {
+    final bookLower = widget.bookTitle.toLowerCase();
+    final authorLower = widget.authorName.toLowerCase();
+    
+    if (authorLower.contains('aristotle') || authorLower.contains('аристотель')) {
+      _themeText = 'Античная мудрость';
+    } else if (authorLower.contains('evola') || authorLower.contains('эвола')) {
+      _themeText = 'Традиционализм';
+    } else if (bookLower.contains('nordic') || bookLower.contains('север')) {
+      _themeText = 'Северная традиция';
+    } else if (bookLower.contains('philosophy') || bookLower.contains('философия')) {
+      _themeText = 'Философия';
+    } else {
+      _themeText = 'Вечная мудрость';
+    }
+  }
+
   void _startAnimation() async {
-    // Сначала появляется контейнер
-    await _containerController.forward();
+    await Future.delayed(const Duration(milliseconds: 100));
+    _blurController.forward();
     
-    // Потом запускаем последовательность
-    _sequenceController.addListener(() {
-      final progress = _sequenceController.value;
-      final stepProgress = progress * _steps.length;
-      final newStep = stepProgress.floor().clamp(0, _steps.length - 1);
-      
-      if (newStep != _currentStep && newStep < _steps.length) {
-        setState(() {
-          _currentStep = newStep;
-        });
-      }
-    });
+    await Future.delayed(const Duration(milliseconds: 200));
+    setState(() => _showContent = true);
+    _contentController.forward();
+    _pulseController.repeat(reverse: true);
     
-    await _sequenceController.forward();
+    // Минимум 2 секунды показа анимации
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (widget.onComplete != null) {
+      widget.onComplete!();
+    }
   }
 
   @override
   void dispose() {
-    _containerController.dispose();
-    _sequenceController.dispose();
+    _blurController.dispose();
+    _contentController.dispose();
+    _pulseController.dispose();
+    _textSequenceController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            widget.theme.backgroundColor.withOpacity(0.95),
-            widget.theme.backgroundColor.withOpacity(0.98),
-          ],
-        ),
-      ),
-      child: Center(
-        child: AnimatedBuilder(
-          animation: _containerController,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _containerAnimation.value,
-              child: Container(
-                width: 320,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: widget.theme.cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: widget.theme.borderColor.withOpacity(0.3),
-                    width: 1,
+    return Material(
+      color: Colors.transparent,
+      child: Stack(
+        children: [
+          // Фоновый контент с блюром
+          if (widget.backgroundContent != null)
+            AnimatedBuilder(
+              animation: _blurAnimation,
+              builder: (context, child) {
+                return BackdropFilter(
+                  filter: ui.ImageFilter.blur(
+                    sigmaX: _blurAnimation.value,
+                    sigmaY: _blurAnimation.value,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                  child: Container(
+                    color: widget.theme.backgroundColor.withOpacity(0.3),
+                    child: widget.backgroundContent,
+                  ),
+                );
+              },
+            )
+          else
+            Container(
+              color: widget.theme.backgroundColor.withOpacity(0.95),
+            ),
+          
+          // Основной контент анимации
+          if (_showContent)
+            Center(
+              child: AnimatedBuilder(
+                animation: Listenable.merge([_fadeAnimation, _scaleAnimation]),
+                builder: (context, child) {
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: _buildSearchContent(),
                     ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    // Фоновая анимация (рябь)
-                    _buildRippleBackground(),
-                    
-                    // Основной контент
-                    _buildMainContent(),
-                    
-                    // Кнопка отмены
-                    if (widget.onCancel != null)
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: GestureDetector(
-                          onTap: widget.onCancel,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: widget.theme.highlightColor.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.close,
-                              color: widget.theme.textColor.withOpacity(0.6),
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildRippleBackground() {
-    return AnimatedBuilder(
-      animation: _sequenceController,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: RipplePainter(
-            animation: _sequenceController,
-            color: widget.theme.quoteHighlightColor.withOpacity(0.1),
+  Widget _buildSearchContent() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Анимированный круг с иконкой
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        widget.theme.quoteHighlightColor.withOpacity(0.1),
+                        widget.theme.quoteHighlightColor.withOpacity(0.05),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.5, 0.8, 1.0],
+                    ),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: widget.theme.cardColor,
+                        border: Border.all(
+                          color: widget.theme.quoteHighlightColor.withOpacity(0.3),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.theme.quoteHighlightColor.withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: _buildRuneIcon(),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-          size: const Size(320, 200),
+          
+          const SizedBox(height: 40),
+          
+          // Информация о поиске
+          _buildInfoSection(),
+          
+          const SizedBox(height: 40),
+          
+          // Индикатор загрузки
+          _buildLoadingIndicator(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRuneIcon() {
+    return AnimatedBuilder(
+      animation: _contentController,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _contentController.value * 0.5,
+          child: Text(
+            '᛭', // Руна
+            style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.w300,
+              color: widget.theme.quoteHighlightColor,
+              fontFamily: 'serif',
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _buildMainContent() {
+  Widget _buildInfoSection() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Анимированное появление текста
-        AnimatedBuilder(
-          animation: _sequenceController,
-          builder: (context, child) {
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.5),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: child,
+        // Тема
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Text(
+                  _themeText,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                    color: widget.theme.textColor.withOpacity(0.6),
+                    letterSpacing: 2,
                   ),
-                );
-              },
-              child: Container(
-                key: ValueKey(_currentStep),
-                child: _buildStepContent(),
+                ),
               ),
             );
           },
         ),
         
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         
-        // Индикатор прогресса
-        _buildProgressIndicator(),
-      ],
-    );
-  }
-
-  Widget _buildStepContent() {
-    String text;
-    String subtitle = '';
-    
-    switch (_currentStep) {
-      case 0:
-        text = _getCategoryDisplayName();
-        subtitle = 'Тематика';
-        break;
-      case 1:
-        text = widget.authorName;
-        subtitle = 'Автор';
-        break;
-      case 2:
-        text = widget.bookTitle;
-        subtitle = 'Произведение';
-        break;
-      case 3:
-        text = '𝕽'; // Красивая руна
-        subtitle = 'Поиск завершен';
-        break;
-      default:
-        text = 'Загрузка...';
-    }
-    
-    return Column(
-      children: [
-        Text(
-          subtitle,
-          style: TextStyle(
-            fontSize: 12,
-            color: widget.theme.textColor.withOpacity(0.6),
-            fontWeight: FontWeight.w300,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          text,
-          style: GoogleFonts.merriweather(
-            fontSize: _currentStep == 3 ? 48 : 20,
-            color: widget.theme.textColor,
-            fontWeight: _currentStep == 3 ? FontWeight.w300 : FontWeight.w500,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProgressIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_steps.length, (index) {
-        final isActive = index <= _currentStep;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: isActive ? 24 : 8,
-          height: 4,
-          decoration: BoxDecoration(
-            color: isActive 
-                ? widget.theme.quoteHighlightColor
-                : widget.theme.borderColor.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        );
-      }),
-    );
-  }
-
-  String _getCategoryDisplayName() {
-    // Определяем категорию по автору или названию книги
-    final bookLower = widget.bookTitle.toLowerCase();
-    final authorLower = widget.authorName.toLowerCase();
-    
-    if (authorLower.contains('aristotle') || authorLower.contains('аристотель')) {
-      return 'Древняя Греция';
-    } else if (authorLower.contains('evola') || authorLower.contains('эвола')) {
-      return 'Язычество';
-    } else if (bookLower.contains('nordic') || bookLower.contains('север')) {
-      return 'Скандинавия';
-    } else if (bookLower.contains('philosophy') || bookLower.contains('философия')) {
-      return 'Философия';
-    } else {
-      return 'Мудрость';
-    }
-  }
-}
-
-// Кастомный painter для фоновой ряби
-class RipplePainter extends CustomPainter {
-  final Animation<double> animation;
-  final Color color;
-
-  RipplePainter({
-    required this.animation,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final maxRadius = size.width / 2;
-
-    for (int i = 0; i < 3; i++) {
-      final progress = (animation.value + i * 0.3) % 1.0;
-      final radius = progress * maxRadius;
-      final opacity = (1 - progress).clamp(0.0, 1.0);
-      
-      paint.color = color.withOpacity(opacity * 0.3);
-      canvas.drawCircle(center, radius, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-// --- Анимация с прогрессом ---
-class SearchProgressOverlay extends StatefulWidget {
-  final String authorName;
-  final String bookTitle;
-  final ReadingTheme theme;
-  final double progress; // от 0.0 до 1.0
-  final String statusText;
-  final VoidCallback? onCancel;
-
-  const SearchProgressOverlay({
-    super.key,
-    required this.authorName,
-    required this.bookTitle,
-    required this.theme,
-    required this.progress,
-    required this.statusText,
-    this.onCancel,
-  });
-
-  @override
-  State<SearchProgressOverlay> createState() => _SearchProgressOverlayState();
-}
-
-class _SearchProgressOverlayState extends State<SearchProgressOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _shimmerController;
-  late Animation<double> _shimmerAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _shimmerAnimation = Tween<double>(
-      begin: -1.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _shimmerController,
-      curve: Curves.easeInOut,
-    ));
-    _shimmerController.repeat();
-  }
-
-  @override
-  void dispose() {
-    _shimmerController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            widget.theme.backgroundColor.withOpacity(0.95),
-            widget.theme.backgroundColor.withOpacity(0.98),
-          ],
-        ),
-      ),
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.all(40),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: widget.theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Иконка книги
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: widget.theme.quoteHighlightColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.menu_book,
-                  size: 40,
-                  color: widget.theme.quoteHighlightColor,
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Заголовок
-              Text(
-                'Анализ текста',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: widget.theme.textColor,
-                ),
-              ),
-              
-              const SizedBox(height: 8),
-              
-              // Информация о книге
-              Text(
-                widget.bookTitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: widget.theme.textColor,
-                ),
-              ),
-              
-              Text(
-                widget.authorName,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: widget.theme.textColor.withOpacity(0.7),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-              
-              // Прогресс бар с шиммером
-              Container(
-                width: double.infinity,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: widget.theme.highlightColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Stack(
-                  children: [
-                    // Основной прогресс
-                    FractionallySizedBox(
-                      widthFactor: widget.progress,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: widget.theme.quoteHighlightColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    // Шиммер эффект
-                    if (widget.progress < 1.0)
-                      AnimatedBuilder(
-                        animation: _shimmerAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(_shimmerAnimation.value * 200, 0),
-                            child: Container(
-                              width: 100,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.transparent,
-                                    widget.theme.quoteHighlightColor.withOpacity(0.5),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Процент и статус
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${(widget.progress * 100).toInt()}%',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: widget.theme.quoteHighlightColor,
-                    ),
+        // Название книги
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Text(
+                  widget.bookTitle,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.merriweather(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: widget.theme.textColor,
+                    height: 1.3,
                   ),
-                  Text(
-                    widget.statusText,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: widget.theme.textColor.withOpacity(0.7),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Автор
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Text(
+                  widget.authorName,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    color: widget.theme.textColor.withOpacity(0.8),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(seconds: 2),
+      builder: (context, value, child) {
+        return Column(
+          children: [
+            // Прогресс-бар
+            Container(
+              width: 200,
+              height: 2,
+              decoration: BoxDecoration(
+                color: widget.theme.borderColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(1),
+              ),
+              child: Stack(
+                children: [
+                  FractionallySizedBox(
+                    widthFactor: value,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            widget.theme.quoteHighlightColor.withOpacity(0.8),
+                            widget.theme.quoteHighlightColor,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.theme.quoteHighlightColor.withOpacity(0.5),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 24),
-              
-              // Кнопка отмены
-              if (widget.onCancel != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: widget.onCancel,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(
-                          color: widget.theme.borderColor.withOpacity(0.3),
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      'Отменить поиск',
-                      style: TextStyle(
-                        color: widget.theme.textColor.withOpacity(0.7),
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Текст статуса
+            Text(
+              'Поиск в тексте...',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: widget.theme.textColor.withOpacity(0.5),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1007,8 +842,7 @@ class _FullTextPage2State extends State<FullTextPage2>
 
   // Новые переменные для элегантной анимации поиска
   bool _isSearchingQuote = false;
-  double _searchProgress = 0.0;
-  String _searchStatus = 'Подготовка к поиску...';
+  bool _canStartScroll = false;
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -1189,39 +1023,32 @@ class _FullTextPage2State extends State<FullTextPage2>
     // Показываем элегантную анимацию поиска
     setState(() {
       _isSearchingQuote = true;
-      _searchProgress = 0.0;
-      _searchStatus = 'Поиск позиции цитаты...';
     });
 
-    // Симулируем прогресс поиска
-    for (int i = 0; i <= 100; i += 10) {
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (mounted) {
-        setState(() {
-          _searchProgress = i / 100.0;
-          if (i < 30) {
-            _searchStatus = 'Анализ структуры текста...';
-          } else if (i < 60) {
-            _searchStatus = 'Поиск позиции цитаты...';
-          } else if (i < 90) {
-            _searchStatus = 'Подготовка к прокрутке...';
-          } else {
-            _searchStatus = 'Переход к цитате...';
-          }
-        });
-      }
-    }
+    // Ждем минимум 2 секунды перед началом скролла
+    await Future.delayed(const Duration(seconds: 2));
+    
+    setState(() {
+      _canStartScroll = true;
+    });
 
-    // Выполняем скролл
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (mounted) {
+    // Начинаем фоновый скролл
+    if (_targetParagraphIndex! > 10) {
+      // Сначала быстро прокручиваем до близкой позиции
       await _itemScrollController.scrollTo(
-        index: _targetParagraphIndex!,
-        duration: const Duration(milliseconds: 1200),
-        curve: Curves.easeOutCubic,
-        alignment: 0.3,
+        index: _targetParagraphIndex! - 5,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
       );
     }
+
+    // Затем плавно доскроливаем до цитаты
+    await _itemScrollController.scrollTo(
+      index: _targetParagraphIndex!,
+      duration: const Duration(milliseconds: 1500),
+      curve: Curves.easeOutCubic,
+      alignment: 0.3,
+    );
 
     // Скрываем анимацию поиска
     if (mounted) {
@@ -1238,12 +1065,13 @@ class _FullTextPage2State extends State<FullTextPage2>
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Цитата выделена ниже. Контекст показан дополнительно.'),
+        content: const Text('Цитата найдена и выделена'),
         duration: const Duration(seconds: 3),
-        backgroundColor: _currentTheme.quoteHighlightColor,
+        backgroundColor: _currentTheme.quoteHighlightColor.withOpacity(0.9),
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
@@ -1263,37 +1091,6 @@ class _FullTextPage2State extends State<FullTextPage2>
     _saveSettings();
   }
 
-  void _copyDebugInfo() {
-    final buffer = StringBuffer();
-    buffer.writeln('=== DEBUG FullTextPage2 ===');
-    buffer.writeln('isLoading: $_isLoading');
-    buffer.writeln('error: $_error');
-    buffer.writeln('_fullText: ${_fullText == null ? "нет" : "есть (${_fullText!.length} символов)"}');
-    buffer.writeln('_paragraphs: ${_paragraphs.length}');
-    buffer.writeln('targetParagraphIndex: $_targetParagraphIndex');
-    buffer.writeln('contextIndices: $_contextIndices');
-    buffer.writeln('scroll: ${_scrollController.hasClients ? _scrollController.offset.toStringAsFixed(1) : "нет"}');
-    buffer.writeln('maxScroll: ${_scrollController.hasClients ? _scrollController.position.maxScrollExtent.toStringAsFixed(1) : "нет"}');
-    buffer.writeln('viewport: ${_scrollController.hasClients ? _scrollController.position.viewportDimension.toStringAsFixed(1) : "нет"}');
-    buffer.writeln('offsets построено: ${_paragraphOffsets.length}');
-    buffer.writeln('offset для target: ${_targetParagraphIndex != null ? _paragraphOffsets[_targetParagraphIndex!] : "нет"}');
-    if (_paragraphs.isNotEmpty) {
-      buffer.writeln('--- Первый параграф:');
-      buffer.writeln('pos: ${_paragraphs.first.position}, text: "${_paragraphs.first.content.substring(0, _paragraphs.first.content.length > 50 ? 50 : _paragraphs.first.content.length)}"');
-      buffer.writeln('--- Последний параграф:');
-      buffer.writeln('pos: ${_paragraphs.last.position}, text: "${_paragraphs.last.content.substring(0, _paragraphs.last.content.length > 50 ? 50 : _paragraphs.last.content.length)}"');
-      if (_targetParagraphIndex != null && _targetParagraphIndex! >= 0 && _targetParagraphIndex! < _paragraphs.length) {
-        final t = _paragraphs[_targetParagraphIndex!];
-        buffer.writeln('--- Цитата:');
-        buffer.writeln('pos: ${t.position}, text: "${t.content.substring(0, t.content.length > 50 ? 50 : t.content.length)}"');
-      }
-    }
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Диагностика скопирована!'), backgroundColor: Colors.green),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1308,19 +1105,18 @@ class _FullTextPage2State extends State<FullTextPage2>
                     ? _buildErrorState()
                     : _buildFullTextContent(),
             
-            // Элегантная анимация поиска
+            // Элегантная анимация поиска с фоновым контентом
             if (_isSearchingQuote)
-              SearchProgressOverlay(
+              AppleStyleSearchOverlay(
                 authorName: _bookSource?.author ?? widget.context.quote.author,
                 bookTitle: _bookSource?.title ?? widget.context.quote.source,
                 theme: _currentTheme,
-                progress: _searchProgress,
-                statusText: _searchStatus,
-                onCancel: () {
-                  setState(() {
-                    _isSearchingQuote = false;
-                    _findingQuote = false;
-                  });
+                backgroundContent: _canStartScroll && !_isLoading && _error == null
+                    ? _buildTextContent()
+                    : null,
+                onComplete: () {
+                  // Анимация завершена, но мы не закрываем ее сами
+                  // Она закроется после завершения скролла
                 },
               ),
           ],
@@ -1416,6 +1212,8 @@ class _FullTextPage2State extends State<FullTextPage2>
             right: 24,
             child: FloatingActionButton.extended(
               onPressed: _findQuoteManually,
+              backgroundColor: _currentTheme.quoteHighlightColor,
+              foregroundColor: Colors.white,
               icon: const Icon(Icons.search),
               label: const Text('Найти цитату'),
             ),
@@ -1530,6 +1328,7 @@ Widget _buildReadingSettings() {
    },
  );
 }
+  
   Widget _buildTextContent() {
     if (_paragraphs.isEmpty) {
       return Center(
@@ -1667,32 +1466,21 @@ Widget _buildReadingSettings() {
     
     setState(() {
       _isSearchingQuote = true;
-      _searchProgress = 0.0;
-      _searchStatus = 'Ручной поиск цитаты...';
       _findingQuote = true;
+      _canStartScroll = false;
     });
 
-    // Симулируем прогресс ручного поиска
-    for (int i = 0; i <= 100; i += 20) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) {
-        setState(() {
-          _searchProgress = i / 100.0;
-          if (i < 40) {
-            _searchStatus = 'Поиск в тексте...';
-          } else if (i < 80) {
-            _searchStatus = 'Вычисление позиции...';
-          } else {
-            _searchStatus = 'Переход к цитате...';
-          }
-        });
-      }
-    }
+    // Ждем 2 секунды перед началом скролла
+    await Future.delayed(const Duration(seconds: 2));
+    
+    setState(() {
+      _canStartScroll = true;
+    });
 
     // Выполняем скролл к цитате
     await _itemScrollController.scrollTo(
       index: _targetParagraphIndex!,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1200),
       curve: Curves.easeInOut,
       alignment: 0.3,
     );
