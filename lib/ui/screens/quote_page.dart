@@ -4,9 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-import 'dart:math' show sin, cos;
+import 'dart:math' show sin, cos, pi;
 import 'package:just_audio/just_audio.dart';
 
 import '../../models/daily_quote.dart';
@@ -506,6 +507,7 @@ class _QuotePageState extends State<QuotePage>
   bool _isFavorite = false;
   bool _isSoundMuted = false;
   bool _showTutorial = false;
+  bool _showTooltipHint = true; // Новая переменная для подсказки
 
   String? _error;
   Color _textColor = Colors.white;
@@ -674,9 +676,11 @@ class _QuotePageState extends State<QuotePage>
       _backgroundImageUrl = imageUrl;
       _textColor = textColor;
       _isFavorite = isFavorite;
-      _isLoading = false;
+      _isLoading = false; // Теперь картинка начнет появляться
     });
     
+    // Задержка перед стартом основной анимации контента
+    await Future.delayed(const Duration(milliseconds: 400));
     _startAnimations();
     
     if (!_isSoundMuted) {
@@ -900,24 +904,9 @@ class _QuotePageState extends State<QuotePage>
     );
   }
 
+  // ИСПРАВЛЕННЫЙ _buildLoadingState - просто черный экран
   Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: Colors.white),
-          SizedBox(height: 16),
-          Text(
-            'Загружаем мудрость...',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
+    return Container(color: Colors.black);
   }
 
   Widget _buildErrorState() {
@@ -980,18 +969,26 @@ class _QuotePageState extends State<QuotePage>
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Сначала черный фон
+            Container(color: Colors.black),
+            
+            // Потом картинка с анимацией
             if (_backgroundImageUrl != null)
-              CachedNetworkImage(
-                imageUrl: _backgroundImageUrl!,
-                cacheManager: CustomCache.instance,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: Colors.black),
-                errorWidget: (_, __, ___) => Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.black, Colors.grey[900]!],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+              AnimatedOpacity(
+                opacity: _isLoading ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 800),
+                child: CachedNetworkImage(
+                  imageUrl: _backgroundImageUrl!,
+                  cacheManager: CustomCache.instance,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: Colors.black),
+                  errorWidget: (_, __, ___) => Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.black, Colors.grey[900]!],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
                 ),
@@ -1001,8 +998,8 @@ class _QuotePageState extends State<QuotePage>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.3),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withOpacity(0.4), // Менее темный верх
+                    Colors.black.withOpacity(0.7), // Более темный низ для читаемости
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -1040,6 +1037,7 @@ class _QuotePageState extends State<QuotePage>
               ),
             ),
             
+            // ИСПРАВЛЕННАЯ подсказка внизу
             if (_currentDailyQuote != null && !_currentDailyQuote!.isViewed && !_showTutorial)
               Positioned(
                 bottom: 40,
@@ -1052,21 +1050,45 @@ class _QuotePageState extends State<QuotePage>
                     return AnimatedOpacity(
                       opacity: value > 0.5 ? 2.0 - (value * 2) : value * 2,
                       duration: const Duration(milliseconds: 300),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.keyboard_arrow_up,
-                            color: _textColor.withOpacity(0.5),
-                            size: 24,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 40),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(
+                            color: _textColor.withOpacity(0.2),
+                            width: 1,
                           ),
-                          Text(
-                            'Свайп для контекста',
-                            style: TextStyle(
-                              color: _textColor.withOpacity(0.4),
-                              fontSize: 12,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.keyboard_arrow_up,
+                              color: _textColor.withOpacity(0.8),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Свайп для контекста',
+                              style: GoogleFonts.merriweather(
+                                color: _textColor.withOpacity(0.8),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w300,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -1159,18 +1181,62 @@ class _QuotePageState extends State<QuotePage>
           ],
         ),
         
-        Tooltip(
-          message: 'Долгое нажатие для заметки',
-          child: Icon(
-            Icons.touch_app,
-            color: _textColor.withOpacity(0.3),
-            size: 20,
+        // ИСПРАВЛЕННАЯ подсказка в заголовке
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _showTooltipHint = false;
+            });
+          },
+          child: AnimatedOpacity(
+            opacity: _showTooltipHint ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.85), // Более темный фон
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3), // Белая рамка для контраста
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.touch_app,
+                    color: Colors.white.withOpacity(0.9), // Белая иконка
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Долгое нажатие для заметки',
+                    style: GoogleFonts.merriweather(
+                      color: Colors.white.withOpacity(0.9), // Белый текст
+                      fontSize: 13,
+                      fontWeight: FontWeight.w300,
+                      decoration: TextDecoration.none,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
+  // ИСПРАВЛЕННЫЙ _buildQuoteText - убираем decoration
   Widget _buildQuoteText(Quote quote) {
     double fontSize = 24;
     if (quote.text.length > 200) {
@@ -1191,12 +1257,14 @@ class _QuotePageState extends State<QuotePage>
       ),
       child: Text(
         '"${quote.text}"',
-        style: TextStyle(
+        style: GoogleFonts.merriweather(
           fontSize: fontSize,
           height: 1.5,
           fontWeight: FontWeight.w300,
           fontStyle: FontStyle.italic,
           color: _textColor,
+          // Убираем все decoration чтобы не было подчеркиваний
+          decoration: TextDecoration.none,
         ),
         textAlign: TextAlign.center,
       ),
