@@ -227,6 +227,33 @@
         "cleanedFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_cleaned.txt"
       },
       {
+  "id": "askr_svarte_pagan_identity",
+  "title": "Идентичность язычника в 21 веке",
+  "author": "Askr Svarte (Евгений Ничкасов)",
+  "language": "ru",
+  "translator": "Askr Svarte (Евгений Ничкасов)",
+  "rawFilePath": "assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_raw.txt",
+  "cleanedFilePath": "assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt"
+},
+{
+  "id": "askr_svarte_priblizhenie", 
+  "title": "Приближение и окружение",
+  "author": "Askr Svarte (Евгений Ничкасов)", 
+  "language": "ru",
+  "translator": "Askr Svarte (Евгений Ничкасов)",
+  "rawFilePath": "assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_raw.txt",
+  "cleanedFilePath": "assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt"
+},
+{
+  "id": "askr_svarte_polemos",
+  "title": "Polemos",
+  "author": "Askr Svarte (Евгений Ничкасов)",
+  "language": "ru",
+  "translator": "Askr Svarte (Евгений Ничкасов)",
+  "rawFilePath": "assets/full_texts/pagan/askr_svarte/polemos_raw.txt",
+  "cleanedFilePath": "assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt"
+},
+      {
         "id": "de_benua_faith_and_ideas_vol3",
         "title": "История веры и религиозных идей. Том 3",
         "author": "Мирча Элиаде",

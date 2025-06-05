@@ -1,6 +1,8 @@
 
 // lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+import 'dart:math' as math;
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
@@ -10,12 +12,11 @@ import '../../utils/custom_cache.dart';
 import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:ui' as ui;
 
 // Экспорт для использования в ContextPage
 export 'full_text_page_2.dart';
 
-// --- Новая элегантная анимация поиска в стиле Apple ---
+// --- Новая элегантная анимация поиска ---
 class AppleStyleSearchOverlay extends StatefulWidget {
   final String authorName;
   final String bookTitle;
@@ -42,16 +43,17 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
     with TickerProviderStateMixin {
   late AnimationController _blurController;
   late AnimationController _contentController;
-  late AnimationController _pulseController;
-  late AnimationController _textSequenceController;
+  late AnimationController _particleController;
+  late AnimationController _glowController;
   
   late Animation<double> _blurAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _pulseAnimation;
+  late Animation<double> _glowAnimation;
   
   bool _showContent = false;
   String _themeText = '';
+  bool _isClosing = false;
 
   @override
   void initState() {
@@ -67,19 +69,19 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
       vsync: this,
     );
     
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    _particleController = AnimationController(
+      duration: const Duration(seconds: 3),
       vsync: this,
     );
     
-    _textSequenceController = AnimationController(
+    _glowController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
 
     _blurAnimation = Tween<double>(
       begin: 0.0,
-      end: 15.0,
+      end: 20.0,
     ).animate(CurvedAnimation(
       parent: _blurController,
       curve: Curves.easeInOut,
@@ -90,7 +92,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _contentController,
-      curve: Curves.easeOutBack,
+      curve: Curves.easeOutCubic,
     ));
 
     _fadeAnimation = Tween<double>(
@@ -101,11 +103,11 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
       curve: Curves.easeIn,
     ));
 
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
+    _glowAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _pulseController,
+      parent: _glowController,
       curve: Curves.easeInOut,
     ));
 
@@ -137,12 +139,25 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
     await Future.delayed(const Duration(milliseconds: 200));
     setState(() => _showContent = true);
     _contentController.forward();
-    _pulseController.repeat(reverse: true);
+    _particleController.repeat();
+    _glowController.repeat(reverse: true);
     
-    // Минимум 2 секунды показа анимации
+    // Ждем ровно 2 секунды
     await Future.delayed(const Duration(seconds: 2));
     
-    if (widget.onComplete != null) {
+    // Закрываем всю анимацию
+    _closeAnimation();
+  }
+
+  void _closeAnimation() async {
+    if (_isClosing) return;
+    _isClosing = true;
+    
+    // Плавное исчезновение
+    await _contentController.reverse();
+    await _blurController.reverse();
+    
+    if (widget.onComplete != null && mounted) {
       widget.onComplete!();
     }
   }
@@ -151,8 +166,8 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
   void dispose() {
     _blurController.dispose();
     _contentController.dispose();
-    _pulseController.dispose();
-    _textSequenceController.dispose();
+    _particleController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -173,15 +188,20 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
                     sigmaY: _blurAnimation.value,
                   ),
                   child: Container(
-                    color: widget.theme.backgroundColor.withOpacity(0.3),
+                    color: widget.theme.backgroundColor.withOpacity(0.5),
                     child: widget.backgroundContent,
                   ),
                 );
               },
             )
           else
-            Container(
-              color: widget.theme.backgroundColor.withOpacity(0.95),
+            AnimatedBuilder(
+              animation: _fadeAnimation,
+              builder: (context, child) {
+                return Container(
+                  color: widget.theme.backgroundColor.withOpacity(0.95 * _fadeAnimation.value),
+                );
+              },
             ),
           
           // Основной контент анимации
@@ -211,53 +231,69 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Анимированный круг с иконкой
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _pulseAnimation.value,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        widget.theme.quoteHighlightColor.withOpacity(0.1),
-                        widget.theme.quoteHighlightColor.withOpacity(0.05),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.5, 0.8, 1.0],
-                    ),
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: widget.theme.cardColor,
-                        border: Border.all(
-                          color: widget.theme.quoteHighlightColor.withOpacity(0.3),
-                          width: 2,
+          // Иконка с эффектами
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Свечение позади иконки
+              AnimatedBuilder(
+                animation: _glowAnimation,
+                builder: (context, child) {
+                  return Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.theme.quoteHighlightColor.withOpacity(0.3 * _glowAnimation.value),
+                          blurRadius: 30,
+                          spreadRadius: 10,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.theme.quoteHighlightColor.withOpacity(0.2),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: _buildRuneIcon(),
-                      ),
+                      ],
                     ),
+                  );
+                },
+              ),
+              // Частицы вокруг иконки
+              CustomPaint(
+                size: const Size(140, 140),
+                painter: ParticlePainter(
+                  animation: _particleController,
+                  color: widget.theme.quoteHighlightColor,
+                ),
+              ),
+              // Сама иконка
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.theme.cardColor,
+                  border: Border.all(
+                    color: widget.theme.quoteHighlightColor.withOpacity(0.3),
+                    width: 2,
                   ),
                 ),
-              );
-            },
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/rune_icon.png',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Icon(
+                          Icons.park,
+                          size: 40,
+                          color: widget.theme.quoteHighlightColor,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
           
           const SizedBox(height: 40),
@@ -271,26 +307,6 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
           _buildLoadingIndicator(),
         ],
       ),
-    );
-  }
-
-  Widget _buildRuneIcon() {
-    return AnimatedBuilder(
-      animation: _contentController,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _contentController.value * 0.5,
-          child: Text(
-            '᛭', // Руна
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.w300,
-              color: widget.theme.quoteHighlightColor,
-              fontFamily: 'serif',
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -383,62 +399,74 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(seconds: 2),
       builder: (context, value, child) {
-        return Column(
-          children: [
-            // Прогресс-бар
-            Container(
-              width: 200,
-              height: 2,
-              decoration: BoxDecoration(
-                color: widget.theme.borderColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(1),
-              ),
-              child: Stack(
-                children: [
-                  FractionallySizedBox(
-                    widthFactor: value,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            widget.theme.quoteHighlightColor.withOpacity(0.8),
-                            widget.theme.quoteHighlightColor,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.theme.quoteHighlightColor.withOpacity(0.5),
-                            blurRadius: 4,
-                            offset: const Offset(0, 0),
-                          ),
-                        ],
-                      ),
+        return Container(
+          width: 200,
+          height: 2,
+          decoration: BoxDecoration(
+            color: widget.theme.borderColor.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(1),
+          ),
+          child: Stack(
+            children: [
+              FractionallySizedBox(
+                widthFactor: value,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        widget.theme.quoteHighlightColor.withOpacity(0.8),
+                        widget.theme.quoteHighlightColor,
+                      ],
                     ),
+                    borderRadius: BorderRadius.circular(1),
                   ),
-                ],
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Текст статуса
-            Text(
-              'Поиск в тексте...',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w300,
-                color: widget.theme.textColor.withOpacity(0.5),
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
   }
 }
 
+// Painter для частиц
+class ParticlePainter extends CustomPainter {
+  final Animation<double> animation;
+  final Color color;
+
+  ParticlePainter({
+    required this.animation,
+    required this.color,
+  }) : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final progress = animation.value;
+
+    // Рисуем искры
+    for (int i = 0; i < 8; i++) {
+      final angle = (i * 45 * math.pi / 180) + (progress * 2 * math.pi);
+      final distance = 50 + (20 * math.sin(progress * 2 * math.pi));
+      
+      final x = center.dx + math.cos(angle) * distance;
+      final y = center.dy + math.sin(angle) * distance;
+      
+      final opacity = (0.5 + 0.5 * math.sin(progress * 2 * math.pi + i)).clamp(0.0, 1.0);
+      paint.color = color.withOpacity(opacity * 0.5);
+      
+      canvas.drawCircle(Offset(x, y), 2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
 // --- Универсальный виджет настроек чтения ---
 class ReadingSettingsPanel extends StatefulWidget {
   final double fontSize;
@@ -1025,56 +1053,36 @@ class _FullTextPage2State extends State<FullTextPage2>
       _isSearchingQuote = true;
     });
 
-    // Ждем минимум 2 секунды перед началом скролла
-    await Future.delayed(const Duration(seconds: 2));
+    // Ждем 1.5 секунды перед началом скролла
+    await Future.delayed(const Duration(milliseconds: 1500));
     
     setState(() {
       _canStartScroll = true;
     });
 
-    // Начинаем фоновый скролл
-    if (_targetParagraphIndex! > 10) {
-      // Сначала быстро прокручиваем до близкой позиции
-      await _itemScrollController.scrollTo(
-        index: _targetParagraphIndex! - 5,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    }
-
-    // Затем плавно доскроливаем до цитаты
+    // Плавный скролл к цитате без прыжков
     await _itemScrollController.scrollTo(
       index: _targetParagraphIndex!,
-      duration: const Duration(milliseconds: 1500),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 2000),
+      curve: Curves.easeInOutCubic,
       alignment: 0.3,
     );
 
-    // Скрываем анимацию поиска
+    // Ждем завершения скролла
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // Анимация автоматически закроется через 2 секунды
     if (mounted) {
       setState(() {
-        _isSearchingQuote = false;
         _autoScrollCompleted = true;
       });
-      _showScrollHint();
     }
   }
 
   void _showScrollHint() {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Цитата найдена и выделена'),
-        duration: const Duration(seconds: 3),
-        backgroundColor: _currentTheme.quoteHighlightColor.withOpacity(0.9),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
+    // Убираем уведомление "Цитата найдена и выделена"
+    // if (!mounted) return;
+    // ScaffoldMessenger.of(context).showSnackBar(...);
   }
 
   void _adjustFontSize(double delta) {
@@ -1115,8 +1123,12 @@ class _FullTextPage2State extends State<FullTextPage2>
                     ? _buildTextContent()
                     : null,
                 onComplete: () {
-                  // Анимация завершена, но мы не закрываем ее сами
-                  // Она закроется после завершения скролла
+                  // Анимация завершена, закрываем overlay
+                  if (mounted) {
+                    setState(() {
+                      _isSearchingQuote = false;
+                    });
+                  }
                 },
               ),
           ],
@@ -1222,112 +1234,112 @@ class _FullTextPage2State extends State<FullTextPage2>
     );
   }
 
- Widget _buildHeader() {
- return Container(
-   padding: const EdgeInsets.all(16.0),
-   decoration: BoxDecoration(
-     color: _currentTheme.cardColor,
-     border: Border(
-       bottom: BorderSide(color: _currentTheme.borderColor, width: 1),
-     ),
-     boxShadow: [
-       BoxShadow(
-         color: Colors.black.withOpacity(0.1),
-         blurRadius: 8,
-         offset: const Offset(0, 2),
-       ),
-     ],
-   ),
-   child: Row(
-     children: [
-       IconButton(
-         onPressed: () => Navigator.of(context).pop(),
-         icon: Icon(Icons.arrow_back, color: _effectiveTextColor),
-         tooltip: 'Назад',
-       ),
-       Expanded(
-         child: Column(
-           crossAxisAlignment: CrossAxisAlignment.start,
-           children: [
-             Text(
-               _bookSource?.title ?? 'Книга',
-               style: TextStyle(
-                 fontSize: 16,
-                 fontWeight: FontWeight.w600,
-                 color: _effectiveTextColor,
-               ),
-               maxLines: 1,
-               overflow: TextOverflow.ellipsis,
-             ),
-             Text(
-               _bookSource?.author ?? 'Автор',
-               style: TextStyle(
-                 fontSize: 14,
-                 color: _effectiveTextColor.withOpacity(0.7),
-               ),
-               maxLines: 1,
-               overflow: TextOverflow.ellipsis,
-             ),
-           ],
-         ),
-       ),
-       IconButton(
-         onPressed: () {
-           setState(() => _showSettings = !_showSettings);
-           if (_showSettings) {
-             _settingsController.forward();
-           } else {
-             _settingsController.reverse();
-           }
-         },
-         icon: Icon(
-           _showSettings ? Icons.close : Icons.settings,
-           color: _effectiveTextColor,
-         ),
-         tooltip: 'Настройки чтения',
-       ),
-     ],
-   ),
- );
-}
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: _currentTheme.cardColor,
+        border: Border(
+          bottom: BorderSide(color: _currentTheme.borderColor, width: 1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: _effectiveTextColor),
+            tooltip: 'Назад',
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _bookSource?.title ?? 'Книга',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _effectiveTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  _bookSource?.author ?? 'Автор',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _effectiveTextColor.withOpacity(0.7),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() => _showSettings = !_showSettings);
+              if (_showSettings) {
+                _settingsController.forward();
+              } else {
+                _settingsController.reverse();
+              }
+            },
+            icon: Icon(
+              _showSettings ? Icons.close : Icons.settings,
+              color: _effectiveTextColor,
+            ),
+            tooltip: 'Настройки чтения',
+          ),
+        ],
+      ),
+    );
+  }
 
-Widget _buildReadingSettings() {
- return ReadingSettingsPanel(
-   fontSize: _fontSize,
-   lineHeight: _lineHeight,
-   currentTheme: _currentTheme,
-   useCustomColors: _useCustomColors,
-   customTextColor: _customTextColor,
-   customBackgroundColor: _customBackgroundColor,
-   onFontSizeChanged: (v) {
-     setState(() => _fontSize = v.clamp(12.0, 24.0));
-     _saveSettings();
-   },
-   onLineHeightChanged: (v) {
-     setState(() => _lineHeight = v.clamp(1.2, 2.0));
-     _saveSettings();
-   },
-   onThemeChanged: (theme) {
-     setState(() {
-       _currentTheme = theme;
-       _useCustomColors = false;
-     });
-     _saveSettings();
-   },
-   onUseCustomColorsChanged: (v) {
-     setState(() => _useCustomColors = v);
-     _saveSettings();
-   },
-   onCustomTextColorChanged: (color) {
-     setState(() => _customTextColor = color);
-     _saveSettings();
-   },
-   onCustomBackgroundColorChanged: (color) {
-     setState(() => _customBackgroundColor = color);
-     _saveSettings();
-   },
- );
-}
+  Widget _buildReadingSettings() {
+    return ReadingSettingsPanel(
+      fontSize: _fontSize,
+      lineHeight: _lineHeight,
+      currentTheme: _currentTheme,
+      useCustomColors: _useCustomColors,
+      customTextColor: _customTextColor,
+      customBackgroundColor: _customBackgroundColor,
+      onFontSizeChanged: (v) {
+        setState(() => _fontSize = v.clamp(12.0, 24.0));
+        _saveSettings();
+      },
+      onLineHeightChanged: (v) {
+        setState(() => _lineHeight = v.clamp(1.2, 2.0));
+        _saveSettings();
+      },
+      onThemeChanged: (theme) {
+        setState(() {
+          _currentTheme = theme;
+          _useCustomColors = false;
+        });
+        _saveSettings();
+      },
+      onUseCustomColorsChanged: (v) {
+        setState(() => _useCustomColors = v);
+        _saveSettings();
+      },
+      onCustomTextColorChanged: (color) {
+        setState(() => _customTextColor = color);
+        _saveSettings();
+      },
+      onCustomBackgroundColorChanged: (color) {
+        setState(() => _customBackgroundColor = color);
+        _saveSettings();
+      },
+    );
+  }
   
   Widget _buildTextContent() {
     if (_paragraphs.isEmpty) {
@@ -1470,28 +1482,29 @@ Widget _buildReadingSettings() {
       _canStartScroll = false;
     });
 
-    // Ждем 2 секунды перед началом скролла
-    await Future.delayed(const Duration(seconds: 2));
+    // Ждем 1.5 секунды перед началом скролла
+    await Future.delayed(const Duration(milliseconds: 1500));
     
     setState(() {
       _canStartScroll = true;
     });
 
-    // Выполняем скролл к цитате
+    // Выполняем плавный скролл к цитате
     await _itemScrollController.scrollTo(
       index: _targetParagraphIndex!,
-      duration: const Duration(milliseconds: 1200),
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 2000),
+      curve: Curves.easeInOutCubic,
       alignment: 0.3,
     );
 
+    // Ждем завершения скролла
+    await Future.delayed(const Duration(milliseconds: 300));
+
     if (mounted) {
       setState(() {
-        _isSearchingQuote = false;
         _autoScrollCompleted = true;
         _findingQuote = false;
       });
-      _showScrollHint();
     }
   }
 

@@ -53,6 +53,8 @@ flutter:
     - assets/images/nordic.jpg
     - assets/images/pagan.jpg
     - assets/images/philosophy.jpg
+    - assets/images/rune_icon.png
+    - assets/images/rune_icon_small.png
 #Не рабочие анимации
     - assets/animations/fire.gif
     - assets/animations/greece.json
@@ -127,6 +129,14 @@ flutter:
     - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_raw.txt
     - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt
     - assets/curated/my_quotes_approved.json
+    - assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_raw.txt
+    - assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt
+    - assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_raw.txt
+    - assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt
+    - assets/full_texts/pagan/askr_svarte/polemos_raw.txt
+    - assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt
+
+    
 
 flutter_launcher_icons:
   android: true

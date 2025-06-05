@@ -112,7 +112,7 @@ class TextFileService {
       BookSource(
         id: 'beowulf',
         title: 'Беовульф',
-        author: 'Аноним',
+        author: 'Мифопоэтика',
         category: 'nordic',
         language: 'ru',
         cleanedFilePath: 'assets/full_texts/nordic/folk/beowulf_cleaned.txt',
@@ -121,7 +121,7 @@ class TextFileService {
       BookSource(
         id: 'elder_edda',
         title: 'Старшая Эдда',
-        author: 'Аноним',
+        author: 'Мифопоэтика',
         category: 'nordic',
         language: 'ru',
         cleanedFilePath: 'assets/full_texts/nordic/folk/elder_edda_cleaned.txt',
@@ -212,6 +212,39 @@ class TextFileService {
       ),
       
       // Язычество - традиция и символизм
+      // Добавьте эти BookSource объекты в список sources в методе loadBookSources()
+// после существующих книг Элиаде:
+
+      BookSource(
+        id: 'askr_svarte_pagan_identity',
+        title: 'Идентичность язычника в 21 веке',
+        author: 'Askr Svarte',
+        category: 'pagan',
+        language: 'ru',
+        translator: 'Askr Svarte (Евгений Ничкасов)',
+        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_raw.txt',
+      ),
+      BookSource(
+        id: 'askr_svarte_priblizhenie',
+        title: 'Приближение и окружение',
+        author: 'Askr Svarte',
+        category: 'pagan',
+        language: 'ru',
+        translator: 'Askr Svarte (Евгений Ничкасов)',
+        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_raw.txt',
+      ),
+      BookSource(
+        id: 'askr_svarte_polemos',
+        title: 'Polemos',
+        author: 'Askr Svarte',
+        category: 'pagan',
+        language: 'ru',
+        translator: 'Askr Svarte (Евгений Ничкасов)',
+        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/askr_svarte/polemos_raw.txt',
+      ),
       BookSource(
         id: 'evola_imperialism',
         title: 'Языческий империализм',

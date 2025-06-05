@@ -139,6 +139,9 @@ class RandomCurator {
       BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры том 1'),
       BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры том 2'),
       BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры том 3'),
+      BookInfo(path: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt', category: 'pagan', author: 'Askr Svarte', source: 'Идентичность язычника в 21 веке'),
+      BookInfo(path: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt', category: 'pagan', author: 'Askr Svarte', source: 'Приближение и окружение'),
+      BookInfo(path: 'assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt', category: 'pagan', author: 'Askr Svarte', source: 'Polemos'),
     ];
   }
 
