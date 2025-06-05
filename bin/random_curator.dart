@@ -1,4 +1,5 @@
 
+# 
 // bin/random_curator.dart - СЛУЧАЙНЫЙ ОТБОР ИЗ ВСЕХ КНИГ
 import 'dart:io';
 import 'dart:convert';
@@ -112,19 +113,19 @@ class RandomCurator {
       BookInfo(path: 'assets/full_texts/greece/hesiod/labour_and_days_cleaned.txt', category: 'greece', author: 'Гесиод', source: 'Труды и дни'),
       
       // Север - эпос и мифология
-      BookInfo(path: 'assets/full_texts/nordic/folk/beowulf_cleaned.txt', category: 'nordic', author: 'Мифы и легенды', source: 'Беовульф'),
-      BookInfo(path: 'assets/full_texts/nordic/folk/elder_edda_cleaned.txt', category: 'nordic', author: 'Мифы и легенды', source: 'Старшая Эдда'),
+      BookInfo(path: 'assets/full_texts/nordic/folk/beowulf_cleaned.txt', category: 'nordic', author: 'Аноним', source: 'Беовульф'),
+      BookInfo(path: 'assets/full_texts/nordic/folk/elder_edda_cleaned.txt', category: 'nordic', author: 'Аноним', source: 'Старшая Эдда'),
       
       // Философия - современная мысль
       BookInfo(path: 'assets/full_texts/philosophy/heidegger/being_and_time_cleaned.txt', category: 'philosophy', author: 'Хайдеггер', source: 'Бытие и время'),
       BookInfo(path: 'assets/full_texts/philosophy/heidegger/what_means_to_think_cleaned.txt', category: 'philosophy', author: 'Хайдеггер', source: 'Что значит мыслить'),
       BookInfo(path: 'assets/full_texts/philosophy/nietzsche/antichrist_cleaned.txt', category: 'philosophy', author: 'Ницше', source: 'Антихрист'),
       BookInfo(path: 'assets/full_texts/philosophy/nietzsche/gay_science_cleaned.txt', category: 'philosophy', author: 'Ницше', source: 'Веселая наука'),
-      BookInfo(path: 'assets/full_texts/philosophy/nietzsche/thus_spoke_zarathustra_cleaned.txt', category: 'philosophy', author: 'Ницше', source: 'Так говорил Заратустра'),
+      BookInfo(path: 'assets/full_texts/philosophy/nietzsche/thus_spoke_zarathustra_cleaned.txt', category: 'philosophy', author: 'Ницше', source: 'Заратустра'),
       BookInfo(path: 'assets/full_texts/philosophy/nietzsche/birth_of_tragedy_cleaned.txt', category: 'philosophy', author: 'Ницше', source: 'Рождение трагедии'),
       BookInfo(path: 'assets/full_texts/philosophy/nietzsche/beyond_good_and_evil_cleaned.txt', category: 'philosophy', author: 'Ницше', source: 'По ту сторону добра и зла'),
-      BookInfo(path: 'assets/full_texts/philosophy/schopenhauer/world_as_will_and_representation_cleaned.txt', category: 'philosophy', author: 'Шопенгауэр', source: 'Мир как воля и представление'),
-      BookInfo(path: 'assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_cleaned.txt', category: 'philosophy', author: 'Шопенгауэр', source: 'Афоризмы житейской мудрости'),
+      BookInfo(path: 'assets/full_texts/philosophy/schopenhauer/world_as_will_and_representation_cleaned.txt', category: 'philosophy', author: 'Шопенгауэр', source: 'Мир как воля'),
+      BookInfo(path: 'assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_cleaned.txt', category: 'philosophy', author: 'Шопенгауэр', source: 'Афоризмы'),
       
       // Язычество - традиция и символизм
       BookInfo(path: 'assets/full_texts/pagan/julius_evola/pagan_imperialism_cleaned.txt', category: 'pagan', author: 'Эвола', source: 'Языческий империализм'),
@@ -132,9 +133,9 @@ class RandomCurator {
       BookInfo(path: 'assets/full_texts/pagan/julius_evola/men_among_ruins_cleaned.txt', category: 'pagan', author: 'Эвола', source: 'Люди и руины'),
       BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'Священное и мирское'),
       BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'Миф о вечном возвращении'),
-      BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры и религиозных идей том 1'),
-      BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры и религиозных идей том 2'),
-      BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры и религиозных идей том 3'),
+      BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры том 1'),
+      BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры том 2'),
+      BookInfo(path: 'assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_cleaned.txt', category: 'pagan', author: 'Элиаде', source: 'История веры том 3'),
     ];
   }
 
@@ -204,21 +205,22 @@ class RandomCurator {
   }
 
   Future<void> mainLoop() async {
-    print('\nКоманды:');
-    print('[n] Случайная цитата');
-    print('[s] Статистика');
-    print('[done] Экспорт и выход');
-    print('[q] Выход без сохранения');
+    print('\nАвтоматический режим отбора цитат:');
+    print('[s] - показать статистику');
+    print('[done] - экспорт и выход');
+    print('[q] - выход без сохранения');
     print('');
+    print('Для каждой цитаты: [y] - хорошая, [n] - плохая, [s] - пропустить');
+    print('Начинаем...\n');
+
+    // Автоматически показываем первую цитату
+    await reviewRandom();
 
     while (true) {
       stdout.write('> ');
       final command = stdin.readLineSync()?.trim().toLowerCase() ?? '';
       
       switch (command) {
-        case 'n':
-          await reviewRandom();
-          break;
         case 's':
           showStats();
           break;
@@ -228,7 +230,7 @@ class RandomCurator {
         case 'q':
           return;
         default:
-          print('❌ Неизвестная команда');
+          print('❌ Неизвестная команда. Используйте [s], [done] или [q]');
       }
     }
   }
@@ -239,7 +241,7 @@ class RandomCurator {
     
     if (unprocessed.isEmpty) {
       print('✅ Все параграфы обработаны!');
-      await exportAndQuit();
+      print('Используйте команду [done] для экспорта результатов.');
       return;
     }
     
@@ -268,53 +270,69 @@ class RandomCurator {
     print('Осталось необработанных: $remaining');
     print('\n[y] ДА, отличная цитата!   [n] НЕТ, плохая   [s] Пропустить');
     
-    stdout.write('Ваше решение: ');
-    final decision = stdin.readLineSync()?.trim().toLowerCase() ?? 's';
-    
-    bool? approved;
-    
-    switch (decision) {
-      case 'y':
-      case 'yes':
-      case 'да':
-        approved = true;
-        print('✅ ОДОБРЕНО! 🔥');
+    while (true) {
+      stdout.write('Ваше решение: ');
+      final decision = stdin.readLineSync()?.trim().toLowerCase() ?? 's';
+      
+      bool? approved;
+      bool shouldContinue = false;
+      
+      switch (decision) {
+        case 'y':
+        case 'yes':
+        case 'да':
+          approved = true;
+          print('✅ ОДОБРЕНО! 🔥');
+          shouldContinue = true;
+          break;
+        case 'n':
+        case 'no':
+        case 'нет':
+          approved = false;
+          print('❌ ОТКЛОНЕНО');
+          shouldContinue = true;
+          break;
+        case 's':
+        case 'skip':
+          print('⏭️ Пропущено');
+          shouldContinue = true;
+          break;
+        default:
+          print('❓ Введите y, n или s');
+          continue; // Повторяем ввод
+      }
+      
+      if (approved != null) {
+        // Создаем запись
+        final quote = Quote(
+          id: paragraph.id,
+          text: paragraph.text,
+          author: paragraph.book.author,
+          source: paragraph.book.source,
+          category: paragraph.book.category,
+          position: paragraph.position,
+          approved: approved,
+          reviewedAt: DateTime.now(),
+        );
+        
+        processedQuotes.add(quote);
+        processedIds.add(paragraph.id);
+        
+        // Сохраняем
+        await save();
+        
+        final approvedCount = processedQuotes.where((q) => q.approved).length;
+        print('💎 Одобренных цитат: $approvedCount');
+      }
+      
+      if (shouldContinue) {
+        // Автоматически показываем следующую цитату
+        print('\n⏳ Загружаем следующую цитату...');
+        await Future.delayed(Duration(milliseconds: 500)); // Небольшая пауза
+        await reviewRandom();
         break;
-      case 'n':
-      case 'no':
-      case 'нет':
-        approved = false;
-        print('❌ ОТКЛОНЕНО');
-        break;
-      case 's':
-      case 'skip':
-        print('⏭️ Пропущено');
-        return;
-      default:
-        print('❓ Неясное решение, пропускаем');
-        return;
+      }
     }
-    
-    // Создаем запись
-    final quote = Quote(
-      id: paragraph.id,
-      text: paragraph.text,
-      author: paragraph.book.author,
-      source: paragraph.book.source,
-      category: paragraph.book.category,
-      position: paragraph.position,
-      approved: approved,
-      reviewedAt: DateTime.now(),
-    );
-    
-    processedQuotes.add(quote);
-    processedIds.add(paragraph.id);
-    
-    // Сохраняем
-    await save();
-    
-    final approvedCount = processedQuotes.where((q) => q.approved).length;
-    print('💎 Одобренных цитат: $approvedCount');
   }
 
   void _printFormatted(String text) {
