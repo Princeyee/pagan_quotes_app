@@ -1,10 +1,11 @@
 
 
+# 
 {
   "greece": {
     "displayName": "Греция",
     "books": [
-{
+      {
         "id": "aristotle_metaphysics",
         "title": "Метафизика",
         "author": "Аристотель",
@@ -12,18 +13,198 @@
         "translator": "А.В. Кубицкий",
         "rawFilePath": "assets/full_texts/greece/aristotle/metaphysics_raw.txt",
         "cleanedFilePath": "assets/full_texts/greece/aristotle/metaphysics_cleaned.txt"
-        
-        
-        }
+      },
+      {
+        "id": "aristotle_ethics",
+        "title": "Никомахова этика",
+        "author": "Аристотель",
+        "language": "ru",
+        "translator": "Н.В. Брагинская",
+        "rawFilePath": "assets/full_texts/greece/aristotle/ethics_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/aristotle/ethics_cleaned.txt"
+      },
+      {
+        "id": "aristotle_politics",
+        "title": "Политика",
+        "author": "Аристотель",
+        "language": "ru",
+        "translator": "С.А. Жебелев",
+        "rawFilePath": "assets/full_texts/greece/aristotle/politics_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/aristotle/politics_cleaned.txt"
+      },
+      {
+        "id": "aristotle_rhetoric",
+        "title": "Риторика",
+        "author": "Аристотель",
+        "language": "ru",
+        "translator": "Н. Платонова",
+        "rawFilePath": "assets/full_texts/greece/aristotle/rhetoric_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/aristotle/rhetoric_cleaned.txt"
+      },
+      {
+        "id": "plato_sophist",
+        "title": "Софист",
+        "author": "Платон",
+        "language": "ru",
+        "translator": "С.А. Ананьин",
+        "rawFilePath": "assets/full_texts/greece/plato/sophist_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/plato/sophist_cleaned.txt"
+      },
+      {
+        "id": "plato_parmenides",
+        "title": "Парменид",
+        "author": "Платон",
+        "language": "ru",
+        "translator": "Н.Н. Томасов",
+        "rawFilePath": "assets/full_texts/greece/plato/parmenides_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/plato/parmenides_cleaned.txt"
+      },
+      {
+        "id": "homer_iliad",
+        "title": "Илиада",
+        "author": "Гомер",
+        "language": "ru",
+        "translator": "Н.И. Гнедич",
+        "rawFilePath": "assets/full_texts/greece/homer/iliad_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/homer/iliad_cleaned.txt"
+      },
+      {
+        "id": "homer_odyssey",
+        "title": "Одиссея",
+        "author": "Гомер",
+        "language": "ru",
+        "translator": "В.А. Жуковский",
+        "rawFilePath": "assets/full_texts/greece/homer/odyssey_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/homer/odyssey_cleaned.txt"
+      },
+      {
+        "id": "hesiod_labour_and_days",
+        "title": "Труды и дни",
+        "author": "Гесиод",
+        "language": "ru",
+        "translator": "В.В. Вересаев",
+        "rawFilePath": "assets/full_texts/greece/hesiod/labour_and_days_raw.txt",
+        "cleanedFilePath": "assets/full_texts/greece/hesiod/labour_and_days_cleaned.txt"
+      }
     ]
   },
   "nordic": {
-    "displayName": "Север", 
-    "books": []
+    "displayName": "Север",
+    "books": [
+      {
+        "id": "beowulf",
+        "title": "Беовульф",
+        "author": "Аноним",
+        "language": "ru",
+        "translator": "В.Г. Тихомиров",
+        "rawFilePath": "assets/full_texts/nordic/folk/beowulf_raw.txt",
+        "cleanedFilePath": "assets/full_texts/nordic/folk/beowulf_cleaned.txt"
+      },
+      {
+        "id": "elder_edda",
+        "title": "Старшая Эдда",
+        "author": "Аноним",
+        "language": "ru",
+        "translator": "А.И. Корсун",
+        "rawFilePath": "assets/full_texts/nordic/folk/elder_edda_raw.txt",
+        "cleanedFilePath": "assets/full_texts/nordic/folk/elder_edda_cleaned.txt"
+      },
+      {
+        "id": "elderedda",
+        "title": "Песни о богах и героях",
+        "author": "Аноним",
+        "language": "ru",
+        "translator": "А.И. Корсун",
+        "rawFilePath": "assets/full_texts/nordic/folk/elderedda_raw.txt",
+        "cleanedFilePath": "assets/full_texts/nordic/folk/elderedda_cleaned.txt"
+      }
+    ]
   },
   "philosophy": {
     "displayName": "Философия",
-    "books": []
+    "books": [
+      {
+        "id": "heidegger_being_and_time",
+        "title": "Бытие и время",
+        "author": "Мартин Хайдеггер",
+        "language": "ru",
+        "translator": "В.В. Бибихин",
+        "rawFilePath": "assets/full_texts/philosophy/heidegger/being_and_time_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/heidegger/being_and_time_cleaned.txt"
+      },
+      {
+        "id": "heidegger_what_means_to_think",
+        "title": "Что значит мыслить?",
+        "author": "Мартин Хайдеггер",
+        "language": "ru",
+        "translator": "Э. Сагетдинов",
+        "rawFilePath": "assets/full_texts/philosophy/heidegger/what_means_to_think_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/heidegger/what_means_to_think_cleaned.txt"
+      },
+      {
+        "id": "nietzsche_antichrist",
+        "title": "Антихрист",
+        "author": "Фридрих Ницше",
+        "language": "ru",
+        "translator": "Ю.М. Антоновский",
+        "rawFilePath": "assets/full_texts/philosophy/nietzsche/antichrist_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/antichrist_cleaned.txt"
+      },
+      {
+        "id": "nietzsche_gay_science",
+        "title": "Веселая наука",
+        "author": "Фридрих Ницше",
+        "language": "ru",
+        "translator": "К.А. Свасьян",
+        "rawFilePath": "assets/full_texts/philosophy/nietzsche/gay_science_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/gay_science_cleaned.txt"
+      },
+      {
+        "id": "nietzsche_thus_spoke_zarathustra",
+        "title": "Так говорил Заратустра",
+        "author": "Фридрих Ницше",
+        "language": "ru",
+        "translator": "Ю.М. Антоновский",
+        "rawFilePath": "assets/full_texts/philosophy/nietzsche/thus_spoke_zarathustra_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/thus_spoke_zarathustra_cleaned.txt"
+      },
+      {
+        "id": "nietzsche_birth_of_tragedy",
+        "title": "Рождение трагедии из духа музыки",
+        "author": "Фридрих Ницше",
+        "language": "ru",
+        "translator": "Г.А. Рачинский",
+        "rawFilePath": "assets/full_texts/philosophy/nietzsche/birth_of_tragedy_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/birth_of_tragedy_cleaned.txt"
+      },
+      {
+        "id": "nietzsche_beyond_good_and_evil",
+        "title": "По ту сторону добра и зла",
+        "author": "Фридрих Ницше",
+        "language": "ru",
+        "translator": "Н.А. Полторацкий",
+        "rawFilePath": "assets/full_texts/philosophy/nietzsche/beyond_good_and_evil_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/nietzsche/beyond_good_and_evil_cleaned.txt"
+      },
+      {
+        "id": "schopenhauer_world_as_will",
+        "title": "Мир как воля и представление",
+        "author": "Артур Шопенгауэр",
+        "language": "ru",
+        "translator": "Ю.И. Айхенвальд",
+        "rawFilePath": "assets/full_texts/philosophy/schopenhauer/world_as_will_and_representation_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/schopenhauer/world_as_will_and_representation_cleaned.txt"
+      },
+      {
+        "id": "schopenhauer_aphorisms",
+        "title": "Афоризмы житейской мудрости",
+        "author": "Артур Шопенгауэр",
+        "language": "ru",
+        "translator": "Ф.В. Черниговец",
+        "rawFilePath": "assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_raw.txt",
+        "cleanedFilePath": "assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_cleaned.txt"
+      }
+    ]
   },
   "pagan": {
     "displayName": "Язычество",
@@ -34,12 +215,81 @@
         "author": "Ален де Бенуа",
         "language": "ru",
         "translator": "А.В. Кубицкий",
-        "rawFilePath": "assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt",
-        "cleanedFilePath": "assets/full_texts/pagan/de_benua/on_being_a_pagan_raw.txt"
-        
-        
-        }
-      
+        "rawFilePath": "assets/full_texts/pagan/de_benua/on_being_a_pagan_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt"
+      },
+      {
+        "id": "de_benua_faith_and_ideas_vol1",
+        "title": "История веры и религиозных идей. Том 1",
+        "author": "Мирча Элиаде",
+        "language": "ru",
+        "translator": "Н.Б. Абалакин",
+        "rawFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_cleaned.txt"
+      },
+      {
+        "id": "de_benua_faith_and_ideas_vol2",
+        "title": "История веры и религиозных идей. Том 2",
+        "author": "Мирча Элиаде",
+        "language": "ru",
+        "translator": "Н.Б. Абалакин",
+        "rawFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_cleaned.txt"
+      },
+      {
+        "id": "de_benua_faith_and_ideas_vol3",
+        "title": "История веры и религиозных идей. Том 3",
+        "author": "Мирча Элиаде",
+        "language": "ru",
+        "translator": "Н.Б. Абалакин",
+        "rawFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_cleaned.txt"
+      },
+      {
+        "id": "evola_pagan_imperialism",
+        "title": "Языческий империализм",
+        "author": "Юлиус Эвола",
+        "language": "ru",
+        "translator": "В.В. Ванюшкина",
+        "rawFilePath": "assets/full_texts/pagan/julius_evola/pagan_imperialism_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/julius_evola/pagan_imperialism_cleaned.txt"
+      },
+      {
+        "id": "evola_metaphysics_of_sex",
+        "title": "Метафизика пола",
+        "author": "Юлиус Эвола",
+        "language": "ru",
+        "translator": "Л.В. Семенова",
+        "rawFilePath": "assets/full_texts/pagan/julius_evola/metaphysics_of_sex_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/julius_evola/metaphysics_of_sex_cleaned.txt"
+      },
+      {
+        "id": "evola_men_among_ruins",
+        "title": "Люди и руины",
+        "author": "Юлиус Эвола",
+        "language": "ru",
+        "translator": "А.М. Кабанчик",
+        "rawFilePath": "assets/full_texts/pagan/julius_evola/men_among_ruins_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/julius_evola/men_among_ruins_cleaned.txt"
+      },
+      {
+        "id": "eliade_sacred_and_profane",
+        "title": "Священное и мирское",
+        "author": "Мирча Элиаде",
+        "language": "ru",
+        "translator": "Н.К. Гарбовский",
+        "rawFilePath": "assets/full_texts/pagan/mercea_eliade/sacred_and_profane_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt"
+      },
+      {
+        "id": "eliade_myth_eternal_return",
+        "title": "Миф о вечном возвращении",
+        "author": "Мирча Элиаде",
+        "language": "ru",
+        "translator": "А.А. Старостин",
+        "rawFilePath": "assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_raw.txt",
+        "cleanedFilePath": "assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt"
+      }
     ]
   }
 }

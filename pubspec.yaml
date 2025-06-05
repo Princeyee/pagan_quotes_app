@@ -65,10 +65,67 @@ flutter:
     - assets/full_texts/pagan/
     - assets/full_texts/philosophy/
     - assets/full_texts/greece/
-    - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
-    - assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt
-    - assets/full_texts/pagan/de_benua/on_being_a_pagan_raw.txt
     - assets/config/book_sources.json
+    - assets/full_texts/greece/aristotle/metaphysics_raw.txt
+    - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
+    - assets/full_texts/greece/aristotle/ethics_raw.txt
+    - assets/full_texts/greece/aristotle/ethics_cleaned.txt
+    - assets/full_texts/greece/aristotle/politics_raw.txt
+    - assets/full_texts/greece/aristotle/politics_cleaned.txt
+    - assets/full_texts/greece/aristotle/rhetoric_raw.txt
+    - assets/full_texts/greece/aristotle/rhetoric_cleaned.txt
+    - assets/full_texts/greece/plato/sophist_raw.txt
+    - assets/full_texts/greece/plato/sophist_cleaned.txt
+    - assets/full_texts/greece/plato/parmenides_raw.txt
+    - assets/full_texts/greece/plato/parmenides_cleaned.txt
+    - assets/full_texts/greece/homer/iliad_raw.txt
+    - assets/full_texts/greece/homer/iliad_cleaned.txt
+    - assets/full_texts/greece/homer/odyssey_raw.txt
+    - assets/full_texts/greece/homer/odyssey_cleaned.txt
+    - assets/full_texts/greece/hesiod/labour_and_days_raw.txt
+    - assets/full_texts/greece/hesiod/labour_and_days_cleaned.txt
+    - assets/full_texts/nordic/folk/beowulf_raw.txt
+    - assets/full_texts/nordic/folk/beowulf_cleaned.txt
+    - assets/full_texts/nordic/folk/elder_edda_raw.txt
+    - assets/full_texts/nordic/folk/elder_edda_cleaned.txt
+    - assets/full_texts/nordic/folk/elderedda_raw.txt
+    - assets/full_texts/nordic/folk/elderedda_cleaned.txt
+    - assets/full_texts/philosophy/heidegger/being_and_time_raw.txt
+    - assets/full_texts/philosophy/heidegger/being_and_time_cleaned.txt
+    - assets/full_texts/philosophy/heidegger/what_means_to_think_raw.txt
+    - assets/full_texts/philosophy/heidegger/what_means_to_think_cleaned.txt
+    - assets/full_texts/philosophy/nietzsche/antichrist_raw.txt
+    - assets/full_texts/philosophy/nietzsche/antichrist_cleaned.txt
+    - assets/full_texts/philosophy/nietzsche/gay_science_raw.txt
+    - assets/full_texts/philosophy/nietzsche/gay_science_cleaned.txt
+    - assets/full_texts/philosophy/nietzsche/thus_spoke_zarathustra_raw.txt
+    - assets/full_texts/philosophy/nietzsche/thus_spoke_zarathustra_cleaned.txt
+    - assets/full_texts/philosophy/nietzsche/birth_of_tragedy_raw.txt
+    - assets/full_texts/philosophy/nietzsche/birth_of_tragedy_cleaned.txt
+    - assets/full_texts/philosophy/nietzsche/beyond_good_and_evil_raw.txt
+    - assets/full_texts/philosophy/nietzsche/beyond_good_and_evil_cleaned.txt
+    - assets/full_texts/philosophy/schopenhauer/world_as_will_and_representation_raw.txt
+    - assets/full_texts/philosophy/schopenhauer/world_as_will_and_representation_cleaned.txt
+    - assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_raw.txt
+    - assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_cleaned.txt
+    - assets/full_texts/pagan/de_benua/on_being_a_pagan_raw.txt
+    - assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt
+    - assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_raw.txt
+    - assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol1_cleaned.txt
+    - assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_raw.txt
+    - assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol2_cleaned.txt
+    - assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_raw.txt
+    - assets/full_texts/pagan/mercea_eliade/history_of_religious_ideas_vol3_cleaned.txt
+    - assets/full_texts/pagan/julius_evola/pagan_imperialism_raw.txt
+    - assets/full_texts/pagan/julius_evola/pagan_imperialism_cleaned.txt
+    - assets/full_texts/pagan/julius_evola/metaphysics_of_sex_raw.txt
+    - assets/full_texts/pagan/julius_evola/metaphysics_of_sex_cleaned.txt
+    - assets/full_texts/pagan/julius_evola/men_among_ruins_raw.txt
+    - assets/full_texts/pagan/julius_evola/men_among_ruins_cleaned.txt
+    - assets/full_texts/pagan/mercea_eliade/sacred_and_profane_raw.txt
+    - assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt
+    - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_raw.txt
+    - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt
 
 
 flutter_launcher_icons:
