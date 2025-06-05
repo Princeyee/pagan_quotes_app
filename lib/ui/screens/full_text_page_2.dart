@@ -1,4 +1,3 @@
-
 // lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
 import '../../models/quote_context.dart';
@@ -9,11 +8,12 @@ import '../../services/logger_service.dart';
 import '../../utils/custom_cache.dart';
 import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Экспорт для использования в ContextPage
 export 'full_text_page_2.dart';
 
-// --- Элегантная анимация поиска ---
+// --- ЗАМЕНЁННЫЙ класс ElegantSearchAnimation ---
 class ElegantSearchAnimation extends StatefulWidget {
   final String authorName;
   final String bookTitle;
@@ -34,67 +34,80 @@ class ElegantSearchAnimation extends StatefulWidget {
 
 class _ElegantSearchAnimationState extends State<ElegantSearchAnimation>
     with TickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late AnimationController _waveController;
-  late AnimationController _textController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _waveAnimation;
-  late Animation<double> _textFadeAnimation;
+  late AnimationController _containerController;
+  late AnimationController _sequenceController;
+  late Animation<double> _containerAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  int _currentStep = 0;
+  final List<String> _steps = ['Тема', 'Автор', 'Книга', '𝕽'];
 
   @override
   void initState() {
     super.initState();
     
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    
-    _waveController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    );
-    
-    _textController = AnimationController(
+    _containerController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+    
+    _sequenceController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
 
-    _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-
-    _waveAnimation = Tween<double>(
+    _containerAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _waveController,
-      curve: Curves.easeInOut,
+      parent: _containerController,
+      curve: Curves.easeOutCubic,
     ));
 
-    _textFadeAnimation = Tween<double>(
+    _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: Curves.easeOut,
+      parent: _sequenceController,
+      curve: const Interval(0.0, 0.3, curve: Curves.easeInOut),
     ));
 
-    // Запускаем анимации
-    _pulseController.repeat(reverse: true);
-    _waveController.repeat();
-    _textController.forward();
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0),
+      end: const Offset(0, -1.5),
+    ).animate(CurvedAnimation(
+      parent: _sequenceController,
+      curve: const Interval(0.3, 0.7, curve: Curves.easeInOut),
+    ));
+
+    _startAnimation();
+  }
+
+  void _startAnimation() async {
+    // Сначала появляется контейнер
+    await _containerController.forward();
+    
+    // Потом запускаем последовательность
+    _sequenceController.addListener(() {
+      final progress = _sequenceController.value;
+      final stepProgress = progress * _steps.length;
+      final newStep = stepProgress.floor().clamp(0, _steps.length - 1);
+      
+      if (newStep != _currentStep && newStep < _steps.length) {
+        setState(() {
+          _currentStep = newStep;
+        });
+      }
+    });
+    
+    await _sequenceController.forward();
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
-    _waveController.dispose();
-    _textController.dispose();
+    _containerController.dispose();
+    _sequenceController.dispose();
     super.dispose();
   }
 
@@ -112,197 +125,245 @@ class _ElegantSearchAnimationState extends State<ElegantSearchAnimation>
         ),
       ),
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Основная анимация поиска
-            SizedBox(
-              width: 200,
-              height: 200,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Внешние волны
-                  ...List.generate(3, (index) => _buildWave(index)),
-                  
-                  // Центральная иконка с пульсацией
-                  AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _pulseAnimation.value,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: widget.theme.quoteHighlightColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: widget.theme.quoteHighlightColor.withOpacity(0.3),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.auto_stories,
-                            color: Colors.white,
-                            size: 40,
+        child: AnimatedBuilder(
+          animation: _containerController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _containerAnimation.value,
+              child: Container(
+                width: 320,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: widget.theme.cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: widget.theme.borderColor.withOpacity(0.3),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    // Фоновая анимация (рябь)
+                    _buildRippleBackground(),
+                    
+                    // Основной контент
+                    _buildMainContent(),
+                    
+                    // Кнопка отмены
+                    if (widget.onCancel != null)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: GestureDetector(
+                          onTap: widget.onCancel,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: widget.theme.highlightColor.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              color: widget.theme.textColor.withOpacity(0.6),
+                              size: 16,
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                  ],
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 40),
-            
-            // Текстовая информация с анимацией появления
-            FadeTransition(
-              opacity: _textFadeAnimation,
-              child: Column(
-                children: [
-                  // Заголовок
-                  Text(
-                    'Поиск цитаты',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: widget.theme.textColor,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Информация о книге
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                    margin: const EdgeInsets.symmetric(horizontal: 40),
-                    decoration: BoxDecoration(
-                      color: widget.theme.cardColor.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: widget.theme.borderColor.withOpacity(0.3),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          widget.bookTitle,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: widget.theme.textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.authorName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: widget.theme.textColor.withOpacity(0.7),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Анимированный текст состояния
-                  _buildAnimatedStatus(),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Кнопка отмены (опционально)
-                  if (widget.onCancel != null)
-                    TextButton.icon(
-                      onPressed: widget.onCancel,
-                      icon: Icon(
-                        Icons.close,
-                        color: widget.theme.textColor.withOpacity(0.6),
-                        size: 20,
-                      ),
-                      label: Text(
-                        'Отменить',
-                        style: TextStyle(
-                          color: widget.theme.textColor.withOpacity(0.6),
-                          fontSize: 16,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildWave(int index) {
-    final delay = index * 0.3;
+  Widget _buildRippleBackground() {
     return AnimatedBuilder(
-      animation: _waveAnimation,
+      animation: _sequenceController,
       builder: (context, child) {
-        final progress = (_waveAnimation.value + delay) % 1.0;
-        final opacity = (1 - progress).clamp(0.0, 0.4);
-        final scale = 0.3 + (progress * 1.2);
-        
-        return Transform.scale(
-          scale: scale,
-          child: Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: widget.theme.quoteHighlightColor.withOpacity(opacity),
-                width: 2,
-              ),
-            ),
+        return CustomPaint(
+          painter: RipplePainter(
+            animation: _sequenceController,
+            color: widget.theme.quoteHighlightColor.withOpacity(0.1),
           ),
+          size: const Size(320, 200),
         );
       },
     );
   }
 
-  Widget _buildAnimatedStatus() {
-    return AnimatedBuilder(
-      animation: _textController,
-      builder: (context, child) {
-        final dots = '.' * ((_textController.value * 3).floor() + 1);
-        return Text(
-          'Ищем нужный фрагмент$dots',
-          style: TextStyle(
-            fontSize: 16,
-            color: widget.theme.textColor.withOpacity(0.8),
-            fontWeight: FontWeight.w300,
-          ),
-        );
-      },
+  Widget _buildMainContent() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Анимированное появление текста
+        AnimatedBuilder(
+          animation: _sequenceController,
+          builder: (context, child) {
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.5),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
+              child: Container(
+                key: ValueKey(_currentStep),
+                child: _buildStepContent(),
+              ),
+            );
+          },
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Индикатор прогресса
+        _buildProgressIndicator(),
+      ],
     );
   }
+
+  Widget _buildStepContent() {
+    String text;
+    String subtitle = '';
+    
+    switch (_currentStep) {
+      case 0:
+        text = _getCategoryDisplayName();
+        subtitle = 'Тематика';
+        break;
+      case 1:
+        text = widget.authorName;
+        subtitle = 'Автор';
+        break;
+      case 2:
+        text = widget.bookTitle;
+        subtitle = 'Произведение';
+        break;
+      case 3:
+        text = '𝕽'; // Красивая руна
+        subtitle = 'Поиск завершен';
+        break;
+      default:
+        text = 'Загрузка...';
+    }
+    
+    return Column(
+      children: [
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: widget.theme.textColor.withOpacity(0.6),
+            fontWeight: FontWeight.w300,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          text,
+          style: GoogleFonts.merriweather(
+            fontSize: _currentStep == 3 ? 48 : 20,
+            color: widget.theme.textColor,
+            fontWeight: _currentStep == 3 ? FontWeight.w300 : FontWeight.w500,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(_steps.length, (index) {
+        final isActive = index <= _currentStep;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: isActive ? 24 : 8,
+          height: 4,
+          decoration: BoxDecoration(
+            color: isActive 
+                ? widget.theme.quoteHighlightColor
+                : widget.theme.borderColor.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
+      }),
+    );
+  }
+
+  String _getCategoryDisplayName() {
+    // Определяем категорию по автору или названию книги
+    final bookLower = widget.bookTitle.toLowerCase();
+    final authorLower = widget.authorName.toLowerCase();
+    
+    if (authorLower.contains('aristotle') || authorLower.contains('аристотель')) {
+      return 'Древняя Греция';
+    } else if (authorLower.contains('evola') || authorLower.contains('эвола')) {
+      return 'Язычество';
+    } else if (bookLower.contains('nordic') || bookLower.contains('север')) {
+      return 'Скандинавия';
+    } else if (bookLower.contains('philosophy') || bookLower.contains('философия')) {
+      return 'Философия';
+    } else {
+      return 'Мудрость';
+    }
+  }
+}
+
+// Кастомный painter для фоновой ряби
+class RipplePainter extends CustomPainter {
+  final Animation<double> animation;
+  final Color color;
+
+  RipplePainter({
+    required this.animation,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width / 2;
+
+    for (int i = 0; i < 3; i++) {
+      final progress = (animation.value + i * 0.3) % 1.0;
+      final radius = progress * maxRadius;
+      final opacity = (1 - progress).clamp(0.0, 1.0);
+      
+      paint.color = color.withOpacity(opacity * 0.3);
+      canvas.drawCircle(center, radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // --- Анимация с прогрессом ---
