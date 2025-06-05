@@ -88,8 +88,8 @@ flutter:
     - assets/full_texts/nordic/folk/beowulf_cleaned.txt
     - assets/full_texts/nordic/folk/elder_edda_raw.txt
     - assets/full_texts/nordic/folk/elder_edda_cleaned.txt
-    - assets/full_texts/nordic/folk/elderedda_raw.txt
-    - assets/full_texts/nordic/folk/elderedda_cleaned.txt
+    - assets/full_texts/nordic/folk/elder_edda_raw.txt
+    - assets/full_texts/nordic/folk/elder_edda_cleaned.txt
     - assets/full_texts/philosophy/heidegger/being_and_time_raw.txt
     - assets/full_texts/philosophy/heidegger/being_and_time_cleaned.txt
     - assets/full_texts/philosophy/heidegger/what_means_to_think_raw.txt
@@ -126,7 +126,7 @@ flutter:
     - assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt
     - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_raw.txt
     - assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt
-
+    - assets/currated/my_quotes.json
 
 flutter_launcher_icons:
   android: true
