@@ -1,5 +1,5 @@
 
-// lib/services/quote_extraction_service.dart - ПРОСТАЯ ВЕРСИЯ
+// lib/services/quote_extraction_service.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -75,8 +75,8 @@ class QuoteExtractionService {
     
     // Список файлов с кураторскими цитатами
     final curatedFiles = [
-  'assets/curated/my_quotes_approved.json',
-];
+      'assets/curated/my_quotes_approved.json',
+    ];
 
     for (final filePath in curatedFiles) {
       try {
@@ -149,13 +149,16 @@ class QuoteExtractionService {
     }
   }
 
-  /// Получает контекст для цитаты
+  /// ИСПРАВЛЕННЫЙ метод получения контекста для цитаты
   Future<QuoteContext?> getQuoteContext(Quote quote) async {
     try {
+      print('🔍 Ищем контекст для цитаты: ${quote.id}');
+      
+      // Загружаем источники книг
       final sources = await _textService.loadBookSources();
       BookSource? matchingSource;
       
-      // Находим источник
+      // Находим источник по автору и названию
       for (final source in sources) {
         if (source.author == quote.author && source.title == quote.source) {
           matchingSource = source;
@@ -163,8 +166,8 @@ class QuoteExtractionService {
         }
       }
       
+      // Fallback поиск по категории и автору
       if (matchingSource == null) {
-        // Fallback поиск по категории и автору
         for (final source in sources) {
           if (source.author == quote.author && source.category == quote.category) {
             matchingSource = source;
@@ -173,21 +176,85 @@ class QuoteExtractionService {
         }
       }
       
+      // Дополнительный fallback - поиск по частичному совпадению
       if (matchingSource == null) {
-        print('❌ Источник не найден для: ${quote.id}');
+        print('⚠️ Точное совпадение не найдено, ищем по автору...');
+        for (final source in sources) {
+          if (source.author.toLowerCase().contains(quote.author.toLowerCase()) || 
+              quote.author.toLowerCase().contains(source.author.toLowerCase())) {
+            matchingSource = source;
+            print('✅ Найдено частичное совпадение: ${source.title}');
+            break;
+          }
+        }
+      }
+      
+      if (matchingSource == null) {
+        print('❌ Источник не найден для: ${quote.author} - ${quote.source}');
+        print('📚 Доступные источники:');
+        for (final s in sources) {
+          print('   - ${s.author} : ${s.title} (${s.category})');
+        }
         return null;
       }
       
+      print('✅ Найден источник: ${matchingSource.title} - ${matchingSource.cleanedFilePath}');
+      
       // Загружаем текст и получаем контекст
       final cleanedText = await _textService.loadTextFile(matchingSource.cleanedFilePath);
+      print('📖 Загружен текст длиной: ${cleanedText.length} символов');
+      
+      // Получаем контекст вокруг позиции цитаты
       final contextParagraphs = _textService.getContextAroundPosition(
         cleanedText, 
         quote.position,
-        contextSize: 1,
+        contextSize: 1, // По 1 параграфу до и после
       );
       
       if (contextParagraphs.isEmpty) {
-        print('❌ Контекст не найден для: ${quote.id}');
+        print('❌ Контекст не найден на позиции: ${quote.position}');
+        
+        // Попробуем найти цитату по тексту
+        print('🔍 Пытаемся найти цитату по тексту...');
+        final paragraphs = _textService.extractParagraphsWithPositions(cleanedText);
+        
+        for (final para in paragraphs) {
+          final content = para['content'] as String;
+          final position = para['position'] as int;
+          
+          // Проверяем, содержится ли текст цитаты в этом параграфе
+          if (content.toLowerCase().contains(quote.text.toLowerCase().substring(0, min(30, quote.text.length)))) {
+            print('✅ Найдена цитата по тексту на позиции: $position');
+            
+            // Получаем контекст для найденной позиции
+            final foundContextParagraphs = _textService.getContextAroundPosition(
+              cleanedText, 
+              position,
+              contextSize: 1,
+            );
+            
+            if (foundContextParagraphs.isNotEmpty) {
+              final contextText = foundContextParagraphs
+                  .map((p) => p['content'] as String)
+                  .join('\n\n');
+              
+              final startPosition = foundContextParagraphs.first['position'] as int;
+              final endPosition = foundContextParagraphs.last['position'] as int;
+              
+              return QuoteContext(
+                quote: quote,
+                contextText: contextText,
+                startPosition: startPosition,
+                endPosition: endPosition,
+                contextParagraphs: foundContextParagraphs
+                    .map((p) => p['content'] as String)
+                    .toList(),
+              );
+            }
+          }
+        }
+        
+        print('❌ Не удалось найти цитату ни по позиции, ни по тексту');
         return null;
       }
       
@@ -197,6 +264,8 @@ class QuoteExtractionService {
       
       final startPosition = contextParagraphs.first['position'] as int;
       final endPosition = contextParagraphs.last['position'] as int;
+      
+      print('✅ Контекст найден: ${contextParagraphs.length} параграфов');
       
       return QuoteContext(
         quote: quote,
@@ -208,8 +277,9 @@ class QuoteExtractionService {
             .toList(),
       );
       
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('❌ Ошибка получения контекста: $e');
+      print('Stack trace: $stackTrace');
       return null;
     }
   }
@@ -221,12 +291,32 @@ class QuoteExtractionService {
   }
 
   Future<List<Quote>> searchQuotes(String query, {int limit = 20}) async {
-    // Можно убрать или оставить для совместимости
-    return [];
+    // Можно реализовать поиск по отобранным цитатам
+    final curated = await _loadCuratedQuotes();
+    final allQuotes = <Quote>[];
+    
+    for (final categoryQuotes in curated.values) {
+      for (final curatedQuote in categoryQuotes) {
+        final quote = curatedQuote.toQuote();
+        if (quote.text.toLowerCase().contains(query.toLowerCase()) ||
+            quote.author.toLowerCase().contains(query.toLowerCase()) ||
+            quote.source.toLowerCase().contains(query.toLowerCase())) {
+          allQuotes.add(quote);
+        }
+      }
+    }
+    
+    return allQuotes.take(limit).toList();
   }
 
   Future<Map<String, int>> getExtractionStats() async {
-    // Можно убрать или оставить для совместимости
-    return {};
+    final curated = await _loadCuratedQuotes();
+    final stats = <String, int>{};
+    
+    for (final entry in curated.entries) {
+      stats[entry.key] = entry.value.length;
+    }
+    
+    return stats;
   }
 }
