@@ -324,50 +324,54 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                     fontSize: 40,
                     fontWeight: FontWeight.w300,
                     color: Colors.white,
+                     decoration: TextDecoration.none,
                   ),
                 ),
               ),
             ),
             
             // Заголовок
-            Text(
-              'Добро пожаловать в Sacral',
-              style: GoogleFonts.merriweather(
-                fontSize: 28,
-                fontWeight: FontWeight.w300,
-                color: Colors.white,
-                height: 1.2,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Описание
-            Text(
-              'Каждый день — новая мудрость.\nПрикоснитесь к вечным истинам через цитаты великих мыслителей и голос мифа.',
-              style: TextStyle(
-                fontSize: 17,
-                color: Colors.white.withOpacity(0.8),
-                height: 1.5,
-                fontWeight: FontWeight.w300,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            const SizedBox(height: 40),
+Text(
+  'Добро пожаловать в Sacral',
+  style: GoogleFonts.merriweather(
+    fontSize: 28,
+    fontWeight: FontWeight.w300,
+    color: Colors.white,
+    height: 1.2,
+    decoration: TextDecoration.none, // ← убирает подчёркивание
+  ),
+  textAlign: TextAlign.center,
+),
+
+const SizedBox(height: 20),
+
+// Описание
+Text(
+  'Каждый день — новая мудрость.\nПрикоснитесь к вечным истинам через цитаты великих мыслителей и голос мифа.',
+  style: GoogleFonts.merriweather(
+    fontSize: 17,
+    fontWeight: FontWeight.w300,
+    color: Colors.white.withOpacity(0.8),
+    height: 1.5,
+    decoration: TextDecoration.none,
+  ),
+  textAlign: TextAlign.center,
+),
+
+const SizedBox(height: 40),
             
             // Подзаголовок
             Text(
-              'Философия начинается с удивления',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.5),
-                fontStyle: FontStyle.italic,
-                letterSpacing: 0.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
+  'Философия начинается с удивления.',
+  style: GoogleFonts.merriweather(
+    fontSize: 16,
+    fontStyle: FontStyle.italic,
+    color: Colors.white.withOpacity(0.7),
+    letterSpacing: 0.5,
+    decoration: TextDecoration.none,
+  ),
+  textAlign: TextAlign.center,
+),
             
             const SizedBox(height: 60),
             
@@ -402,13 +406,15 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Нажмите, чтобы продолжить',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 14,
-                              ),
-                            ),
+Text(
+  'Нажмите, чтобы продолжить',
+  style: GoogleFonts.merriweather(
+    color: Colors.white.withOpacity(0.7),
+    fontSize: 14,
+    fontWeight: FontWeight.w300,
+    decoration: TextDecoration.none,
+  ),
+),
                           ],
                         ),
                       ),
@@ -428,19 +434,26 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       children: [
         // Подсказка свайпа
         Positioned(
-          bottom: MediaQuery.of(context).size.height * 0.3,
+          bottom: MediaQuery.of(context).size.height * 0.18,
           left: 0,
           right: 0,
           child: _AnimatedGestureHint(
             icon: Icons.swipe_up,
             text: 'Свайп вверх\nдля просмотра контекста',
             delay: const Duration(milliseconds: 200),
+            textStyle: GoogleFonts.merriweather(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.85),
+              fontStyle: FontStyle.normal,
+              decoration: TextDecoration.none,
+              height: 1.4,
+            ),
           ),
         ),
         
         // Подсказка долгого нажатия
         Positioned(
-          top: MediaQuery.of(context).size.height * 0.35,
+          top: MediaQuery.of(context).size.height * 0.12,
           left: 0,
           right: 0,
           child: _AnimatedGestureHint(
@@ -448,6 +461,13 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             text: 'Долгое нажатие\nдля создания заметки',
             delay: const Duration(milliseconds: 600),
             isLongPress: true,
+            textStyle: GoogleFonts.merriweather(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.85),
+              fontStyle: FontStyle.italic,
+              decoration: TextDecoration.none,
+              height: 1.4,
+            ),
           ),
         ),
         
@@ -486,6 +506,7 @@ Positioned(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
+                   decoration: TextDecoration.none,
                 ),
               ),
             ),
@@ -506,12 +527,14 @@ class _AnimatedGestureHint extends StatefulWidget {
   final String text;
   final Duration delay;
   final bool isLongPress;
+  final TextStyle? textStyle; // ← вот это добавлено
 
   const _AnimatedGestureHint({
     required this.icon,
     required this.text,
     required this.delay,
     this.isLongPress = false,
+    this.textStyle, // ← вот это добавлено
   });
 
   @override
@@ -612,15 +635,10 @@ class _AnimatedGestureHintState extends State<_AnimatedGestureHint>
                 
                 // Текст
                 Text(
-                  widget.text,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
-                    height: 1.4,
-                    fontWeight: FontWeight.w300,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+  widget.text,
+  style: widget.textStyle,
+  textAlign: TextAlign.center,
+),
               ],
             ),
           ),
