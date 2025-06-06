@@ -530,20 +530,20 @@ class _QuotePageState extends State<QuotePage>
 
   // [Все методы инициализации остаются такими же]
   Future<void> _checkTutorial() async {
-    final hasSeenTutorial = _cache.getSetting('tutorial_seen') ?? false;
-    if (!hasSeenTutorial) {
-      setState(() {
-        _showTutorial = true;
-      });
-    }
-  }
-
-  void _onTutorialComplete() {
-    _cache.setSetting('tutorial_seen', true);
+  final hasSeenOnboarding = _cache.getSetting('onboarding_seen') ?? false;
+  if (!hasSeenOnboarding) {
     setState(() {
-      _showTutorial = false;
+      _showOnboarding = true;
     });
   }
+}
+
+  void _onOnboardingComplete() {
+  _cache.setSetting('onboarding_seen', true);
+  setState(() {
+    _showOnboarding = false;
+  });
+}
 
   Future<void> _initializeSound() async {
     await _soundManager.init();
@@ -903,21 +903,14 @@ Widget build(BuildContext context) {
     ),
   );
 
-  final wrappedInTutorial = TutorialOverlay(
-    showTutorial: _showTutorial,
-    onTutorialComplete: _onTutorialComplete,
-    child: mainScaffold,
-  );
-
-  // Важно: оборачиваем в OnboardingOverlay только если нужно
   if (_showOnboarding) {
     return OnboardingOverlay(
       onComplete: _onOnboardingComplete,
-      child: wrappedInTutorial,
+      child: mainScaffold,
     );
   }
 
-  return wrappedInTutorial;
+  return mainScaffold;
 }
 
   Widget _buildLoadingState() {
@@ -1050,8 +1043,8 @@ Widget build(BuildContext context) {
             ),
             
             // Подсказка внизу
-            if (_currentDailyQuote != null && !_currentDailyQuote!.isViewed && !_showTutorial)
-              _buildSwipeHint(),
+            if (_currentDailyQuote != null && !_currentDailyQuote!.isViewed)
+  _buildSwipeHint(),
           ],
         ),
       ),
@@ -1252,10 +1245,10 @@ Widget build(BuildContext context) {
         ),
         
         // Подсказка для заметок (адаптивная)
-        if (!isSmallScreen && _showTooltipHint)
-          _buildTooltipHint()
-        else
-          const SizedBox(width: 48), // Заглушка для выравнивания
+        if (!isSmallScreen)
+  const SizedBox.shrink()
+else
+  const SizedBox(width: 48), // Заглушка для выравнивания
       ],
     );
   }
