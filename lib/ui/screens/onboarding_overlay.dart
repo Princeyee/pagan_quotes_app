@@ -36,6 +36,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   late Animation<double> _glowAnimation;
   late Animation<double> _contentFadeAnimation;
   late Animation<double> _blurAnimation;
+  late AnimationController _blurController;
+
   
   final SoundManager _soundManager = SoundManager();
   
@@ -57,6 +59,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
+  
     
     // Контроллер для частиц
     _particleController = AnimationController(
@@ -108,15 +111,21 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       parent: _contentController,
       curve: Curves.easeIn,
     );
+    _blurController = AnimationController(
+  duration: const Duration(milliseconds: 1000),
+  vsync: this,
+);
 
-    _blurAnimation = Tween<double>(
-      begin: 0.0,
-      end: 10.0,
-    ).animate(CurvedAnimation(
-      parent: _gestureHintController,
-      curve: Curves.easeInOut,
-    ));
-  }
+_blurAnimation = Tween<double>(
+  begin: 0.0,
+  end: 10.0,
+).animate(CurvedAnimation(
+  parent: _blurController,
+  curve: Curves.easeInOut,
+));
+
+_blurController.forward(); // Запускать блюр сразу
+}
 
   Future<void> _startOnboarding() async {
     // Начинаем с анимации дерева
@@ -169,6 +178,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     _contentController.dispose();
     _gestureHintController.dispose();
     super.dispose();
+    _blurController.dispose();
+
   }
 
   @override
@@ -187,29 +198,28 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     );
   }
 
-  Widget _buildOnboardingContent() {
-    return GestureDetector(
-      onTap: _currentStep == 1 ? _proceedToGestures : null,
-      child: AnimatedBuilder(
-        animation: _blurAnimation,
-        builder: (context, child) {
-          return BackdropFilter(
-            filter: ui.ImageFilter.blur(
-              sigmaX: _currentStep == 2 ? _blurAnimation.value : 0,
-              sigmaY: _currentStep == 2 ? _blurAnimation.value : 0,
+ Widget _buildOnboardingContent() {
+  return GestureDetector(
+    onTap: _currentStep == 1 ? _proceedToGestures : null,
+    child: AnimatedBuilder(
+      animation: _blurAnimation,
+      builder: (context, child) {
+        return BackdropFilter(
+          filter: ui.ImageFilter.blur(
+            sigmaX: _blurAnimation.value,
+            sigmaY: _blurAnimation.value,
+          ),
+          child: Container(
+            color: Colors.black.withOpacity(0.4), // ← меньше, чтобы блюр был виден
+            child: SafeArea(
+              child: _buildCurrentStep(),
             ),
-            child: Container(
-              color: Colors.black.withOpacity(_currentStep == 2 ? 0.7 : 0.85),
-              child: SafeArea(
-                child: _buildCurrentStep(),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
+          ),
+        );
+      },
+    ),
+  );
+}
   Widget _buildCurrentStep() {
     switch (_currentStep) {
       case 0:
