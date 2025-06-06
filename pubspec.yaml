@@ -47,6 +47,7 @@ flutter:
     - assets/sounds/theme_nordic_open.mp3
     - assets/sounds/theme_greece_open.mp3
     - assets/sounds/theme_pagan_open.mp3
+    - assets/sounds/breath.mp3
 #Картинки
     - assets/images/book_background.jpg
     - assets/images/greece.jpg

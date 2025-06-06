@@ -10,6 +10,8 @@ import 'dart:ui' as ui;
 import 'dart:typed_data';
 import 'dart:math' show sin, cos, pi;
 import 'package:just_audio/just_audio.dart';
+import 'onboarding_overlay.dart';
+
 
 import '../../models/daily_quote.dart';
 import '../../models/quote.dart';
@@ -508,8 +510,8 @@ class _QuotePageState extends State<QuotePage>
   bool _isLoading = true;
   bool _isFavorite = false;
   bool _isSoundMuted = false;
-  bool _showTutorial = false;
-  bool _showTooltipHint = true;
+  bool _showOnboarding = false;
+
 
   String? _error;
   Color _textColor = Colors.white;
@@ -882,29 +884,41 @@ class _QuotePageState extends State<QuotePage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return TutorialOverlay(
-      showTutorial: _showTutorial,
-      onTutorialComplete: _onTutorialComplete,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        drawerScrimColor: Colors.black.withOpacity(0.3),
-        drawer: Theme(
-          data: Theme.of(context).copyWith(
-            canvasColor: Colors.transparent,
-          ),
-          child: NavDrawer(onNavigate: _navigateToPage),
-        ),
-        body: SafeArea(
-          child: _isLoading 
-              ? _buildLoadingState()
-              : _error != null 
-                  ? _buildErrorState()
-                  : _buildQuoteContent(),
-        ),
+Widget build(BuildContext context) {
+  final mainScaffold = Scaffold(
+    backgroundColor: Colors.black,
+    drawerScrimColor: Colors.black.withOpacity(0.3),
+    drawer: Theme(
+      data: Theme.of(context).copyWith(
+        canvasColor: Colors.transparent,
       ),
+      child: NavDrawer(onNavigate: _navigateToPage),
+    ),
+    body: SafeArea(
+      child: _isLoading
+          ? _buildLoadingState()
+          : _error != null
+              ? _buildErrorState()
+              : _buildQuoteContent(),
+    ),
+  );
+
+  final wrappedInTutorial = TutorialOverlay(
+    showTutorial: _showTutorial,
+    onTutorialComplete: _onTutorialComplete,
+    child: mainScaffold,
+  );
+
+  // Важно: оборачиваем в OnboardingOverlay только если нужно
+  if (_showOnboarding) {
+    return OnboardingOverlay(
+      onComplete: _onOnboardingComplete,
+      child: wrappedInTutorial,
     );
   }
+
+  return wrappedInTutorial;
+}
 
   Widget _buildLoadingState() {
     return Container(color: Colors.black);
@@ -1295,49 +1309,7 @@ class _QuotePageState extends State<QuotePage>
   }
 
   /// Подсказка для заметок
-  Widget _buildTooltipHint() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showTooltipHint = false;
-        });
-      },
-      child: AnimatedOpacity(
-        opacity: _showTooltipHint ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.85),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.touch_app,
-                color: Colors.white.withOpacity(0.9),
-                size: 14,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Долгое нажатие',
-                style: GoogleFonts.merriweather(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+ 
 
   /// Кнопки действий (адаптивные)
   Widget _buildActionButtons(BoxConstraints constraints) {
