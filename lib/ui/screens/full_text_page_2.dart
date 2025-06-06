@@ -1,5 +1,4 @@
-
-// lib/ui/screens/full_text_page_2.dart
+ // lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
@@ -12,6 +11,7 @@ import '../../utils/custom_cache.dart';
 import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/sound_manager.dart';
 
 // Экспорт для использования в ContextPage
 export 'full_text_page_2.dart';
@@ -22,8 +22,6 @@ class AppleStyleSearchOverlay extends StatefulWidget {
   final String bookTitle;
   final ReadingTheme theme;
   final VoidCallback? onComplete;
-  final bool showBackgroundScroll;
-  final Widget? backgroundContent;
 
   const AppleStyleSearchOverlay({
     super.key,
@@ -31,8 +29,6 @@ class AppleStyleSearchOverlay extends StatefulWidget {
     required this.bookTitle,
     required this.theme,
     this.onComplete,
-    this.showBackgroundScroll = true,
-    this.backgroundContent,
   });
 
   @override
@@ -41,12 +37,12 @@ class AppleStyleSearchOverlay extends StatefulWidget {
 
 class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
     with TickerProviderStateMixin {
-  late AnimationController _blurController;
+  late AnimationController _containerController;
   late AnimationController _contentController;
   late AnimationController _particleController;
   late AnimationController _glowController;
   
-  late Animation<double> _blurAnimation;
+  late Animation<double> _containerFadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _glowAnimation;
@@ -59,8 +55,8 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
   void initState() {
     super.initState();
     
-    _blurController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    _containerController = AnimationController(
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     
@@ -79,11 +75,11 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
       vsync: this,
     );
 
-    _blurAnimation = Tween<double>(
+    _containerFadeAnimation = Tween<double>(
       begin: 0.0,
-      end: 20.0,
+      end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _blurController,
+      parent: _containerController,
       curve: Curves.easeInOut,
     ));
 
@@ -134,7 +130,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
 
   void _startAnimation() async {
     await Future.delayed(const Duration(milliseconds: 100));
-    _blurController.forward();
+    _containerController.forward();
     
     await Future.delayed(const Duration(milliseconds: 200));
     setState(() => _showContent = true);
@@ -153,9 +149,11 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
     if (_isClosing) return;
     _isClosing = true;
     
-    // Плавное исчезновение
-    await _contentController.reverse();
-    await _blurController.reverse();
+    // Плавное исчезновение всего контента одновременно
+    await Future.wait([
+      _contentController.reverse(),
+      _containerController.reverse(),
+    ]);
     
     if (widget.onComplete != null && mounted) {
       widget.onComplete!();
@@ -164,7 +162,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
 
   @override
   void dispose() {
-    _blurController.dispose();
+    _containerController.dispose();
     _contentController.dispose();
     _particleController.dispose();
     _glowController.dispose();
@@ -175,52 +173,34 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: Stack(
-        children: [
-          // Фоновый контент с блюром
-          if (widget.backgroundContent != null)
-            AnimatedBuilder(
-              animation: _blurAnimation,
-              builder: (context, child) {
-                return BackdropFilter(
-                  filter: ui.ImageFilter.blur(
-                    sigmaX: _blurAnimation.value,
-                    sigmaY: _blurAnimation.value,
-                  ),
-                  child: Container(
-                    color: widget.theme.backgroundColor.withOpacity(0.5),
-                    child: widget.backgroundContent,
-                  ),
-                );
-              },
-            )
-          else
-            AnimatedBuilder(
-              animation: _fadeAnimation,
-              builder: (context, child) {
-                return Container(
-                  color: widget.theme.backgroundColor.withOpacity(0.95 * _fadeAnimation.value),
-                );
-              },
+      child: AnimatedBuilder(
+        animation: _containerFadeAnimation,
+        builder: (context, child) {
+          return Container(
+            color: widget.theme.backgroundColor.withOpacity(0.95 * _containerFadeAnimation.value),
+            child: FadeTransition(
+              opacity: _containerFadeAnimation,
+              child: _showContent ? _buildMainContent() : const SizedBox.shrink(),
             ),
-          
-          // Основной контент анимации
-          if (_showContent)
-            Center(
-              child: AnimatedBuilder(
-                animation: Listenable.merge([_fadeAnimation, _scaleAnimation]),
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: _buildSearchContent(),
-                    ),
-                  );
-                },
-              ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Center(
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_fadeAnimation, _scaleAnimation]),
+        builder: (context, child) {
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: Transform.scale(
+              scale: _scaleAnimation.value,
+              child: _buildSearchContent(),
             ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -314,81 +294,43 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
     return Column(
       children: [
         // Тема
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 800),
-          builder: (context, value, child) {
-            return Opacity(
-              opacity: value,
-              child: Transform.translate(
-                offset: Offset(0, 20 * (1 - value)),
-                child: Text(
-                  _themeText,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w300,
-                    color: widget.theme.textColor.withOpacity(0.6),
-                    letterSpacing: 2,
-                  ),
-                ),
-              ),
-            );
-          },
+        Text(
+          _themeText,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+            color: widget.theme.textColor.withOpacity(0.6),
+            letterSpacing: 2,
+          ),
         ),
         
         const SizedBox(height: 16),
         
         // Название книги
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOut,
-          builder: (context, value, child) {
-            return Opacity(
-              opacity: value,
-              child: Transform.translate(
-                offset: Offset(0, 20 * (1 - value)),
-                child: Text(
-                  widget.bookTitle,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.merriweather(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: widget.theme.textColor,
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            );
-          },
+        Text(
+          widget.bookTitle,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.merriweather(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: widget.theme.textColor,
+            height: 1.3,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         
         const SizedBox(height: 8),
         
         // Автор
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOut,
-          builder: (context, value, child) {
-            return Opacity(
-              opacity: value,
-              child: Transform.translate(
-                offset: Offset(0, 20 * (1 - value)),
-                child: Text(
-                  widget.authorName,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    color: widget.theme.textColor.withOpacity(0.8),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            );
-          },
+        Text(
+          widget.authorName,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+            color: widget.theme.textColor.withOpacity(0.8),
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
@@ -467,6 +409,7 @@ class ParticlePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+
 // --- Универсальный виджет настроек чтения ---
 class ReadingSettingsPanel extends StatefulWidget {
   final double fontSize;
@@ -481,6 +424,8 @@ class ReadingSettingsPanel extends StatefulWidget {
   final ValueChanged<bool> onUseCustomColorsChanged;
   final ValueChanged<Color> onCustomTextColorChanged;
   final ValueChanged<Color> onCustomBackgroundColorChanged;
+  final VoidCallback? onScrollToQuote;
+  final VoidCallback? onScrollToStart;
 
   const ReadingSettingsPanel({
     super.key,
@@ -496,6 +441,8 @@ class ReadingSettingsPanel extends StatefulWidget {
     required this.onUseCustomColorsChanged,
     required this.onCustomTextColorChanged,
     required this.onCustomBackgroundColorChanged,
+    this.onScrollToQuote,
+    this.onScrollToStart,
   });
 
   @override
@@ -548,6 +495,33 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                 ],
               ),
               const SizedBox(height: 24),
+              
+              // Кнопки навигации
+              _buildModernSettingCard(
+                'Навигация',
+                Icons.navigation,
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildNavigationButton(
+                        'К началу',
+                        Icons.vertical_align_top,
+                        widget.onScrollToStart,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildNavigationButton(
+                        'К цитате',
+                        Icons.format_quote,
+                        widget.onScrollToQuote,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              
               _buildModernSettingCard(
                 'Размер текста',
                 Icons.format_size,
@@ -717,6 +691,39 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
     );
   }
 
+  Widget _buildNavigationButton(String label, IconData icon, VoidCallback? onTap) {
+    return Material(
+      color: widget.currentTheme.highlightColor.withOpacity(0.8),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: widget.currentTheme.borderColor.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: widget.currentTheme.textColor),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: widget.currentTheme.textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildModernSettingCard(String title, IconData icon, Widget content) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -831,6 +838,7 @@ class _FullTextPage2State extends State<FullTextPage2>
   final ScrollController _scrollController = ScrollController();
   final CustomCachePrefs _cache = CustomCache.prefs;
   final _logger = LoggerService();
+  final _soundManager = SoundManager();
 
   late AnimationController _fadeController;
   late AnimationController _settingsController;
@@ -853,6 +861,9 @@ class _FullTextPage2State extends State<FullTextPage2>
   Color? _customTextColor;
   Color? _customBackgroundColor;
   bool _useCustomColors = false;
+  
+  // Музыка
+  bool _isMusicEnabled = true;
 
   // Поиск цитаты
   int? _targetParagraphIndex;
@@ -871,6 +882,9 @@ class _FullTextPage2State extends State<FullTextPage2>
   // Новые переменные для элегантной анимации поиска
   bool _isSearchingQuote = false;
   bool _canStartScroll = false;
+  
+  // Прогресс чтения
+  double _readingProgress = 0.0;
 
   Color get _effectiveTextColor => _useCustomColors && _customTextColor != null 
       ? _customTextColor! 
@@ -886,6 +900,23 @@ class _FullTextPage2State extends State<FullTextPage2>
     _initializeAnimations();
     _loadSettings();
     _loadFullText();
+    _setupScrollListener();
+    
+    // Проверяем, не выключена ли музыка локально
+    _checkMusicState();
+  }
+  
+  void _checkMusicState() async {
+    // Проверяем локальную настройку для этой страницы
+    final localMusicEnabled = await _cache.getSetting<bool>('full_text_music_enabled') ?? true;
+    setState(() {
+      _isMusicEnabled = localMusicEnabled;
+    });
+    
+    // Если музыка выключена локально, ставим на паузу
+    if (!_isMusicEnabled) {
+      await _soundManager.pauseAll();
+    }
   }
 
   void _initializeAnimations() {
@@ -908,6 +939,25 @@ class _FullTextPage2State extends State<FullTextPage2>
     ));
   }
 
+  void _setupScrollListener() {
+    _itemPositionsListener.itemPositions.addListener(() {
+      final positions = _itemPositionsListener.itemPositions.value;
+      if (positions.isNotEmpty && _paragraphs.isNotEmpty) {
+        final firstVisibleIndex = positions
+            .where((position) => position.itemLeadingEdge < 1)
+            .map((position) => position.index)
+            .reduce((min, index) => index < min ? index : min);
+        
+        final progress = firstVisibleIndex / _paragraphs.length;
+        if (mounted) {
+          setState(() {
+            _readingProgress = progress.clamp(0.0, 1.0);
+          });
+        }
+      }
+    });
+  }
+
   Future<void> _loadSettings() async {
     final fontSize = _cache.getSetting<double>('font_size') ?? 17.0;
     final lineHeight = _cache.getSetting<double>('line_height') ?? 1.5;
@@ -919,6 +969,7 @@ class _FullTextPage2State extends State<FullTextPage2>
     final textColorValue = _cache.getSetting<int>('custom_text_color');
     final bgColorValue = _cache.getSetting<int>('custom_background_color');
     
+    // Загружаем состояние звука из SoundManager
     setState(() {
       _fontSize = fontSize;
       _lineHeight = lineHeight;
@@ -926,6 +977,7 @@ class _FullTextPage2State extends State<FullTextPage2>
       _useCustomColors = useCustom;
       _customTextColor = textColorValue != null ? Color(textColorValue) : null;
       _customBackgroundColor = bgColorValue != null ? Color(bgColorValue) : null;
+      _isMusicEnabled = !_soundManager.isMuted;
     });
   }
 
@@ -1079,24 +1131,43 @@ class _FullTextPage2State extends State<FullTextPage2>
     }
   }
 
-  void _showScrollHint() {
-    // Убираем уведомление "Цитата найдена и выделена"
-    // if (!mounted) return;
-    // ScaffoldMessenger.of(context).showSnackBar(...);
+  void _scrollToStart() {
+    _itemScrollController.scrollTo(
+      index: 0,
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
+    );
+    setState(() => _showSettings = false);
   }
 
-  void _adjustFontSize(double delta) {
-    setState(() {
-      _fontSize = (_fontSize + delta).clamp(12.0, 24.0);
-    });
-    _saveSettings();
+  void _scrollToQuoteFromSettings() {
+    if (_targetParagraphIndex != null) {
+      _itemScrollController.scrollTo(
+        index: _targetParagraphIndex!,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+        alignment: 0.3,
+      );
+    }
+    setState(() => _showSettings = false);
   }
 
-  void _adjustLineHeight(double delta) {
+  void _toggleMusic() async {
     setState(() {
-      _lineHeight = (_lineHeight + delta).clamp(1.2, 2.0);
+      _isMusicEnabled = !_isMusicEnabled;
     });
-    _saveSettings();
+    
+    // Сохраняем локальную настройку для этой страницы
+    await _cache.setSetting('full_text_music_enabled', _isMusicEnabled);
+    
+    // Управляем только фоновой музыкой с главного экрана
+    if (_isMusicEnabled) {
+      // Возобновляем фоновую музыку
+      await _soundManager.resumeAll();
+    } else {
+      // Приостанавливаем фоновую музыку (не останавливаем полностью)
+      await _soundManager.pauseAll();
+    }
   }
 
   @override
@@ -1113,15 +1184,12 @@ class _FullTextPage2State extends State<FullTextPage2>
                     ? _buildErrorState()
                     : _buildFullTextContent(),
             
-            // Элегантная анимация поиска с фоновым контентом
+            // Элегантная анимация поиска
             if (_isSearchingQuote)
               AppleStyleSearchOverlay(
                 authorName: _bookSource?.author ?? widget.context.quote.author,
                 bookTitle: _bookSource?.title ?? widget.context.quote.source,
                 theme: _currentTheme,
-                backgroundContent: _canStartScroll && !_isLoading && _error == null
-                    ? _buildTextContent()
-                    : null,
                 onComplete: () {
                   // Анимация завершена, закрываем overlay
                   if (mounted) {
@@ -1283,6 +1351,41 @@ class _FullTextPage2State extends State<FullTextPage2>
               ],
             ),
           ),
+          // Кнопка музыки
+          IconButton(
+            onPressed: _toggleMusic,
+            icon: Icon(
+              _isMusicEnabled ? Icons.volume_up : Icons.volume_off,
+              color: _effectiveTextColor,
+            ),
+            tooltip: _isMusicEnabled ? 'Выключить музыку' : 'Включить музыку',
+          ),
+          // Прогресс чтения
+          Container(
+            width: 40,
+            height: 40,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: _readingProgress,
+                  backgroundColor: _currentTheme.borderColor.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(_currentTheme.quoteHighlightColor),
+                  strokeWidth: 3,
+                ),
+                Text(
+                  '${(_readingProgress * 100).toInt()}%',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: _effectiveTextColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Настройки
           IconButton(
             onPressed: () {
               setState(() => _showSettings = !_showSettings);
@@ -1338,6 +1441,8 @@ class _FullTextPage2State extends State<FullTextPage2>
         setState(() => _customBackgroundColor = color);
         _saveSettings();
       },
+      onScrollToQuote: _scrollToQuoteFromSettings,
+      onScrollToStart: _scrollToStart,
     );
   }
   
@@ -1510,6 +1615,11 @@ class _FullTextPage2State extends State<FullTextPage2>
 
   @override
   void dispose() {
+    // Если музыка была выключена локально, возобновляем при выходе
+    if (!_isMusicEnabled && !_soundManager.isMuted) {
+      _soundManager.resumeAll();
+    }
+    
     _scrollController.dispose();
     _fadeController.dispose();
     _settingsController.dispose();
