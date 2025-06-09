@@ -132,7 +132,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                         _buildCategoryChip('greece', 'Греция'),
                         _buildCategoryChip('nordic', 'Север'),
                         _buildCategoryChip('philosophy', 'Философия'),
-                        _buildCategoryChip('pagan', 'Язычество'),
+                        _buildCategoryChip('pagan', 'Язычество & традиционализм'),
                       ],
                     ),
                   ),

@@ -1,12 +1,11 @@
 
-// lib/ui/screens/calendar_page.dart - УЛУЧШЕННАЯ ВЕРСИЯ
+// lib/ui/screens/calendar_page.dart - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
-import 'dart:math' as math;
 import '../../models/daily_quote.dart';
 import '../../models/pagan_holiday.dart';
 import '../../services/quote_extraction_service.dart';
@@ -25,13 +24,12 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
   final CustomCachePrefs _cache = CustomCache.prefs;
   final QuoteExtractionService _quoteService = QuoteExtractionService();
+  final ScrollController _scrollController = ScrollController();
   
   late AnimationController _fadeController;
   late AnimationController _backgroundController;
-  late AnimationController _countdownController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _backgroundAnimation;
-  late Animation<double> _countdownAnimation;
   
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -45,9 +43,10 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   String? _selectedTradition;
   String? _backgroundImageUrl;
   
-  // Данные для счетчика праздников
+  // Данные для ближайшего праздника (без живого таймера)
   PaganHoliday? _nextHoliday;
-  Duration? _timeUntilNextHoliday;
+  int? _daysUntilHoliday;
+  DateTime? _nextHolidayDate;
 
   @override
   void initState() {
@@ -55,52 +54,29 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     _initializeAnimations();
     _loadData();
     _selectedDay = DateTime.now();
-    _startCountdownTimer();
   }
 
   void _initializeAnimations() {
+    // Быстрые анимации для лучшей производительности
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 400), // Быстрее
       vsync: this,
     );
     
     _backgroundController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 600), // Быстрее
       vsync: this,
     );
-    
-    _countdownController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    )..repeat();
 
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOut, // Более быстрая кривая
     );
 
     _backgroundAnimation = CurvedAnimation(
       parent: _backgroundController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOut,
     );
-
-    _countdownAnimation = CurvedAnimation(
-      parent: _countdownController,
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _startCountdownTimer() {
-    // Обновляем каждую секунду для живого таймера
-    Future.doWhile(() async {
-      if (!mounted) return false;
-      
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        _updateNextHoliday();
-      }
-      return mounted;
-    });
   }
 
   void _updateNextHoliday() {
@@ -117,14 +93,13 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         targetDate = nextHoliday.getDateForYear(currentYear + 1);
       }
       
-      final timeUntil = targetDate.difference(now);
+      final daysUntil = targetDate.difference(now).inDays;
       
-      if (mounted) {
-        setState(() {
-          _nextHoliday = nextHoliday;
-          _timeUntilNextHoliday = timeUntil;
-        });
-      }
+      setState(() {
+        _nextHoliday = nextHoliday;
+        _daysUntilHoliday = daysUntil;
+        _nextHolidayDate = targetDate;
+      });
     }
   }
 
@@ -132,7 +107,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     setState(() => _isLoading = true);
     
     try {
-      // Загружаем фоновое изображение (используем ту же что на главном экране)
+      // Загружаем фоновое изображение
       await _loadBackgroundImage();
       
       // Загружаем праздники
@@ -149,9 +124,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       
       setState(() => _isLoading = false);
       
-      // Запускаем анимации
+      // Быстрые анимации
       _fadeController.forward();
-      await Future.delayed(const Duration(milliseconds: 300));
       _backgroundController.forward();
       
     } catch (e) {
@@ -162,7 +136,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
   Future<void> _loadBackgroundImage() async {
     try {
-      // Используем сегодняшнее изображение или случайное из философии
       final today = DateTime.now();
       final dateString = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       
@@ -283,8 +256,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 // Фоновое изображение с блюром
                 _buildBackgroundWithBlur(),
                 
-                // Основной контент
-                _buildMainContent(),
+                // Основной контент - ДОБАВЛЯЕМ СКРОЛЛ
+                _buildScrollableContent(),
               ],
             ),
     );
@@ -301,10 +274,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               placeholder: (_, __) => Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.grey[900]!,
-                      Colors.black,
-                    ],
+                    colors: [Colors.grey[900]!, Colors.black],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -313,10 +283,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               errorWidget: (_, __, ___) => Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.grey[900]!,
-                      Colors.black,
-                    ],
+                    colors: [Colors.grey[900]!, Colors.black],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -326,10 +293,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           : Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.grey[900]!,
-                    Colors.black,
-                  ],
+                  colors: [Colors.grey[900]!, Colors.black],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -345,10 +309,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               
               // Блюр эффект
               BackdropFilter(
-                filter: ui.ImageFilter.blur(
-                  sigmaX: 15.0,
-                  sigmaY: 15.0,
-                ),
+                filter: ui.ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -369,23 +330,32 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     );
   }
 
-  Widget _buildMainContent() {
+  Widget _buildScrollableContent() {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: Column(
-        children: [
-          // Отступ для AppBar
-          const SizedBox(height: 100),
-          
-          // Календарь с улучшенным дизайном
-          _buildEnhancedCalendar(),
-          
-          // Счетчик до ближайшего праздника
-          _buildHolidayCountdown(),
-          
-          // Информация о выбранном дне
-          if (_selectedDay != null) _buildSelectedDayInfo(),
-        ],
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        child: Column(
+          children: [
+            // Отступ для AppBar
+            const SizedBox(height: 100),
+            
+            // Календарь
+            _buildEnhancedCalendar(),
+            
+            // Ближайший праздник (БЕЗ живого таймера)
+            _buildSimpleHolidayCountdown(),
+            
+            // Информация о выбранном дне
+            if (_selectedDay != null) _buildSelectedDayInfo(),
+            
+            // Дополнительный отступ внизу
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -430,9 +400,10 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   calendarFormat: _calendarFormat,
                   eventLoader: _getEventsForDay,
                   startingDayOfWeek: StartingDayOfWeek.monday,
-                  // ВАЖНО: отключаем gesture-ы чтобы избежать проблем со свайпом
+                  // Отключаем проблемные анимации
                   pageJumpingEnabled: false,
                   pageAnimationEnabled: false,
+                  pageAnimationDuration: Duration.zero,
                   selectedDayPredicate: (day) {
                     return isSameDay(_selectedDay, day);
                   },
@@ -587,7 +558,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       children: [
         // Название месяца и года с анимацией
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200), // Быстрее
           child: Text(
             '${_getMonthName(_focusedDay.month)} ${_focusedDay.year}',
             key: ValueKey('${_focusedDay.month}_${_focusedDay.year}'),
@@ -665,168 +636,135 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     );
   }
 
-  Widget _buildHolidayCountdown() {
-    if (_nextHoliday == null || _timeUntilNextHoliday == null) {
+  // ПРОСТОЙ счетчик праздника БЕЗ живого таймера
+  Widget _buildSimpleHolidayCountdown() {
+    if (_nextHoliday == null || _daysUntilHoliday == null || _nextHolidayDate == null) {
       return const SizedBox.shrink();
     }
 
     final traditionColor = Color(int.parse(_nextHoliday!.traditionColor.replaceFirst('#', '0xFF')));
     
-    return AnimatedBuilder(
-      animation: _countdownAnimation,
-      builder: (context, child) {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                traditionColor.withOpacity(0.2),
-                traditionColor.withOpacity(0.1),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: traditionColor.withOpacity(0.3),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: traditionColor.withOpacity(0.2),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 4),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showHolidayDetails(_nextHoliday!),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  traditionColor.withOpacity(0.2),
+                  traditionColor.withOpacity(0.1),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: traditionColor.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.celebration,
-                            color: traditionColor,
-                            size: 20,
-                          ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: traditionColor.withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: traditionColor.withOpacity(0.2),
+                  blurRadius: 15,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: traditionColor.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Ближайший праздник',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withOpacity(0.7),
-                                  fontWeight: FontWeight.w300,
-                                ),
-                              ),
-                              Text(
-                                _nextHoliday!.name,
-                                style: GoogleFonts.merriweather(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: Icon(
+                          Icons.celebration,
+                          color: traditionColor,
+                          size: 24,
                         ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Счетчик времени
-                    _buildTimeCountdown(traditionColor),
-                  ],
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ближайший праздник',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.7),
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _nextHoliday!.name,
+                              style: GoogleFonts.merriweather(
+                                fontSize: 18,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${_daysUntilHoliday} ${_getDaysWord(_daysUntilHoliday!)} • ${_formatDate(_nextHolidayDate!)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.8),
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: traditionColor,
+                        size: 16,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTimeCountdown(Color accentColor) {
-    final timeUntil = _timeUntilNextHoliday!;
-    final days = timeUntil.inDays;
-    final hours = timeUntil.inHours % 24;
-    final minutes = timeUntil.inMinutes % 60;
-    final seconds = timeUntil.inSeconds % 60;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildTimeUnit(days, 'дней', accentColor),
-        _buildTimeSeparator(),
-        _buildTimeUnit(hours, 'часов', accentColor),
-        _buildTimeSeparator(),
-        _buildTimeUnit(minutes, 'минут', accentColor),
-        _buildTimeSeparator(),
-        _buildTimeUnit(seconds, 'секунд', accentColor),
-      ],
-    );
-  }
-
-  Widget _buildTimeUnit(int value, String label, Color accentColor) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: accentColor.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            value.toString().padLeft(2, '0'),
-            style: GoogleFonts.merriweather(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.white.withOpacity(0.6),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTimeSeparator() {
-    return Text(
-      ':',
-      style: GoogleFonts.merriweather(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.white.withOpacity(0.5),
       ),
     );
+  }
+
+  String _getDaysWord(int days) {
+    if (days % 10 == 1 && days % 100 != 11) {
+      return 'день';
+    } else if ([2, 3, 4].contains(days % 10) && ![12, 13, 14].contains(days % 100)) {
+      return 'дня';
+    } else {
+      return 'дней';
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day} ${_getMonthNameGenitive(date.month)}';
+  }
+
+  String _getMonthNameGenitive(int month) {
+    const months = [
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ];
+    return months[month - 1];
   }
 
   Widget _buildSelectedDayInfo() {
@@ -1117,7 +1055,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   void dispose() {
     _fadeController.dispose();
     _backgroundController.dispose();
-    _countdownController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
