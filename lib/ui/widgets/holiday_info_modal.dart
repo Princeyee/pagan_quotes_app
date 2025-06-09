@@ -1,4 +1,4 @@
-// lib/ui/widgets/holiday_info_modal.dart
+// lib/ui/widgets/holiday_info_modal.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -134,10 +134,11 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
+        // ПРИГЛУШЕННЫЙ ГРАДИЕНТ вместо яркого
         gradient: LinearGradient(
           colors: [
-            traditionColor.withOpacity(0.2),
-            traditionColor.withOpacity(0.1),
+            traditionColor.withOpacity(0.08),
+            traditionColor.withOpacity(0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -147,7 +148,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           topRight: Radius.circular(20),
         ),
         border: Border(
-          bottom: BorderSide(color: traditionColor.withOpacity(0.3)),
+          bottom: BorderSide(color: traditionColor.withOpacity(0.15)),
         ),
       ),
       child: Row(
@@ -156,17 +157,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             width: 50,
             height: 50,
             decoration: BoxDecoration(
+              // ПРИГЛУШЕННЫЙ ГРАДИЕНТ
               gradient: RadialGradient(
                 colors: [
-                  traditionColor.withOpacity(0.3),
-                  traditionColor.withOpacity(0.1),
+                  traditionColor.withOpacity(0.15),
+                  traditionColor.withOpacity(0.05),
                   Colors.transparent,
                 ],
               ),
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: _getHolidayIcon(widget.holiday.type, traditionColor),
+              child: _getHolidayIcon(widget.holiday.type, traditionColor.withOpacity(0.7)),
             ),
           ),
           const SizedBox(width: 16),
@@ -190,7 +192,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                     style: TextStyle(
                       fontSize: 16,
                       fontStyle: FontStyle.italic,
-                      color: traditionColor,
+                      color: traditionColor.withOpacity(0.8),
                     ),
                   ),
                 ],
@@ -198,10 +200,10 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: traditionColor.withOpacity(0.2),
+                    color: traditionColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: traditionColor.withOpacity(0.5),
+                      color: traditionColor.withOpacity(0.25),
                       width: 1,
                     ),
                   ),
@@ -210,7 +212,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: traditionColor,
+                      color: traditionColor.withOpacity(0.9),
                     ),
                   ),
                 ),
@@ -233,19 +235,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoSection(
+          // УБИРАЕМ ИКОНКИ из описаний
+          _buildSimpleInfoSection(
             'Дата празднования',
             '${widget.holiday.date.day} ${_getMonthName(widget.holiday.date.month)}',
-            Icons.calendar_today,
             traditionColor,
           ),
           
           const SizedBox(height: 20),
           
-          _buildInfoSection(
+          _buildSimpleInfoSection(
             'Описание',
             widget.holiday.description,
-            Icons.info_outline,
             traditionColor,
           ),
           
@@ -275,29 +276,26 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           const SizedBox(height: 20),
           
           if (widget.holiday.traditions.isNotEmpty)
-            _buildListSection(
+            _buildSimpleListSection(
               'Традиции празднования',
               widget.holiday.traditions,
-              Icons.celebration,
               traditionColor,
             ),
           
           const SizedBox(height: 20),
           
           if (widget.holiday.symbols.isNotEmpty)
-            _buildListSection(
+            _buildSimpleListSection(
               'Символы',
               widget.holiday.symbols,
-              Icons.auto_awesome,
               traditionColor,
             ),
           
           const SizedBox(height: 20),
           
-          _buildInfoSection(
+          _buildSimpleInfoSection(
             'Тип праздника',
             _getHolidayTypeDisplayName(widget.holiday.type),
-            Icons.category,
             traditionColor,
           ),
         ],
@@ -305,23 +303,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     );
   }
 
-  Widget _buildInfoSection(String title, String content, IconData icon, Color color) {
+  // ПРОСТЫЕ секции БЕЗ иконок
+  Widget _buildSimpleInfoSection(String title, String content, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, color: color, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: color.withOpacity(0.9),
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -336,23 +329,17 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     );
   }
 
-  Widget _buildListSection(String title, List<String> items, IconData icon, Color color) {
+  Widget _buildSimpleListSection(String title, List<String> items, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, color: color, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: color.withOpacity(0.9),
+          ),
         ),
         const SizedBox(height: 12),
         ...items.map((item) => Padding(
@@ -365,7 +352,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                 height: 4,
                 margin: const EdgeInsets.only(top: 8, right: 12),
                 decoration: BoxDecoration(
-                  color: color,
+                  color: color.withOpacity(0.7),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -396,21 +383,13 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       ),
       child: Row(
         children: [
+          // УБИРАЕМ кнопку "В календарь", оставляем только "Поделиться"
           Expanded(
             child: _buildActionButton(
               icon: Icons.share_outlined,
               label: 'Поделиться',
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.8),
               onTap: _shareHoliday,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildActionButton(
-              icon: Icons.calendar_month,
-              label: 'В календарь',
-              color: traditionColor,
-              onTap: () => _addToCalendar(traditionColor),
             ),
           ),
         ],
@@ -432,24 +411,28 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withOpacity(0.06),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: color.withOpacity(0.3),
+              color: color.withOpacity(0.15),
               width: 1,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // ИСПРАВЛЯЕМ переполнение
             children: [
               Icon(icon, color: color, size: 18),
               const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              Flexible( // ИСПРАВЛЯЕМ переполнение текста
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -517,16 +500,6 @@ ${holiday.description}
 ''';
 
     Share.share(shareText, subject: holiday.name);
-  }
-
-  void _addToCalendar(Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Функция добавления в календарь будет доступна в следующих версиях'),
-        backgroundColor: color,
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   String _getTraditionDisplayName(String tradition) {

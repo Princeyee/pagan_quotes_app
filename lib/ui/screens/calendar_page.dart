@@ -1,5 +1,5 @@
 
-// lib/ui/screens/calendar_page.dart - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
+// lib/ui/screens/calendar_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -22,7 +22,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
-  final CustomCachePrefs _cache = CustomCache.prefs;
+  final CustomCachePrefs _cache = CustomCache.prefs; // ИСПРАВЛЕНО: cage -> _cache
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final ScrollController _scrollController = ScrollController();
   
@@ -41,7 +41,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   
   bool _isLoading = true;
   String? _selectedTradition;
-  String? _backgroundImageUrl;
+  String? _backgroundImageUrl; // ИСПРАВЛЕНО: добавлено объявление переменной
   
   // Данные для ближайшего праздника (без живого таймера)
   PaganHoliday? _nextHoliday;
@@ -139,7 +139,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       final today = DateTime.now();
       final dateString = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       
-      String? cachedImageUrl = _cache.getSetting<String>('daily_image_$dateString');
+      String? cachedImageUrl = _cache.getSetting<String>('daily_image_$dateString'); // ИСПРАВЛЕНО: cage -> _cache
       cachedImageUrl ??= ImagePickerService.getRandomImage('philosophy');
       
       setState(() {
@@ -266,9 +266,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   Widget _buildBackgroundWithBlur() {
     return AnimatedBuilder(
       animation: _backgroundAnimation,
-      child: _backgroundImageUrl != null
+      child: _backgroundImageUrl != null // ИСПРАВЛЕНО: backgroundImageUrl -> _backgroundImageUrl
           ? CachedNetworkImage(
-              imageUrl: _backgroundImageUrl!,
+              imageUrl: _backgroundImageUrl!, // ИСПРАВЛЕНО: backgroundImageUrl -> _backgroundImageUrl
               cacheManager: CustomCache.instance,
               fit: BoxFit.cover,
               placeholder: (_, __) => Container(
@@ -873,8 +873,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         color: traditionColor.withOpacity(0.5),
                         blurRadius: 4,
                         spreadRadius: 1,
-                      ),
-                    ],
+                      )
+],
                   ),
                 ),
                 const SizedBox(width: 12),

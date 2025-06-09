@@ -1,4 +1,4 @@
-// lib/models/pagan_holiday.dart
+// lib/models/pagan_holiday.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С ДОПОЛНИТЕЛЬНЫМИ ПРАЗДНИКАМИ
 class PaganHoliday {
   final String id;
   final String name;
@@ -127,9 +127,9 @@ enum PaganHolidayType {
 /// Сервис для работы с языческими праздниками
 class PaganHolidayService {
   static final List<PaganHoliday> _holidays = [
-    // Скандинавские/Северные праздники
+    // =============== ЗИМНЕЕ СОЛНЦЕСТОЯНИЕ (21 декабря) ===============
     PaganHoliday(
-      id: 'yule',
+      id: 'yule_nordic',
       name: 'Йоль',
       nameOriginal: 'Jól',
       date: DateTime(2024, 12, 21),
@@ -142,18 +142,32 @@ class PaganHolidayService {
     ),
     
     PaganHoliday(
-      id: 'imbolc',
-      name: 'Имболк',
-      nameOriginal: 'Imbolc',
-      date: DateTime(2024, 2, 1),
+      id: 'winter_solstice_celtic',
+      name: 'Альбан Артан',
+      nameOriginal: 'Alban Arthan',
+      date: DateTime(2024, 12, 21),
       tradition: 'celtic',
-      description: 'Праздник пробуждения земли и первых признаков весны',
-      longDescription: 'Имболк отмечает середину пути между зимним солнцестоянием и весенним равноденствием. Это время очищения, новых начинаний и почитания богини Бригид.',
-      traditions: ['Зажигание свечей', 'Очищение дома', 'Плетение соломенных кукол', 'Ритуалы с водой'],
-      symbols: ['Свечи', 'Подснежники', 'Солома', 'Колодцы'],
+      description: 'Кельтское зимнее солнцестояние, время обновления',
+      longDescription: 'Альбан Артан — древний кельтский праздник зимнего солнцестояния, когда друиды проводили ритуалы возрождения света и жизни.',
+      traditions: ['Ритуалы в священных рощах', 'Зажигание костров', 'Сбор омелы', 'Пророчества на новый год'],
+      symbols: ['Омела', 'Дуб', 'Белые камни', 'Золотой серп'],
       type: PaganHolidayType.seasonal,
     ),
 
+    PaganHoliday(
+      id: 'winter_solstice_slavic',
+      name: 'Коляда',
+      nameOriginal: 'Коляда',
+      date: DateTime(2024, 12, 21),
+      tradition: 'slavic',
+      description: 'Славянское зимнее солнцестояние, праздник поворота к свету',
+      longDescription: 'Коляда — древнеславянский праздник, посвященный возрождению солнца и началу его победы над тьмой.',
+      traditions: ['Колядование', 'Ряжение', 'Ритуальные песни', 'Жжение костров'],
+      symbols: ['Коляда-солнце', 'Снежинки', 'Звезда', 'Колесо'],
+      type: PaganHolidayType.seasonal,
+    ),
+
+    // =============== ВЕСЕННЕЕ РАВНОДЕНСТВИЕ (20 марта) ===============
     PaganHoliday(
       id: 'ostara',
       name: 'Остара',
@@ -164,6 +178,100 @@ class PaganHolidayService {
       longDescription: 'Остара — время равновесия дня и ночи, когда природа пробуждается после зимнего сна. Посвящен германской богине рассвета Эостре.',
       traditions: ['Украшение яиц', 'Посадка семян', 'Сбор весенних цветов', 'Ритуалы плодородия'],
       symbols: ['Яйца', 'Зайцы', 'Весенние цветы', 'Молодые побеги'],
+      type: PaganHolidayType.seasonal,
+    ),
+
+    PaganHoliday(
+      id: 'spring_equinox_slavic',
+      name: 'Жаворонки',
+      nameOriginal: 'Жаворонки',
+      date: DateTime(2024, 3, 20),
+      tradition: 'slavic',
+      description: 'Славянское весеннее равноденствие, встреча весны',
+      longDescription: 'Праздник прилета птиц и пробуждения природы, когда пекли птичек из теста и призывали весну.',
+      traditions: ['Выпечка жаворонков', 'Призывание птиц', 'Встреча рассвета', 'Заклинания весны'],
+      symbols: ['Птицы', 'Первые цветы', 'Хлебные птички', 'Солнечные лучи'],
+      type: PaganHolidayType.seasonal,
+    ),
+
+    // =============== ЛЕТНЕЕ СОЛНЦЕСТОЯНИЕ (21 июня) ===============
+    PaganHoliday(
+      id: 'midsummer_nordic',
+      name: 'Мидсоммар',
+      nameOriginal: 'Midsommar',
+      date: DateTime(2024, 6, 21),
+      tradition: 'nordic',
+      description: 'Летнее солнцестояние, пик силы солнца',
+      longDescription: 'Мидсоммар — празднование самого длинного дня в году, когда солнце достигает своей максимальной силы.',
+      traditions: ['Танцы вокруг майского столба', 'Плетение венков', 'Сбор трав', 'Костры на холмах'],
+      symbols: ['Майский столб', 'Полевые цветы', 'Солнечное колесо', 'Березовые ветви'],
+      type: PaganHolidayType.seasonal,
+    ),
+
+    PaganHoliday(
+      id: 'kupala_slavic',
+      name: 'Купала',
+      nameOriginal: 'Иван Купала',
+      date: DateTime(2024, 7, 7), // По старому стилю
+      tradition: 'slavic',
+      description: 'Праздник летнего солнцестояния, воды и огня',
+      longDescription: 'Купала — древний славянский праздник, сочетающий в себе культ огня и воды. Время поиска цветка папоротника, очистительных ритуалов и гаданий.',
+      traditions: ['Прыжки через костры', 'Купание в реках', 'Плетение венков', 'Поиск цветка папоротника'],
+      symbols: ['Костры', 'Венки', 'Папоротник', 'Вода'],
+      type: PaganHolidayType.fire,
+    ),
+
+    PaganHoliday(
+      id: 'litha_celtic',
+      name: 'Лита',
+      nameOriginal: 'Litha',
+      date: DateTime(2024, 6, 21),
+      tradition: 'celtic',
+      description: 'Кельтское летнее солнцестояние, праздник света',
+      longDescription: 'Лита — кельтский праздник летнего солнцестояния, время максимальной силы природы и магии.',
+      traditions: ['Сбор лечебных трав', 'Костры на рассвете', 'Ритуалы плодородия', 'Танцы под звездами'],
+      symbols: ['Дубовые листья', 'Лечебные травы', 'Солнечные диски', 'Золотые цветы'],
+      type: PaganHolidayType.seasonal,
+    ),
+
+    // =============== ОСЕННЕЕ РАВНОДЕНСТВИЕ (22 сентября) ===============
+    PaganHoliday(
+      id: 'mabon',
+      name: 'Мабон',
+      nameOriginal: 'Mabon',
+      date: DateTime(2024, 9, 22),
+      tradition: 'celtic',
+      description: 'Осеннее равноденствие, второй праздник урожая',
+      longDescription: 'Мабон — время благодарности за урожай и подготовки к зиме. Равновесие света и тьмы перед наступлением темной половины года.',
+      traditions: ['Сбор урожая', 'Консервирование', 'Украшение дома плодами', 'Ритуалы благодарности'],
+      symbols: ['Осенние листья', 'Яблоки', 'Тыквы', 'Рог изобилия'],
+      type: PaganHolidayType.harvest,
+    ),
+
+    PaganHoliday(
+      id: 'autumn_equinox_slavic',
+      name: 'Радогощь',
+      nameOriginal: 'Радогощь',
+      date: DateTime(2024, 9, 22),
+      tradition: 'slavic',
+      description: 'Славянское осеннее равноденствие, праздник урожая',
+      longDescription: 'Радогощь — славянский праздник осеннего равноденствия, время благодарения богов за собранный урожай.',
+      traditions: ['Освящение плодов', 'Пиры в честь урожая', 'Поминание предков', 'Заготовки на зиму'],
+      symbols: ['Спелые плоды', 'Хлебные снопы', 'Красные листья', 'Рог изобилия'],
+      type: PaganHolidayType.harvest,
+    ),
+
+    // =============== ДРУГИЕ ВАЖНЫЕ ПРАЗДНИКИ ===============
+    PaganHoliday(
+      id: 'imbolc',
+      name: 'Имболк',
+      nameOriginal: 'Imbolc',
+      date: DateTime(2024, 2, 1),
+      tradition: 'celtic',
+      description: 'Праздник пробуждения земли и первых признаков весны',
+      longDescription: 'Имболк отмечает середину пути между зимним солнцестоянием и весенним равноденствием. Это время очищения, новых начинаний и почитания богини Бригид.',
+      traditions: ['Зажигание свечей', 'Очищение дома', 'Плетение соломенных кукол', 'Ритуалы с водой'],
+      symbols: ['Свечи', 'Подснежники', 'Солома', 'Колодцы'],
       type: PaganHolidayType.seasonal,
     ),
 
@@ -180,20 +288,6 @@ class PaganHolidayService {
       type: PaganHolidayType.fertility,
     ),
 
-    // Славянские праздники
-    PaganHoliday(
-      id: 'kupala',
-      name: 'Купала',
-      nameOriginal: 'Иван Купала',
-      date: DateTime(2024, 7, 7),
-      tradition: 'slavic',
-      description: 'Праздник летнего солнцестояния, воды и огня',
-      longDescription: 'Купала — древний славянский праздник, сочетающий в себе культ огня и воды. Время поиска цветка папоротника, очистительных ритуалов и гаданий.',
-      traditions: ['Прыжки через костры', 'Купание в реках', 'Плетение венков', 'Поиск цветка папоротника'],
-      symbols: ['Костры', 'Венки', 'Папоротник', 'Вода'],
-      type: PaganHolidayType.fire,
-    ),
-
     PaganHoliday(
       id: 'lammas',
       name: 'Ламмас',
@@ -204,19 +298,6 @@ class PaganHolidayService {
       longDescription: 'Ламмас отмечает начало сезона урожая и посвящен кельтскому богу мастерства Лугу. Время благодарности за первые плоды земли.',
       traditions: ['Выпечка хлеба', 'Сбор первого урожая', 'Ярмарки и состязания', 'Жертвоприношения богам'],
       symbols: ['Колосья пшеницы', 'Хлеб', 'Серп', 'Первые плоды'],
-      type: PaganHolidayType.harvest,
-    ),
-
-    PaganHoliday(
-      id: 'mabon',
-      name: 'Мабон',
-      nameOriginal: 'Mabon',
-      date: DateTime(2024, 9, 22),
-      tradition: 'celtic',
-      description: 'Осеннее равноденствие, второй праздник урожая',
-      longDescription: 'Мабон — время благодарности за урожай и подготовки к зиме. Равновесие света и тьмы перед наступлением темной половины года.',
-      traditions: ['Сбор урожая', 'Консервирование', 'Украшение дома плодами', 'Ритуалы благодарности'],
-      symbols: ['Осенние листья', 'Яблоки', 'Тыквы', 'Рог изобилия'],
       type: PaganHolidayType.harvest,
     ),
 
@@ -233,7 +314,7 @@ class PaganHolidayService {
       type: PaganHolidayType.ancestor,
     ),
 
-    // Дополнительные праздники
+    // Дополнительные скандинавские праздники
     PaganHoliday(
       id: 'disablot',
       name: 'Дисаблот',
@@ -271,6 +352,34 @@ class PaganHolidayService {
       traditions: ['Жертвоприношения богам', 'Ритуалы защиты', 'Заготовка на зиму'],
       symbols: ['Рога для питья', 'Жертвенные алтари', 'Зимние символы'],
       type: PaganHolidayType.protection,
+    ),
+
+    // Дополнительные римские праздники
+    PaganHoliday(
+      id: 'saturnalia',
+      name: 'Сатурналии',
+      nameOriginal: 'Saturnalia',
+      date: DateTime(2024, 12, 17),
+      tradition: 'roman',
+      description: 'Римский праздник бога Сатурна, время веселья и равенства',
+      longDescription: 'Сатурналии — один из самых популярных римских праздников, время, когда социальные роли менялись местами.',
+      traditions: ['Обмен ролями господ и рабов', 'Пиры и веселье', 'Обмен подарками', 'Азартные игры'],
+      symbols: ['Свечи', 'Венки', 'Маски', 'Игральные кости'],
+      type: PaganHolidayType.deity,
+    ),
+
+    // Дополнительные греческие праздники
+    PaganHoliday(
+      id: 'anthesteria',
+      name: 'Анфестерии',
+      nameOriginal: 'Ἀνθεστήρια',
+      date: DateTime(2024, 2, 11),
+      tradition: 'greek',
+      description: 'Афинский праздник цветов и нового вина',
+      longDescription: 'Анфестерии — древнегреческий праздник в честь Диониса, отмечавший приход весны и открытие молодого вина.',
+      traditions: ['Дегустация нового вина', 'Украшение цветами', 'Ритуалы Диониса', 'Поминание усопших'],
+      symbols: ['Цветы', 'Виноградные лозы', 'Амфоры с вином', 'Маски'],
+      type: PaganHolidayType.deity,
     ),
   ];
 
@@ -326,3 +435,5 @@ class PaganHolidayService {
     return _holidays.map((h) => h.tradition).toSet().toList();
   }
 }
+
+
