@@ -1,5 +1,4 @@
-
-// lib/ui/widgets/nav_drawer.dart - СТЕКЛЯННАЯ ВЕРСИЯ С УЛУЧШЕННОЙ ПЛАВНОСТЬЮ
+// lib/ui/widgets/nav_drawer.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С КАЛЕНДАРЕМ
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../screens/about_page.dart';
@@ -8,6 +7,7 @@ import '../screens/theme_selector_page.dart';
 import '../screens/library_page.dart';
 import '../screens/notes_page.dart';
 import '../screens/audio_library_page.dart';
+import '../screens/calendar_page.dart'; // Новый импорт
 
 class NavDrawer extends StatefulWidget {
   final Function(Widget)? onNavigate;
@@ -246,6 +246,18 @@ class _NavDrawerState extends State<NavDrawer>
                                 _closeDrawer(context);
                               },
                             ),
+
+                            // НОВЫЙ ПУНКТ МЕНЮ - КАЛЕНДАРЬ
+                            _buildAnimatedMenuItem(
+                              context,
+                              icon: Icons.calendar_month,
+                              label: 'Календарь',
+                              delay: 25,
+                              onTap: () {
+                                _closeDrawer(context);
+                                _navigateToPage(const CalendarPage());
+                              },
+                            ),
                             
                             _buildAnimatedMenuItem(
                               context,
@@ -262,7 +274,7 @@ class _NavDrawerState extends State<NavDrawer>
                               context,
                               icon: Icons.edit_note,
                               label: 'Заметки',
-                              delay: 100,
+                              delay: 75,
                               onTap: () {
                                 _closeDrawer(context);
                                 _navigateToPage(const NotesPage());
@@ -273,7 +285,7 @@ class _NavDrawerState extends State<NavDrawer>
                               context,
                               icon: Icons.library_books,
                               label: 'Библиотека',
-                              delay: 150,
+                              delay: 100,
                               onTap: () {
                                 _closeDrawer(context);
                                 _navigateToPage(const LibraryPage());
@@ -284,7 +296,7 @@ class _NavDrawerState extends State<NavDrawer>
                               context,
                               icon: Icons.music_note,
                               label: 'Аудио',
-                              delay: 200,
+                              delay: 125,
                               onTap: () {
                                 _closeDrawer(context);
                                 _navigateToPage(const AudioLibraryPage());
@@ -295,7 +307,7 @@ class _NavDrawerState extends State<NavDrawer>
                               context,
                               icon: Icons.palette_outlined,
                               label: 'Темы',
-                              delay: 250,
+                              delay: 150,
                               onTap: () {
                                 _closeDrawer(context);
                                 _navigateToPage(const ThemeSelectorPage());
@@ -329,7 +341,7 @@ class _NavDrawerState extends State<NavDrawer>
                               context,
                               icon: Icons.info_outline,
                               label: 'О приложении',
-                              delay: 300,
+                              delay: 175,
                               onTap: () {
                                 _closeDrawer(context);
                                 _navigateToPage(const AboutPage());
