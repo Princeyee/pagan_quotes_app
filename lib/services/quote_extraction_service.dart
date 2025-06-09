@@ -1,4 +1,4 @@
-
+ 
 // lib/services/quote_extraction_service.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'dart:math';
 import 'dart:convert';
@@ -8,6 +8,7 @@ import '../models/quote_context.dart';
 import '../models/book_source.dart';
 import '../models/daily_quote.dart';
 import 'text_file_service.dart';
+import 'theme_service.dart'; // Добавляем импорт!
 
 class CuratedQuote {
   final String id;
@@ -90,9 +91,10 @@ class QuoteExtractionService {
             .toList();
         
         if (quotes.isNotEmpty) {
-          final category = quotes.first.category;
-          curatedQuotes[category] = quotes;
-          print('✅ ${quotes.length} цитат для: $category');
+          // Группируем по категориям
+          for (final quote in quotes) {
+            curatedQuotes.putIfAbsent(quote.category, () => []).add(quote);
+          }
         }
       } catch (e) {
         print('⚠️ Файл $filePath не найден или поврежден: $e');
@@ -100,11 +102,16 @@ class QuoteExtractionService {
       }
     }
 
+    // Выводим статистику
+    for (final entry in curatedQuotes.entries) {
+      print('✅ ${entry.value.length} цитат для категории: ${entry.key}');
+    }
+
     _curatedQuotesCache = curatedQuotes;
     return curatedQuotes;
   }
 
-  /// Генерация ежедневной цитаты - теперь ТОЛЬКО из отобранных
+  /// Генерация ежедневной цитаты - теперь УЧИТЫВАЕТ настройки пользователя
   Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
     date ??= DateTime.now();
     
@@ -119,13 +126,36 @@ class QuoteExtractionService {
         return null;
       }
 
-      final categories = curated.keys.toList();
-      print('📂 Доступные категории: $categories');
+      // ВАЖНО: Получаем список включенных пользователем тем
+      final enabledThemes = await ThemeService.getEnabledThemes();
+      print('✅ Включенные темы: $enabledThemes');
       
-      // Выбираем категорию по дню (чередование)
+      // Фильтруем только те категории, которые включены пользователем
+      final availableCategories = curated.keys
+          .where((category) => enabledThemes.contains(category))
+          .toList();
+      
+      if (availableCategories.isEmpty) {
+        print('❌ Нет доступных категорий! Все темы выключены пользователем');
+        print('📂 Доступные категории в кураторских цитатах: ${curated.keys.toList()}');
+        print('🔧 Включенные пользователем темы: $enabledThemes');
+        
+        // Если все темы выключены, включаем хотя бы одну по умолчанию
+        if (curated.keys.isNotEmpty) {
+          final defaultCategory = curated.keys.first;
+          print('⚠️ Используем категорию по умолчанию: $defaultCategory');
+          availableCategories.add(defaultCategory);
+        } else {
+          return null;
+        }
+      }
+      
+      print('📂 Доступные категории после фильтрации: $availableCategories');
+      
+      // Выбираем категорию по дню (чередование только среди включенных)
       final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
-      final categoryIndex = daysSinceEpoch % categories.length;
-      final selectedCategory = categories[categoryIndex];
+      final categoryIndex = daysSinceEpoch % availableCategories.length;
+      final selectedCategory = availableCategories[categoryIndex];
       
       print('🎯 День $daysSinceEpoch -> Категория: $selectedCategory');
       
