@@ -42,7 +42,7 @@ final List<ThemeInfo> allThemes = [
     id: "pagan",
     name: "Язычество",
     image: "assets/images/pagan.jpg",
-    authors: ["Эвола", "Элиаде", "Ален де Бенуа", "Aslr Svarte (Евгений Ничкасов)"],
+    authors: ["Эвола", "Элиаде", "Ален де Бенуа", "Askr Svarte (Евгений Ничкасов)"],
     description: "Архаические традиции, мифология и символизм.",
   ),
 ];

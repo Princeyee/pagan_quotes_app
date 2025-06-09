@@ -1,5 +1,5 @@
 
-// lib/ui/screens/onboarding_overlay.dart
+// lib/ui/screens/onboarding_overlay.dart - ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
@@ -28,7 +28,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   late AnimationController _particleController;
   late AnimationController _glowController;
   late AnimationController _contentController;
-  late AnimationController _gestureHintController;
+  late AnimationController _blurController;
+  late AnimationController _finalExitController;
   
   // Анимации
   late Animation<double> _fadeAnimation;
@@ -36,15 +37,64 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   late Animation<double> _glowAnimation;
   late Animation<double> _contentFadeAnimation;
   late Animation<double> _blurAnimation;
-  late AnimationController _blurController;
+  late Animation<double> _finalExitAnimation;
 
-  
   final SoundManager _soundManager = SoundManager();
   
   // Состояния
   int _currentStep = 0;
   bool _isAnimating = true;
-  bool _showGestureHints = false;
+  final int _totalSteps = 7;
+  
+  // Шаги онбординга
+  final List<OnboardingStep> _steps = [
+    OnboardingStep(
+      type: StepType.treeAnimation,
+      title: '',
+      description: '',
+      duration: 2000,
+    ),
+    OnboardingStep(
+      type: StepType.welcome,
+      title: 'Добро пожаловать в Sacral',
+      description: 'Каждый день — новая мудрость.\nПрикоснитесь к вечным истинам через цитаты великих мыслителей.',
+      duration: 0,
+    ),
+    OnboardingStep(
+      type: StepType.dailyQuote,
+      title: 'Цитата дня',
+      description: 'Каждый день вас ждет новая вдохновляющая цитата от великих философов, поэтов и мыслителей.',
+      icon: Icons.auto_stories,
+      duration: 0,
+    ),
+    OnboardingStep(
+      type: StepType.contextDemo,
+      title: 'Свайп для контекста',
+      description: 'Проведите пальцем вверх по цитате, чтобы узнать больше о ее происхождении и контексте.',
+      icon: Icons.swipe_up,
+      duration: 0,
+    ),
+    OnboardingStep(
+      type: StepType.fullTextDemo,
+      title: 'Тап для полного текста',
+      description: 'Нажмите на экран контекста, чтобы открыть полную книгу с возможностью чтения.',
+      icon: Icons.auto_stories,
+      duration: 0,
+    ),
+    OnboardingStep(
+      type: StepType.menuDemo,
+      title: 'Откройте меню',
+      description: 'Нажмите на иконку меню, чтобы найти избранное, заметки, библиотеку и настройки.\n\nДолгое нажатие на цитату создаст заметку.',
+      icon: Icons.menu,
+      duration: 0,
+    ),
+    OnboardingStep(
+      type: StepType.finalWisdom,
+      title: 'Ваше путешествие начинается',
+      description: 'Философия начинается с удивления.|Язык говорит.|Перевёрнутая картина погружения в текст через цитату|Несет в себе|Отголосок духа мифопоэтики.',
+      duration: 0,
+    ),
+  ];
 
   @override
   void initState() {
@@ -54,38 +104,36 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   }
 
   void _initializeAnimations() {
-    // Основной контроллер для появления
     _introController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-  
     
-    // Контроллер для частиц
     _particleController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 6), // Увеличено для плавности
       vsync: this,
     )..repeat();
     
-    // Контроллер для свечения
     _glowController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
     
-    // Контроллер для контента
     _contentController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     
-    // Контроллер для подсказок жестов
-    _gestureHintController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+    _blurController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
-    // Настройка анимаций
+    _finalExitController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -111,36 +159,47 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       parent: _contentController,
       curve: Curves.easeIn,
     );
-    _blurController = AnimationController(
-  duration: const Duration(milliseconds: 1000),
-  vsync: this,
-);
 
-_blurAnimation = Tween<double>(
-  begin: 0.0,
-  end: 10.0,
-).animate(CurvedAnimation(
-  parent: _blurController,
-  curve: Curves.easeInOut,
-));
+    _blurAnimation = Tween<double>(
+      begin: 0.0,
+      end: 10.0,
+    ).animate(CurvedAnimation(
+      parent: _blurController,
+      curve: Curves.easeInOut,
+    ));
 
-_blurController.forward(); // Запускать блюр сразу
-}
+    _finalExitAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _finalExitController,
+      curve: Curves.easeInOutCubic,
+    ));
+
+    _blurController.forward();
+  }
 
   Future<void> _startOnboarding() async {
-    // Начинаем с анимации дерева
     await Future.delayed(const Duration(milliseconds: 300));
     _introController.forward();
     
-    // Ждем завершения анимации
-    await Future.delayed(const Duration(seconds: 2));
-    
-    // Звук выдоха
+    await Future.delayed(Duration(milliseconds: _steps[0].duration));
     await _playBreathSound();
     
-    // Показываем контент
-    setState(() => _currentStep = 1);
-    _contentController.forward();
+    _nextStep();
+  }
+
+  void _nextStep() {
+    if (_currentStep < _totalSteps - 1) {
+      setState(() {
+        _currentStep++;
+      });
+      
+      _contentController.reset();
+      _contentController.forward();
+    } else {
+      _completeOnboarding();
+    }
   }
 
   Future<void> _playBreathSound() async {
@@ -152,17 +211,22 @@ _blurController.forward(); // Запускать блюр сразу
           loop: false,
         );
       } catch (e) {
-        // Если звука нет, просто продолжаем
         print('Breath sound not available');
       }
     }
   }
 
-  void _proceedToGestures() {
-    setState(() => _currentStep = 2);
-    _contentController.reverse();
-    _gestureHintController.forward();
-    setState(() => _showGestureHints = true);
+  void _handleTap() {
+    if (_currentStep == 0) return;
+    
+    if (_currentStep == _totalSteps - 1) {
+      _finalExitController.forward().then((_) {
+        _completeOnboarding();
+      });
+      return;
+    }
+    
+    _nextStep();
   }
 
   void _completeOnboarding() {
@@ -176,20 +240,16 @@ _blurController.forward(); // Запускать блюр сразу
     _particleController.dispose();
     _glowController.dispose();
     _contentController.dispose();
-    _gestureHintController.dispose();
-    super.dispose();
     _blurController.dispose();
-
+    _finalExitController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Основной контент приложения
         widget.child,
-        
-        // Оверлей онбординга
         if (_isAnimating)
           Positioned.fill(
             child: _buildOnboardingContent(),
@@ -198,38 +258,47 @@ _blurController.forward(); // Запускать блюр сразу
     );
   }
 
- Widget _buildOnboardingContent() {
-  return GestureDetector(
-    onTap: _currentStep == 1 ? _proceedToGestures : null,
-    child: AnimatedBuilder(
-      animation: _blurAnimation,
-      builder: (context, child) {
-        return BackdropFilter(
-          filter: ui.ImageFilter.blur(
-            sigmaX: _blurAnimation.value,
-            sigmaY: _blurAnimation.value,
-          ),
-          child: Container(
-            color: Colors.black.withOpacity(0.4), // ← меньше, чтобы блюр был виден
-            child: SafeArea(
-              child: _buildCurrentStep(),
+  Widget _buildOnboardingContent() {
+    return GestureDetector(
+      onTap: _handleTap,
+      child: AnimatedBuilder(
+        animation: _blurAnimation,
+        builder: (context, child) {
+          return BackdropFilter(
+            filter: ui.ImageFilter.blur(
+              sigmaX: _blurAnimation.value,
+              sigmaY: _blurAnimation.value,
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
+            child: Container(
+              color: Colors.black.withOpacity(0.4),
+              child: SafeArea(
+                child: _buildCurrentStep(),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildCurrentStep() {
-    switch (_currentStep) {
-      case 0:
+    final stepData = _steps[_currentStep];
+    
+    switch (stepData.type) {
+      case StepType.treeAnimation:
         return _buildTreeAnimation();
-      case 1:
-        return _buildWelcomeContent();
-      case 2:
-        return _buildGestureHints();
-      default:
-        return const SizedBox.shrink();
+      case StepType.welcome:
+        return _buildWelcomeStep(stepData);
+      case StepType.dailyQuote:
+        return _buildFeatureStep(stepData);
+      case StepType.contextDemo:
+        return _buildGestureStep(stepData);
+      case StepType.fullTextDemo:
+        return _buildFullTextStep(stepData);
+      case StepType.menuDemo:
+        return _buildMenuStep(stepData);
+      case StepType.finalWisdom:
+        return _buildFinalWisdomStep(stepData);
     }
   }
 
@@ -242,7 +311,6 @@ _blurController.forward(); // Запускать блюр сразу
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Свечение
               AnimatedBuilder(
                 animation: _glowAnimation,
                 builder: (context, child) {
@@ -262,8 +330,6 @@ _blurController.forward(); // Запускать блюр сразу
                   );
                 },
               ),
-              
-              // Частицы
               CustomPaint(
                 size: const Size(300, 300),
                 painter: MagicalParticlesPainter(
@@ -271,8 +337,6 @@ _blurController.forward(); // Запускать блюр сразу
                   color: Colors.greenAccent,
                 ),
               ),
-              
-              // Дерево
               Container(
                 width: 120,
                 height: 120,
@@ -307,7 +371,7 @@ _blurController.forward(); // Запускать блюр сразу
     );
   }
 
-  Widget _buildWelcomeContent() {
+  Widget _buildWelcomeStep(OnboardingStep step) {
     return FadeTransition(
       opacity: _contentFadeAnimation,
       child: Padding(
@@ -315,7 +379,6 @@ _blurController.forward(); // Запускать блюр сразу
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Логотип
             Container(
               width: 80,
               height: 80,
@@ -334,104 +397,36 @@ _blurController.forward(); // Запускать блюр сразу
                     fontSize: 40,
                     fontWeight: FontWeight.w300,
                     color: Colors.white,
-                     decoration: TextDecoration.none,
+                    decoration: TextDecoration.none,
                   ),
                 ),
               ),
             ),
             
-            // Заголовок
-Text(
-  'Добро пожаловать в Sacral',
-  style: GoogleFonts.merriweather(
-    fontSize: 28,
-    fontWeight: FontWeight.w300,
-    color: Colors.white,
-    height: 1.2,
-    decoration: TextDecoration.none, // ← убирает подчёркивание
-  ),
-  textAlign: TextAlign.center,
-),
-
-const SizedBox(height: 20),
-
-// Описание
-Text(
-  'Каждый день — новая мудрость.\nПрикоснитесь к вечным истинам через цитаты великих мыслителей и голос мифа.',
-  style: GoogleFonts.merriweather(
-    fontSize: 17,
-    fontWeight: FontWeight.w300,
-    color: Colors.white.withOpacity(0.8),
-    height: 1.5,
-    decoration: TextDecoration.none,
-  ),
-  textAlign: TextAlign.center,
-),
-
-const SizedBox(height: 40),
-            
-            // Подзаголовок
             Text(
-  'Философия начинается с удивления.',
-  style: GoogleFonts.merriweather(
-    fontSize: 16,
-    fontStyle: FontStyle.italic,
-    color: Colors.white.withOpacity(0.7),
-    letterSpacing: 0.5,
-    decoration: TextDecoration.none,
-  ),
-  textAlign: TextAlign.center,
-),
-            
-            const SizedBox(height: 60),
-            
-            // Индикатор "тапни чтобы продолжить"
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.5, end: 1.0),
-              duration: const Duration(seconds: 2),
-              builder: (context, value, child) {
-                return Opacity(
-                  opacity: value,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.touch_app,
-                              color: Colors.white.withOpacity(0.7),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-Text(
-  'Нажмите, чтобы продолжить',
-  style: GoogleFonts.merriweather(
-    color: Colors.white.withOpacity(0.7),
-    fontSize: 14,
-    fontWeight: FontWeight.w300,
-    decoration: TextDecoration.none,
-  ),
-),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+              step.title,
+              style: GoogleFonts.merriweather(
+                fontSize: 28,
+                fontWeight: FontWeight.w300,
+                color: Colors.white,
+                height: 1.2,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 20),
+
+            Text(
+              step.description,
+              style: GoogleFonts.merriweather(
+                fontSize: 17,
+                fontWeight: FontWeight.w300,
+                color: Colors.white.withOpacity(0.8),
+                height: 1.5,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -439,223 +434,733 @@ Text(
     );
   }
 
-  Widget _buildGestureHints() {
-    return Stack(
-      children: [
-        // Подсказка свайпа
-        Positioned(
-          bottom: MediaQuery.of(context).size.height * 0.18,
-          left: 0,
-          right: 0,
-          child: _AnimatedGestureHint(
-            icon: Icons.swipe_up,
-            text: 'Свайп вверх\nдля просмотра контекста',
-            delay: const Duration(milliseconds: 200),
-            textStyle: GoogleFonts.merriweather(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.85),
-              fontStyle: FontStyle.normal,
-              decoration: TextDecoration.none,
-              height: 1.4,
-            ),
-          ),
-        ),
-        
-        // Подсказка долгого нажатия
-        Positioned(
-          top: MediaQuery.of(context).size.height * 0.12,
-          left: 0,
-          right: 0,
-          child: _AnimatedGestureHint(
-            icon: Icons.touch_app,
-            text: 'Долгое нажатие\nдля создания заметки',
-            delay: const Duration(milliseconds: 600),
-            isLongPress: true,
-            textStyle: GoogleFonts.merriweather(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.85),
-              fontStyle: FontStyle.italic,
-              decoration: TextDecoration.none,
-              height: 1.4,
-            ),
-          ),
-        ),
-        
-        // Кнопка "Начать"
-Positioned(
-  bottom: 80,
-  left: 0,
-  right: 0,
-  child: DelayedAnimation.delayed(
-    delay: const Duration(milliseconds: 1000),
-    duration: const Duration(milliseconds: 800),
-    tween: Tween(begin: 0.0, end: 1.0),
-    builder: (context, value, child) {
-      return Opacity(
-        opacity: value,
-        child: Transform.scale(
-          scale: 0.9 + (0.1 * value),
-          child: Center(
-            child: ElevatedButton(
-              onPressed: _completeOnboarding,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'Начать',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                   decoration: TextDecoration.none,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-  ),
-),
-      ],
-    );
-  }
-}
-
-// Виджет анимированной подсказки жеста
-class _AnimatedGestureHint extends StatefulWidget {
-  final IconData icon;
-  final String text;
-  final Duration delay;
-  final bool isLongPress;
-  final TextStyle? textStyle; // ← вот это добавлено
-
-  const _AnimatedGestureHint({
-    required this.icon,
-    required this.text,
-    required this.delay,
-    this.isLongPress = false,
-    this.textStyle, // ← вот это добавлено
-  });
-
-  @override
-  State<_AnimatedGestureHint> createState() => _AnimatedGestureHintState();
-}
-
-class _AnimatedGestureHintState extends State<_AnimatedGestureHint>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    ));
-
-    _slideAnimation = Tween<double>(
-      begin: 20.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
-
-    // Запуск с задержкой
-    Future.delayed(widget.delay, () {
-      if (mounted) {
-        _controller.forward();
-        if (widget.isLongPress) {
-          _controller.repeat(reverse: true);
-        }
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _fadeAnimation.value,
-          child: Transform.translate(
-            offset: Offset(0, _slideAnimation.value),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Анимированная иконка
-                Transform.scale(
-                  scale: widget.isLongPress ? _pulseAnimation.value : 1.0,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 2,
+  Widget _buildFeatureStep(OnboardingStep step) {
+    return FadeTransition(
+      opacity: _contentFadeAnimation,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 1500),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        step.icon,
+                        color: Colors.white,
+                        size: 50,
                       ),
                     ),
-                    child: Icon(
-                      widget.icon,
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Text(
+              step.title,
+              style: GoogleFonts.merriweather(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 20),
+            
+            Text(
+              step.description,
+              style: GoogleFonts.merriweather(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.8),
+                height: 1.5,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '"Танцующий — тот, кто может ходить по воде"',
+                    style: GoogleFonts.merriweather(
+                      fontSize: 16,
+                      fontStyle: FontStyle.italic,
                       color: Colors.white,
-                      size: 40,
+                      decoration: TextDecoration.none,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '— Ницше',
+                    style: GoogleFonts.merriweather(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.7),
+                      decoration: TextDecoration.none,
                     ),
                   ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGestureStep(OnboardingStep step) {
+    return FadeTransition(
+      opacity: _contentFadeAnimation,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 1500),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(30 * (1 - value), -20 * (1 - value)),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.swipe_up,
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Text(
+              step.title,
+              style: GoogleFonts.merriweather(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 20),
+            
+            Text(
+              step.description,
+              style: GoogleFonts.merriweather(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.8),
+                height: 1.5,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Текст
-                Text(
-  widget.text,
-  style: widget.textStyle,
-  textAlign: TextAlign.center,
-),
-              ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.touch_app,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Нажмите для продолжения',
+                    style: GoogleFonts.merriweather(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 14,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullTextStep(OnboardingStep step) {
+    return FadeTransition(
+      opacity: _contentFadeAnimation,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 1500),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        step.icon,
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Text(
+              step.title,
+              style: GoogleFonts.merriweather(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 20),
+            
+            Text(
+              step.description,
+              style: GoogleFonts.merriweather(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.8),
+                height: 1.5,
+                decoration: TextDecoration.none,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                      ),
+                    ),
+                    child: Text(
+                      'Контекст цитаты...\n"Танцующий — тот, кто может ходить по воде"\n...полный текст книги',
+                      style: GoogleFonts.merriweather(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.7),
+                        decoration: TextDecoration.none,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 15),
+                  
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(seconds: 2),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    builder: (context, value, child) {
+                      return Transform.translate(
+                        offset: Offset(0, 10 * math.sin(value * math.pi * 4)),
+                        child: Icon(
+                          Icons.touch_app,
+                          color: Colors.white.withOpacity(0.6),
+                          size: 24,
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  const SizedBox(height: 15),
+                  
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blue.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.book,
+                          color: Colors.blue.withOpacity(0.7),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Полный текст книги',
+                            style: GoogleFonts.merriweather(
+                              fontSize: 12,
+                              color: Colors.blue.withOpacity(0.8),
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 40),
+            
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.touch_app,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Нажмите для продолжения',
+                    style: GoogleFonts.merriweather(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 14,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuStep(OnboardingStep step) {
+    return FadeTransition(
+      opacity: _contentFadeAnimation,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 20,
+            left: 20,
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(seconds: 2),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.yellow.withOpacity(0.8 * math.sin(value * math.pi * 4).abs()),
+                      width: 3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.yellow.withOpacity(0.3 * math.sin(value * math.pi * 4).abs()),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.menu,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                );
+              },
+            ),
+          ),
+          
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    step.title,
+                    style: GoogleFonts.merriweather(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      decoration: TextDecoration.none,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  Text(
+                    step.description,
+                    style: GoogleFonts.merriweather(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.8),
+                      height: 1.5,
+                      decoration: TextDecoration.none,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildMenuItemDemo(Icons.bookmark, 'Избранные цитаты'),
+                        _buildMenuItemDemo(Icons.edit_note, 'Ваши заметки'),
+                        _buildMenuItemDemo(Icons.library_books, 'Полная библиотека'),
+                        _buildMenuItemDemo(Icons.palette, 'Настройки тем'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFinalWisdomStep(OnboardingStep step) {
+    final lines = step.description.split('|');
+    
+    return AnimatedBuilder(
+      animation: _finalExitAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _finalExitAnimation.value,
+          child: Opacity(
+            opacity: _finalExitAnimation.value,
+            child: FadeTransition(
+              opacity: _contentFadeAnimation,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CustomPaint(
+                    size: Size.infinite,
+                    painter: MysticParticlesPainter(
+                      animation: _particleController,
+                      color: Colors.white.withOpacity(0.1),
+                    ),
+                  ),
+                  
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(seconds: 4), // Увеличено для плавности
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return Transform.scale(
+                                scale: 0.9 + (0.1 * math.sin(value * math.pi * 2)),
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3 + 0.3 * math.sin(value * math.pi * 4)),
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withOpacity(0.2 * math.sin(value * math.pi * 2).abs()),
+                                        blurRadius: 30,
+                                        spreadRadius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      'assets/images/rune_icon.png',
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(
+                                          Icons.auto_awesome,
+                                          size: 50,
+                                          color: Colors.white.withOpacity(0.8),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          
+                          const SizedBox(height: 50),
+                          
+                          Text(
+                            step.title,
+                            style: GoogleFonts.merriweather(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white,
+                              decoration: TextDecoration.none,
+                              letterSpacing: 1,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          
+                          const SizedBox(height: 40),
+                          
+                          Container(
+                            padding: const EdgeInsets.all(30),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.1),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  spreadRadius: 5,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: lines.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final line = entry.value;
+                                
+                                return AnimatedTextLine(
+                                  text: line,
+                                  delay: Duration(milliseconds: 1000 * index), // Увеличено до 1 секунды
+                                  style: GoogleFonts.merriweather(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w300,
+                                    color: Colors.white.withOpacity(0.9),
+                                    height: 1.6,
+                                    decoration: TextDecoration.none,
+                                    letterSpacing: 0.5,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 60),
+                          
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(seconds: 2),
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return AnimatedOpacity(
+                                opacity: 0.5 + 0.5 * math.sin(value * math.pi * 4),
+                                duration: const Duration(milliseconds: 200),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.touch_app,
+                                        color: Colors.white.withOpacity(0.6),
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Нажмите, чтобы войти',
+                                        style: GoogleFonts.merriweather(
+                                          color: Colors.white.withOpacity(0.6),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w300,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
     );
   }
+
+  Widget _buildMenuItemDemo(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white.withOpacity(0.7), size: 20),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: GoogleFonts.merriweather(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 14,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Классы для структуры шагов
+enum StepType {
+  treeAnimation,
+  welcome,
+  dailyQuote,
+  contextDemo,
+  fullTextDemo,
+  menuDemo,
+  finalWisdom,
+}
+
+class OnboardingStep {
+  final StepType type;
+  final String title;
+  final String description;
+  final String? buttonText;
+  final IconData? icon;
+  final int duration;
+
+  OnboardingStep({
+    required this.type,
+    required this.title,
+    required this.description,
+    this.buttonText,
+    this.icon,
+    required this.duration,
+  });
 }
 
 // Painter для магических частиц
@@ -677,7 +1182,6 @@ class MagicalParticlesPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final progress = animation.value;
 
-    // Рисуем магические частицы
     for (int i = 0; i < 12; i++) {
       final angle = (i * 30 * math.pi / 180) + (progress * 2 * math.pi);
       final baseRadius = 80.0;
@@ -687,16 +1191,13 @@ class MagicalParticlesPainter extends CustomPainter {
       final x = center.dx + math.cos(angle) * radius;
       final y = center.dy + math.sin(angle) * radius;
       
-      // Пульсация прозрачности
       final opacity = (0.3 + 0.7 * math.sin(progress * 3 * math.pi + i * 0.5)).clamp(0.0, 1.0);
       paint.color = color.withOpacity(opacity * 0.6);
       
-      // Размер частицы
       final particleSize = 3 + 2 * math.sin(progress * 2 * math.pi + i);
       
       canvas.drawCircle(Offset(x, y), particleSize, paint);
       
-      // Светящийся ореол
       paint.color = color.withOpacity(opacity * 0.2);
       canvas.drawCircle(Offset(x, y), particleSize + 4, paint);
     }
@@ -706,31 +1207,134 @@ class MagicalParticlesPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-// Extension для добавления задержки к TweenAnimationBuilder
-extension DelayedAnimation on TweenAnimationBuilder {
-  static Widget delayed({
-    required Duration delay,
-    required Duration duration,
-    required Tween<double> tween,
-    required Widget Function(BuildContext, double, Widget?) builder,
-    Widget? child,
-  }) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: delay + duration,
-      builder: (context, value, _) {
-        if (value < delay.inMilliseconds / (delay + duration).inMilliseconds) {
-          return builder(context, tween.begin!, child);
-        }
-        final progress = (value - delay.inMilliseconds / (delay + duration).inMilliseconds) /
-            (duration.inMilliseconds / (delay + duration).inMilliseconds);
-        return builder(
-          context,
-          tween.transform(progress.clamp(0.0, 1.0)),
-          child,
+// Painter для мистических частиц на финальном экране
+class MysticParticlesPainter extends CustomPainter {
+  final Animation<double> animation;
+  final Color color;
+
+  MysticParticlesPainter({
+    required this.animation,
+    required this.color,
+  }) : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final progress = animation.value;
+
+    // Рисуем плавающие частицы как споры/пыльца с плавным циклом
+    for (int i = 0; i < 20; i++) {
+      // Используем более плавные математические функции для цикличности
+      final baseX = (i * 0.618033988749895) % 1.0;
+      final baseY = (i * 0.381966011250105) % 1.0;
+      
+      final x = (size.width * 0.1) + 
+                (size.width * 0.8) * ((baseX + progress * 0.08) % 1.0);
+      final y = (size.height * 0.1) + 
+                (size.height * 0.8) * ((baseY + progress * 0.05) % 1.0);
+      
+      // Плавная пульсация без рывков
+      final particlePhase = (i * 0.314159) % (2 * math.pi);
+      final particleProgress = (progress * 2 * math.pi + particlePhase);
+      final opacity = 0.2 + 0.3 * ((math.sin(particleProgress) + 1) / 2);
+      final size_particle = 1 + 2 * ((math.cos(particleProgress * 0.7) + 1) / 2);
+      
+      paint.color = color.withOpacity(opacity);
+      canvas.drawCircle(Offset(x, y), size_particle, paint);
+      
+      // Легкое свечение вокруг частицы
+      paint.color = color.withOpacity(opacity * 0.3);
+      canvas.drawCircle(Offset(x, y), size_particle + 3, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// Виджет для анимированного появления строк из тумана
+class AnimatedTextLine extends StatefulWidget {
+  final String text;
+  final Duration delay;
+  final TextStyle style;
+
+  const AnimatedTextLine({
+    Key? key,
+    required this.text,
+    required this.delay,
+    required this.style,
+  }) : super(key: key);
+
+  @override
+  State<AnimatedTextLine> createState() => _AnimatedTextLineState();
+}
+
+class _AnimatedTextLineState extends State<AnimatedTextLine>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    Future.delayed(widget.delay, () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Text(
+                widget.text,
+                style: widget.style,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         );
       },
-      child: child,
     );
   }
 }
