@@ -1,3 +1,4 @@
+
 // lib/services/calendar_quote_service.dart
 import 'dart:math';
 import '../models/daily_quote.dart';
@@ -53,8 +54,8 @@ class CalendarQuoteService {
   /// Генерирует детерминированную цитату для указанной даты
   Future<Quote?> _generateDeterministicQuote(DateTime date) async {
     try {
-      // Загружаем отобранные цитаты
-      final curated = await _quoteService._loadCuratedQuotes();
+      // Загружаем отобранные цитаты - ИСПОЛЬЗУЕМ ПУБЛИЧНЫЙ МЕТОД
+      final curated = await _quoteService.loadCuratedQuotes();
       
       if (curated.isEmpty) {
         print('No curated quotes available');
@@ -141,14 +142,3 @@ class CalendarQuoteService {
     };
   }
 }
-
-// Расширение для QuoteExtractionService чтобы получить доступ к приватному методу
-extension QuoteExtractionServiceExtension on QuoteExtractionService {
-  Future<Map<String, List<dynamic>>> _loadCuratedQuotes() async {
-    // Возвращаем пустую мапу - в реальном коде нужно будет сделать метод публичным
-    // или реализовать загрузку цитат здесь
-    return {};
-  }
-}
-
- 

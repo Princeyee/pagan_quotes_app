@@ -1,5 +1,7 @@
  
+ 
 // lib/services/quote_extraction_service.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
+
 import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -8,7 +10,6 @@ import '../models/quote_context.dart';
 import '../models/book_source.dart';
 import '../models/daily_quote.dart';
 import 'text_file_service.dart';
-import 'theme_service.dart'; // Добавляем импорт!
 
 class CuratedQuote {
   final String id;
@@ -63,11 +64,11 @@ class QuoteExtractionService {
 
   final TextFileService _textService = TextFileService();
   
-  // Кэш для кураторских цитат
+  // Кэш для кураторских цитат - СДЕЛАЕМ ПУБЛИЧНЫМ
   Map<String, List<CuratedQuote>>? _curatedQuotesCache;
 
-  /// Загружает кураторские цитаты из assets/curated/
-  Future<Map<String, List<CuratedQuote>>> _loadCuratedQuotes() async {
+  /// Загружает кураторские цитаты из assets/curated/ - ПУБЛИЧНЫЙ МЕТОД
+  Future<Map<String, List<CuratedQuote>>> loadCuratedQuotes() async {
     if (_curatedQuotesCache != null) {
       return _curatedQuotesCache!;
     }
@@ -91,10 +92,9 @@ class QuoteExtractionService {
             .toList();
         
         if (quotes.isNotEmpty) {
-          // Группируем по категориям
-          for (final quote in quotes) {
-            curatedQuotes.putIfAbsent(quote.category, () => []).add(quote);
-          }
+          final category = quotes.first.category;
+          curatedQuotes[category] = quotes;
+          print('✅ ${quotes.length} цитат для: $category');
         }
       } catch (e) {
         print('⚠️ Файл $filePath не найден или поврежден: $e');
@@ -102,16 +102,11 @@ class QuoteExtractionService {
       }
     }
 
-    // Выводим статистику
-    for (final entry in curatedQuotes.entries) {
-      print('✅ ${entry.value.length} цитат для категории: ${entry.key}');
-    }
-
     _curatedQuotesCache = curatedQuotes;
     return curatedQuotes;
   }
 
-  /// Генерация ежедневной цитаты - теперь УЧИТЫВАЕТ настройки пользователя
+  /// Генерация ежедневной цитаты - теперь ТОЛЬКО из отобранных
   Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
     date ??= DateTime.now();
     
@@ -119,43 +114,20 @@ class QuoteExtractionService {
       print('🎭 Генерируем цитату на ${date.toString().split(' ')[0]}');
       
       // Загружаем отобранные цитаты
-      final curated = await _loadCuratedQuotes();
+      final curated = await loadCuratedQuotes(); // ИСПОЛЬЗУЕМ ПУБЛИЧНЫЙ МЕТОД
       
       if (curated.isEmpty) {
         print('❌ Нет отобранных цитат! Запустите quote_curator.dart');
         return null;
       }
 
-      // ВАЖНО: Получаем список включенных пользователем тем
-      final enabledThemes = await ThemeService.getEnabledThemes();
-      print('✅ Включенные темы: $enabledThemes');
+      final categories = curated.keys.toList();
+      print('📂 Доступные категории: $categories');
       
-      // Фильтруем только те категории, которые включены пользователем
-      final availableCategories = curated.keys
-          .where((category) => enabledThemes.contains(category))
-          .toList();
-      
-      if (availableCategories.isEmpty) {
-        print('❌ Нет доступных категорий! Все темы выключены пользователем');
-        print('📂 Доступные категории в кураторских цитатах: ${curated.keys.toList()}');
-        print('🔧 Включенные пользователем темы: $enabledThemes');
-        
-        // Если все темы выключены, включаем хотя бы одну по умолчанию
-        if (curated.keys.isNotEmpty) {
-          final defaultCategory = curated.keys.first;
-          print('⚠️ Используем категорию по умолчанию: $defaultCategory');
-          availableCategories.add(defaultCategory);
-        } else {
-          return null;
-        }
-      }
-      
-      print('📂 Доступные категории после фильтрации: $availableCategories');
-      
-      // Выбираем категорию по дню (чередование только среди включенных)
+      // Выбираем категорию по дню (чередование)
       final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
-      final categoryIndex = daysSinceEpoch % availableCategories.length;
-      final selectedCategory = availableCategories[categoryIndex];
+      final categoryIndex = daysSinceEpoch % categories.length;
+      final selectedCategory = categories[categoryIndex];
       
       print('🎯 День $daysSinceEpoch -> Категория: $selectedCategory');
       
@@ -173,8 +145,9 @@ class QuoteExtractionService {
         date: date,
       );
       
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('❌ Ошибка генерации цитаты: $e');
+      print('Stack trace: $stackTrace');
       return null;
     }
   }
@@ -314,15 +287,13 @@ class QuoteExtractionService {
     }
   }
 
-  // Остальные методы можно убрать или оставить пустыми для совместимости
+  // Остальные методы остаются без изменений
   Future<Quote?> extractRandomQuote(BookSource source, {int? minLength, int? maxLength}) async {
-    // Больше не используется - все цитаты теперь только отобранные
     return null;
   }
 
   Future<List<Quote>> searchQuotes(String query, {int limit = 20}) async {
-    // Можно реализовать поиск по отобранным цитатам
-    final curated = await _loadCuratedQuotes();
+    final curated = await loadCuratedQuotes();
     final allQuotes = <Quote>[];
     
     for (final categoryQuotes in curated.values) {
@@ -340,7 +311,7 @@ class QuoteExtractionService {
   }
 
   Future<Map<String, int>> getExtractionStats() async {
-    final curated = await _loadCuratedQuotes();
+    final curated = await loadCuratedQuotes();
     final stats = <String, int>{};
     
     for (final entry in curated.entries) {
