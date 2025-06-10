@@ -1,5 +1,3 @@
-
-// lib/ui/widgets/interactive_pagan_wheel.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
@@ -34,26 +32,39 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   bool _hasInteracted = false;
   List<PaganHoliday> _currentMonthHolidays = [];
 
-  // ИСПРАВЛЕННЫЕ цвета - более яркие и живые
   final List<MonthData> _months = [
-    MonthData('Январь', SeasonType.winter, const Color(0xFF4A90E2)),   
-    MonthData('Февраль', SeasonType.winter, const Color(0xFF5BA3F5)), 
-    MonthData('Март', SeasonType.spring, const Color(0xFF7ED321)),     
-    MonthData('Апрель', SeasonType.spring, const Color(0xFF9AE85A)),   
-    MonthData('Май', SeasonType.spring, const Color(0xFFB8F76D)),      
-    MonthData('Июнь', SeasonType.summer, const Color(0xFFF5A623)),     
-    MonthData('Июль', SeasonType.summer, const Color(0xFFFF8C00)),     
-    MonthData('Август', SeasonType.summer, const Color(0xFFFF6B35)),   
-    MonthData('Сентябрь', SeasonType.autumn, const Color(0xFFD0021B)), 
-    MonthData('Октябрь', SeasonType.autumn, const Color(0xFFB8860B)),  
-    MonthData('Ноябрь', SeasonType.autumn, const Color(0xFF8B4513)),   
-    MonthData('Декабрь', SeasonType.winter, const Color(0xFF2E5BBA)),  
+    MonthData('Январь', SeasonType.winter, const Color(0xFF5A7A9A)),   
+    MonthData('Февраль', SeasonType.winter, const Color(0xFF6B8FA8)), 
+    MonthData('Март', SeasonType.spring, const Color(0xFF7A9B6B)),     
+    MonthData('Апрель', SeasonType.spring, const Color(0xFF8AA876)),   
+    MonthData('Май', SeasonType.spring, const Color(0xFF9AB580)),      
+    MonthData('Июнь', SeasonType.summer, const Color(0xFFA8A050)),     
+    MonthData('Июль', SeasonType.summer, const Color(0xFFB8855A)),     
+    MonthData('Август', SeasonType.summer, const Color(0xFFC8704A)),   
+    MonthData('Сентябрь', SeasonType.autumn, const Color(0xFFB5704A)), 
+    MonthData('Октябрь', SeasonType.autumn, const Color(0xFFA5604A)),  
+    MonthData('Ноябрь', SeasonType.autumn, const Color(0xFF8A5A5A)),   
+    MonthData('Декабрь', SeasonType.winter, const Color(0xFF6A6A8A)),  
   ];
 
   @override
   void initState() {
     super.initState();
     
+    _initializeAnimations();
+    
+    // ПРАВИЛЬНАЯ инициализация
+    final currentMonth = DateTime.now().month;
+    _selectedMonth = currentMonth;
+    _loadHolidaysForMonth(currentMonth);
+    
+    // Поворачиваем к текущему месяцу ПОСЛЕ построения виджета
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _rotateToCurrentMonth();
+    });
+  }
+
+  void _initializeAnimations() {
     _rotationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -92,12 +103,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       parent: _contentRevealController,
       curve: Curves.easeOutBack,
     ));
-
-    _loadHolidaysForMonth(_selectedMonth);
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _rotateToCurrentMonth();
-    });
   }
 
   void _loadHolidaysForMonth(int month) {
@@ -132,22 +137,28 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _rotateToMonth(int month) {
+    // НОВАЯ ЛОГИКА: стрелка должна указывать на ЦЕНТР выбранного месяца
+    final monthIndex = month - 1; // 0-11
+    
+    // Каждый месяц занимает 30° (360°/12 = 30°)
+    // Центр месяца = начало + половина сектора = monthIndex * 30° + 15°
+    final monthCenterAngle = (monthIndex * 2 * math.pi / 12) + (math.pi / 12);
+    
+    // Стрелка внизу = π/2 (90°)
+    // Чтобы центр месяца был под стрелкой: поворачиваем на (π/2 - monthCenterAngle)
+    final targetRotation = (math.pi / 2) - monthCenterAngle;
+    
     setState(() {
       _selectedMonth = month;
-      _loadHolidaysForMonth(_selectedMonth);
+      _loadHolidaysForMonth(month); // Важно: загружаем праздники ПРАВИЛЬНОГО месяца
       
       if (!_hasInteracted) {
         _hasInteracted = true;
         _contentRevealController.forward();
       }
       
-      widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
+      widget.onMonthChanged?.call(month, _currentMonthHolidays);
     });
-    
-    // ИСПРАВЛЕННАЯ логика поворота
-    final monthIndex = month - 1;
-    final monthAngle = monthIndex * (2 * math.pi / 12);
-    final targetRotation = -monthAngle + math.pi / 2;
     
     _rotationController.reset();
     _rotationAnimation = Tween<double>(
@@ -167,13 +178,17 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
 
   void _rotateToCurrentMonth() {
     final currentMonth = DateTime.now().month;
+    
+    // ТА ЖЕ логика что и в _rotateToMonth
     final monthIndex = currentMonth - 1;
-    final monthAngle = monthIndex * (2 * math.pi / 12);
-    final targetRotation = -monthAngle + math.pi / 2;
+    final monthCenterAngle = (monthIndex * 2 * math.pi / 12) + (math.pi / 12);
+    final targetRotation = (math.pi / 2) - monthCenterAngle;
     
     setState(() {
       _currentRotation = targetRotation;
       _selectedMonth = currentMonth;
+      // Обязательно загружаем праздники для текущего месяца
+      _loadHolidaysForMonth(currentMonth);
     });
   }
 
@@ -209,7 +224,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: _months[_selectedMonth - 1].color.withOpacity(0.2 * _glowAnimation.value),
+                                      color: _months[_selectedMonth - 1].color.withOpacity(0.1 * _glowAnimation.value),
                                       blurRadius: 100,
                                       spreadRadius: 40,
                                     ),
@@ -245,7 +260,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                             height: 90,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.black.withOpacity(0.85),
+                              color: Colors.black.withOpacity(0.3),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.7),
                                 width: 2,
@@ -259,14 +274,12 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                               ],
                             ),
                             child: ClipOval(
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
                                 child: ClipOval(
                                   child: Image.asset(
                                     'assets/icon/old1.png',
                                     fit: BoxFit.cover,
-                                    width: 64,
-                                    height: 64,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
                                         decoration: BoxDecoration(
@@ -307,10 +320,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
+                          Colors.black,
                           Colors.black.withOpacity(0.9),
-                          Colors.black.withOpacity(0.7),
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.1),
+                          Colors.black.withOpacity(0.6),
+                          Colors.black.withOpacity(0.2),
                           Colors.transparent,
                         ],
                         stops: const [0.0, 0.3, 0.6, 0.85, 1.0],
@@ -390,15 +403,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            currentMonth.color.withOpacity(0.25),
             currentMonth.color.withOpacity(0.15),
+            currentMonth.color.withOpacity(0.08),
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: currentMonth.color.withOpacity(0.4),
+          color: currentMonth.color.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -416,7 +429,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: currentMonth.color.withOpacity(0.3),
+              color: currentMonth.color.withOpacity(0.2),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Text(
@@ -642,21 +655,27 @@ class WheelPainter extends CustomPainter {
     final radius = size.width / 2 - 10;
     final sectorAngle = 2 * math.pi / 12;
 
+    // ВАЖНО: правильный порядок месяцев
+    // Январь (индекс 0) должен быть сверху (-π/2)
+    // Февраль (индекс 1) должен быть на 30° по часовой стрелке от января
+    // И так далее...
+    
     for (int i = 0; i < 12; i++) {
       final month = months[i];
       
+      // Начало сектора для месяца i
       final startAngle = i * sectorAngle - math.pi / 2;
       final endAngle = startAngle + sectorAngle;
       final midAngle = startAngle + sectorAngle / 2;
 
       final gradient = RadialGradient(
         colors: [
-          Colors.black.withOpacity(0.4),
-          Colors.black.withOpacity(0.6),
-          month.color.withOpacity(0.6),
-          month.color.withOpacity(0.9),
+          Colors.black,
+          Colors.black.withOpacity(0.8),
+          month.color.withOpacity(0.4),
+          month.color.withOpacity(0.7),
         ],
-        stops: const [0.0, 0.2, 0.6, 1.0],
+        stops: const [0.0, 0.3, 0.7, 1.0],
       );
 
       final rect = Rect.fromCircle(center: center, radius: radius);
@@ -672,9 +691,9 @@ class WheelPainter extends CustomPainter {
       canvas.drawPath(path, paint);
 
       final borderPaint = Paint()
-        ..color = Colors.white.withOpacity(0.25)
+        ..color = Colors.white.withOpacity(0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5;
+        ..strokeWidth = 1;
 
       final borderPath = Path();
       borderPath.moveTo(center.dx, center.dy);
@@ -684,6 +703,7 @@ class WheelPainter extends CustomPainter {
       );
       canvas.drawPath(borderPath, borderPaint);
 
+      // Название месяца в ЦЕНТРЕ сектора
       final textRadius = radius * 0.75;
       final textX = center.dx + math.cos(midAngle) * textRadius;
       final textY = center.dy + math.sin(midAngle) * textRadius;
@@ -692,7 +712,7 @@ class WheelPainter extends CustomPainter {
         text: TextSpan(
           text: month.name,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.95),
+            color: Colors.white.withOpacity(0.9),
             fontSize: 14,
             fontWeight: FontWeight.w600,
             shadows: [
@@ -723,7 +743,7 @@ class WheelPainter extends CustomPainter {
     }
 
     final outerRingPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withOpacity(0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawCircle(center, radius, outerRingPaint);
@@ -734,7 +754,7 @@ class WheelPainter extends CustomPainter {
   void _drawSeasonLabels(Canvas canvas, Offset center, double radius) {
     final seasonData = [
       {'name': 'ЗИМА', 'months': [12, 1, 2], 'color': const Color(0xFF87CEEB)},
-      {'name': 'ВЕСНА', 'months': [3, 4, 5], 'color': const Color(0xFF7ED321)},
+      {'name': 'ВЕСНА', 'months': [3, 4, 5], 'color': const Color(0xFF90EE90)},
       {'name': 'ЛЕТО', 'months': [6, 7, 8], 'color': const Color(0xFFFFD700)},
       {'name': 'ОСЕНЬ', 'months': [9, 10, 11], 'color': const Color(0xFFDC143C)},
     ];
