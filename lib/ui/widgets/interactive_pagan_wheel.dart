@@ -153,10 +153,19 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
     });
     
-    // ИСПРАВЛЕННАЯ логика - стрелка указывает на ЦЕНТР месяца
-    // Январь в центре сектора снизу = π/2, февраль = π/2 + π/6, и т.д.
-    final sectorAngle = 2 * math.pi / 12; // Угол одного сектора
-    final targetRotation = (math.pi / 2) - ((month - 1) * sectorAngle);
+    // ПРАВИЛЬНАЯ логика - стрелка ТОЧНО на центре месяца
+    // Январь = индекс 0, февраль = индекс 1, и т.д.
+    final monthIndex = month - 1;
+    
+    // Каждый месяц занимает 30 градусов (360/12 = 30)
+    // Центр месяца = monthIndex * 30° + 15° (половина сектора)
+    // В радианах: (monthIndex * 2π/12) + (π/12)
+    final monthCenterAngle = (monthIndex * 2 * math.pi / 12) + (math.pi / 12);
+    
+    // Поворачиваем так, чтобы центр выбранного месяца был внизу (π/2)
+    final targetRotation = (math.pi / 2) - monthCenterAngle;
+    
+    print('Month: $month, Index: $monthIndex, Center angle: $monthCenterAngle, Target rotation: $targetRotation');
     
     _rotationController.reset();
     _rotationAnimation = Tween<double>(
@@ -175,12 +184,17 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _rotateToCurrentMonth() {
-    // Поворачиваем текущий месяц к стрелочке снизу
+    // При запуске поворачиваем к текущему месяцу
     final currentMonth = DateTime.now().month;
-    final sectorAngle = 2 * math.pi / 12;
-    final targetRotation = (math.pi / 2) - ((currentMonth - 1) * sectorAngle);
+    print('Setting initial rotation to current month: $currentMonth');
+    
+    final monthIndex = currentMonth - 1;
+    final monthCenterAngle = (monthIndex * 2 * math.pi / 12) + (math.pi / 12);
+    final targetRotation = (math.pi / 2) - monthCenterAngle;
+    
     setState(() {
       _currentRotation = targetRotation;
+      _selectedMonth = currentMonth; // Синхронизируем выбранный месяц
     });
   }
 
@@ -275,7 +289,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 padding: const EdgeInsets.all(8),
                                 child: ClipOval(
                                   child: Image.asset(
-                                    'assets/icon/old.PNG', // Новая иконка
+                                    'assets/icon/old.png', // Новая иконка
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
@@ -659,6 +673,8 @@ class WheelPainter extends CustomPainter {
 
     for (int i = 0; i < 12; i++) {
       final month = months[i];
+      
+      // ПРАВИЛЬНЫЕ углы - январь сверху, по часовой стрелке
       final startAngle = i * sectorAngle - math.pi / 2;
       final endAngle = startAngle + sectorAngle;
       final midAngle = startAngle + sectorAngle / 2;
@@ -698,6 +714,7 @@ class WheelPainter extends CustomPainter {
       );
       canvas.drawPath(borderPath, borderPaint);
 
+      // Название месяца в центре сектора
       final textRadius = radius * 0.75;
       final textX = center.dx + math.cos(midAngle) * textRadius;
       final textY = center.dy + math.sin(midAngle) * textRadius;
@@ -739,27 +756,31 @@ class WheelPainter extends CustomPainter {
   }
 
   void _drawSeasonLabels(Canvas canvas, Offset center, double radius) {
+    // ПРАВИЛЬНЫЕ сезоны:
+    // Зима: декабрь(12), январь(1), февраль(2)  
+    // Весна: март(3), апрель(4), май(5)
+    // Лето: июнь(6), июль(7), август(8)
+    // Осень: сентябрь(9), октябрь(10), ноябрь(11)
+    
     final seasonData = [
-      {'name': 'ЗИМА', 'startMonth': 11, 'endMonth': 1, 'color': const Color(0xFF87CEEB)}, // Голубой
-      {'name': 'ВЕСНА', 'startMonth': 2, 'endMonth': 4, 'color': const Color(0xFF90EE90)}, // Светло-зеленый
-      {'name': 'ЛЕТО', 'startMonth': 5, 'endMonth': 7, 'color': const Color(0xFFFFD700)}, // Золотой
-      {'name': 'ОСЕНЬ', 'startMonth': 8, 'endMonth': 10, 'color': const Color(0xFFDC143C)}, // Красный
+      {'name': 'ЗИМА', 'months': [12, 1, 2], 'color': const Color(0xFF87CEEB)}, // Голубой
+      {'name': 'ВЕСНА', 'months': [3, 4, 5], 'color': const Color(0xFF90EE90)}, // Светло-зеленый
+      {'name': 'ЛЕТО', 'months': [6, 7, 8], 'color': const Color(0xFFFFD700)}, // Золотой
+      {'name': 'ОСЕНЬ', 'months': [9, 10, 11], 'color': const Color(0xFFDC143C)}, // Красный
     ];
 
     for (final season in seasonData) {
       final seasonName = season['name'] as String;
-      final startMonth = season['startMonth'] as int;
-      final endMonth = season['endMonth'] as int;
+      final months = season['months'] as List<int>;
       final seasonColor = season['color'] as Color;
       
-      double middleAngle;
-      if (startMonth > endMonth) {
-        middleAngle = ((startMonth - 1) * (2 * math.pi / 12) + (endMonth - 1 + 12) * (2 * math.pi / 12)) / 2;
-      } else {
-        middleAngle = ((startMonth - 1) + (endMonth - 1)) * (2 * math.pi / 12) / 2;
-      }
+      // Берем средний месяц для размещения надписи
+      final middleMonth = months[1]; // Средний из трех месяцев
       
-      middleAngle -= math.pi / 2;
+      // Вычисляем угол для среднего месяца
+      // Январь = 0, февраль = 1, и т.д.
+      final monthIndex = middleMonth - 1;
+      final middleAngle = (monthIndex * 2 * math.pi / 12) - math.pi / 2;
 
       _drawCurvedText(canvas, seasonName, center, radius, middleAngle, seasonColor);
     }
