@@ -137,10 +137,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _rotateToMonth(int month) {
-    // ПРОСТАЯ логика: какой месяц внизу, тот и выбран
+    // ИСПРАВЛЯЕМ: центр месяца + убираем зеркальность
     final monthIndex = month - 1;
-    final monthAngle = monthIndex * (2 * math.pi / 12);
-    final targetRotation = -monthAngle;
+    final monthCenterAngle = monthIndex * (2 * math.pi / 12) + (math.pi / 12); // центр месяца
+    final targetRotation = -monthCenterAngle + math.pi; // +π для исправления зеркальности
     
     setState(() {
       _selectedMonth = month;
@@ -173,10 +173,11 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   void _rotateToCurrentMonth() {
     final currentMonth = DateTime.now().month;
     
-    // ПРОСТАЯ логика: поворачиваем так, чтобы текущий месяц был внизу
-    final monthIndex = currentMonth - 1; // 0-11
-    final monthAngle = monthIndex * (2 * math.pi / 12); // угол месяца
-    final targetRotation = -monthAngle; // поворачиваем на -угол, чтобы месяц оказался внизу
+    // ИСПРАВЛЯЕМ: добавляем π (180°) чтобы убрать зеркальность
+    // И добавляем смещение на центр месяца
+    final monthIndex = currentMonth - 1; 
+    final monthCenterAngle = monthIndex * (2 * math.pi / 12) + (math.pi / 12); // центр месяца
+    final targetRotation = -monthCenterAngle + math.pi; // +π для исправления зеркальности
     
     setState(() {
       _currentRotation = targetRotation;
