@@ -104,32 +104,66 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     }
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      final deltaX = details.delta.dx;
-      _currentRotation += deltaX * 0.01;
-      
-      final normalizedRotation = (_currentRotation + math.pi / 2) % (2 * math.pi);
-      final monthFloat = (normalizedRotation / (2 * math.pi)) * 12;
-      int newMonth = (monthFloat.floor() % 12) + 1;
-      
-      if (newMonth != _selectedMonth) {
-        _selectedMonth = newMonth;
-        _loadHolidaysForMonth(_selectedMonth);
-        
-        if (!_hasInteracted) {
-          _hasInteracted = true;
-          _contentRevealController.forward();
-        }
-        
-        widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
-      }
-    });
+  bool _isPointerVisible() {
+    // Указатель видим только если он не в зоне тумана
+    // Проверяем текущий поворот и видим ли январь (который должен быть под указателем)
+    return true; // Пока всегда показываем для простоты
   }
 
-  void _onPanEnd(DragEndDetails details) {
-    final targetMonth = _selectedMonth;
-    final targetRotation = ((targetMonth - 1) / 12) * 2 * math.pi;
+  void _onTapDown(TapDownDetails details) {
+    // Получаем позицию клика относительно самого GestureDetector
+    final localPosition = details.localPosition;
+    
+    // Центр колеса в локальных координатах (колесо 360x360, по центру)
+    final centerX = 180.0; // Половина ширины колеса
+    final centerY = 180.0; // Половина высоты колеса
+    
+    // Вектор от центра к точке клика
+    final dx = localPosition.dx - centerX;
+    final dy = localPosition.dy - centerY;
+    
+    // Расстояние от центра
+    final distance = math.sqrt(dx * dx + dy * dy);
+    
+    // Проверяем что клик внутри колеса (но не в центральной иконке)
+    if (distance > 45 && distance < 160) {
+      // Вычисляем угол клика
+      double angle = math.atan2(dy, dx);
+      
+      // Нормализуем угол 
+      angle = (angle + 2 * math.pi) % (2 * math.pi);
+      
+      // Поворачиваем на 90 градусов, чтобы 0 был вверху
+      angle = (angle + 3 * math.pi / 2) % (2 * math.pi);
+      
+      // Вычисляем месяц (12 месяцев в кругу)
+      final monthFloat = (angle / (2 * math.pi)) * 12;
+      int targetMonth = (monthFloat.round() % 12);
+      if (targetMonth == 0) targetMonth = 12; // Декабрь
+      
+      // Анимируем поворот к выбранному месяцу
+      _rotateToMonth(targetMonth);
+    }
+  }
+
+  void _rotateToMonth(int month) {
+    if (month == _selectedMonth) return;
+    
+    setState(() {
+      _selectedMonth = month;
+      _loadHolidaysForMonth(_selectedMonth);
+      
+      if (!_hasInteracted) {
+        _hasInteracted = true;
+        _contentRevealController.forward();
+      }
+      
+      widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
+    });
+    
+    // Вычисляем целевой угол поворота
+    // Месяц 1 (январь) должен быть вверху (угол 0)
+    final targetRotation = -((month - 1) / 12) * 2 * math.pi;
     
     _rotationController.reset();
     final rotationTween = Tween<double>(
@@ -147,6 +181,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         _currentRotation = targetRotation;
       });
     });
+  }
+
+  void _onSectorTap(int month) {
+    _rotateToMonth(month);
   }
 
   @override
@@ -610,12 +648,14 @@ class GradientWheelPainter extends CustomPainter {
   final int selectedMonth;
   final double glowIntensity;
   final double rotation;
+  final Function(int)? onSectorTap;
 
   GradientWheelPainter({
     required this.months,
     required this.selectedMonth,
     required this.glowIntensity,
     required this.rotation,
+    this.onSectorTap,
   });
 
   @override
@@ -624,9 +664,10 @@ class GradientWheelPainter extends CustomPainter {
     final radius = size.width / 2 - 10;
     final sectorAngle = 2 * math.pi / 12;
 
-    // Рисуем секторы
+    // Рисуем секторы (январь вверху, по часовой стрелке)
     for (int i = 0; i < 12; i++) {
       final month = months[i];
+      // Январь (i=0) должен быть вверху, остальные по часовой стрелке
       final startAngle = i * sectorAngle - math.pi / 2;
       final endAngle = startAngle + sectorAngle;
       final midAngle = startAngle + sectorAngle / 2;
