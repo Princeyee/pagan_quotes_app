@@ -13,6 +13,7 @@ import '../../services/image_picker_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/calendar_quote_modal.dart';
 import '../widgets/holiday_info_modal.dart';
+import '../widgets/pagan_month_wheel.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -133,6 +134,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       setState(() => _isLoading = false);
     }
   }
+
+  
 
   Future<void> _loadBackgroundImage() async {
     try {
@@ -331,34 +334,38 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildScrollableContent() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        child: Column(
-          children: [
-            // Отступ для AppBar
-            const SizedBox(height: 100),
-            
-            // Календарь
-            _buildEnhancedCalendar(),
-            
-            // Ближайший праздник (БЕЗ живого таймера)
-            _buildSimpleHolidayCountdown(),
-            
-            // Информация о выбранном дне
-            if (_selectedDay != null) _buildSelectedDayInfo(),
-            
-            // Дополнительный отступ внизу
-            const SizedBox(height: 20),
-          ],
-        ),
+  return FadeTransition(
+    opacity: _fadeAnimation,
+    child: SingleChildScrollView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
       ),
-    );
-  }
+      child: Column(
+        children: [
+          // Отступ для AppBar
+          const SizedBox(height: 100),
+          
+          // ===== ЯЗЫЧЕСКОЕ КОЛЕСО МЕСЯЦЕВ =====
+          _buildWheelOfTime(),
+          
+          // Календарь
+          _buildEnhancedCalendar(),
+          
+          // Ближайший праздник
+          _buildSimpleHolidayCountdown(),
+          
+          // Информация о выбранном дне
+          if (_selectedDay != null) _buildSelectedDayInfo(),
+          
+          const SizedBox(height: 20),
+        ],
+      ),
+    ),
+  );
+}
+
+
 
   Widget _buildEnhancedCalendar() {
     return Container(
@@ -1050,7 +1057,68 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         return tradition;
     }
   }
-
+Widget _buildWheelOfTime() {
+  return Container(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: Colors.white.withOpacity(0.15),
+        width: 1,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 20,
+          spreadRadius: 0,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.album,
+                    color: Colors.white.withOpacity(0.8),
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Колесо времени',
+                    style: GoogleFonts.merriweather(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            PaganMonthWheel(
+              selectedMonth: _focusedDay.month,
+              onMonthChanged: (month) {
+                setState(() {
+                  _focusedDay = DateTime(_focusedDay.year, month);
+                  _prepareEvents();
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    ),
+  );
+}
   @override
   void dispose() {
     _fadeController.dispose();
