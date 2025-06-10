@@ -69,7 +69,7 @@ class BookSource {
       case 'philosophy':
         return 'Философия';
       case 'pagan':
-        return 'Язычество';
+        return 'Язычество & Традиционализм';
       default:
         return category;
     }
