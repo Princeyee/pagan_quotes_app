@@ -1084,68 +1084,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         return tradition;
     }
   }
-Widget _buildWheelOfTime() {
-  return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.08),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: Colors.white.withOpacity(0.15),
-        width: 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.3),
-          blurRadius: 20,
-          spreadRadius: 0,
-          offset: const Offset(0, 8),
-        ),
-      ],
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.album,
-                    color: Colors.white.withOpacity(0.8),
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Колесо времени',
-                    style: GoogleFonts.merriweather(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            PaganMonthWheel(
-              selectedMonth: _focusedDay.month,
-              onMonthChanged: (month) {
-                setState(() {
-                  _focusedDay = DateTime(_focusedDay.year, month);
-                  _prepareEvents();
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+
   @override
   void dispose() {
     _fadeController.dispose();

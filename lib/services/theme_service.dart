@@ -1,4 +1,6 @@
+// lib/services/theme_service.dart - ОБНОВЛЕННАЯ ВЕРСИЯ
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/custom_cache.dart'; // ДОБАВЛЯЕМ ИМПОРТ
 
 class ThemeService {
   static const _key = 'enabled_themes';
@@ -11,6 +13,10 @@ class ThemeService {
   static Future<void> setEnabledThemes(List<String> themes) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_key, themes);
+    
+    // СБРАСЫВАЕМ КЭШ ЕЖЕДНЕВНЫХ ЦИТАТ при изменении тем
+    await CustomCache.prefs.clearDailyQuotes();
+    print('🔄 Кэш ежедневных цитат очищен после смены тем');
   }
 
   static Future<void> toggleTheme(String themeId) async {
@@ -21,7 +27,7 @@ class ThemeService {
     } else {
       current.add(themeId);
     }
-    await setEnabledThemes(current);
+    await setEnabledThemes(current); // Используем setEnabledThemes для сброса кэша
   }
 
   static Future<bool> isEnabled(String themeId) async {

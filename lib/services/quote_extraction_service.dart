@@ -10,6 +10,7 @@ import '../models/quote_context.dart';
 import '../models/book_source.dart';
 import '../models/daily_quote.dart';
 import 'text_file_service.dart';
+import 'theme_service.dart'; // ДОБАВЛЯЕМ ИМПОРТ
 
 class CuratedQuote {
   final String id;
@@ -106,23 +107,43 @@ class QuoteExtractionService {
     return curatedQuotes;
   }
 
-  /// Генерация ежедневной цитаты - теперь ТОЛЬКО из отобранных
+  /// ИСПРАВЛЕННАЯ генерация ежедневной цитаты - учитывает выбранные темы
   Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
     date ??= DateTime.now();
     
     try {
       print('🎭 Генерируем цитату на ${date.toString().split(' ')[0]}');
       
+      // ПОЛУЧАЕМ ВКЛЮЧЕННЫЕ ТЕМЫ
+      final enabledThemes = await ThemeService.getEnabledThemes();
+      print('🎯 Включенные темы: $enabledThemes');
+      
       // Загружаем отобранные цитаты
-      final curated = await loadCuratedQuotes(); // ИСПОЛЬЗУЕМ ПУБЛИЧНЫЙ МЕТОД
+      final curated = await loadCuratedQuotes();
       
       if (curated.isEmpty) {
         print('❌ Нет отобранных цитат! Запустите quote_curator.dart');
         return null;
       }
 
-      final categories = curated.keys.toList();
-      print('📂 Доступные категории: $categories');
+      // ФИЛЬТРУЕМ ТОЛЬКО ПО ВКЛЮЧЕННЫМ ТЕМАМ
+      final filteredCurated = <String, List<CuratedQuote>>{};
+      for (final theme in enabledThemes) {
+        if (curated.containsKey(theme)) {
+          filteredCurated[theme] = curated[theme]!;
+        }
+      }
+      
+      if (filteredCurated.isEmpty) {
+        print('❌ Нет цитат для включенных тем: $enabledThemes');
+        // Fallback - берем первую доступную тему
+        final firstAvailable = curated.keys.first;
+        filteredCurated[firstAvailable] = curated[firstAvailable]!;
+        print('🔄 Fallback на тему: $firstAvailable');
+      }
+
+      final categories = filteredCurated.keys.toList();
+      print('📂 Доступные категории после фильтрации: $categories');
       
       // Выбираем категорию по дню (чередование)
       final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
@@ -132,7 +153,7 @@ class QuoteExtractionService {
       print('🎯 День $daysSinceEpoch -> Категория: $selectedCategory');
       
       // Получаем цитаты для выбранной категории
-      final categoryQuotes = curated[selectedCategory]!;
+      final categoryQuotes = filteredCurated[selectedCategory]!;
       
       // Выбираем цитату с воспроизводимостью внутри дня
       final dayRandom = Random(daysSinceEpoch + selectedCategory.hashCode);
