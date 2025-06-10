@@ -57,6 +57,7 @@ flutter:
     - assets/images/philosophy.jpg
     - assets/images/rune_icon.png
     - assets/images/rune_icon_small.png
+    - assets/icon/old.PNG
 #Не рабочие анимации
     - assets/animations/fire.gif
     - assets/animations/greece.json
