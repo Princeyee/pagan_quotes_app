@@ -279,7 +279,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 padding: const EdgeInsets.all(8),
                                 child: ClipOval(
                                   child: Image.asset(
-                                    'assets/icon/old.PNG', // Новая иконка
+                                    'assets/icon/old.png', // Новая иконка
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
