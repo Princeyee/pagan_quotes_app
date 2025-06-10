@@ -137,20 +137,14 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _rotateToMonth(int month) {
-    // НОВАЯ ЛОГИКА: стрелка должна указывать на ЦЕНТР выбранного месяца
-    final monthIndex = month - 1; // 0-11
-    
-    // Каждый месяц занимает 30° (360°/12 = 30°)
-    // Центр месяца = начало + половина сектора = monthIndex * 30° + 15°
-    final monthCenterAngle = (monthIndex * 2 * math.pi / 12) + (math.pi / 12);
-    
-    // Стрелка внизу = π/2 (90°)
-    // Чтобы центр месяца был под стрелкой: поворачиваем на (π/2 - monthCenterAngle)
-    final targetRotation = (math.pi / 2) - monthCenterAngle;
+    // ПРОСТАЯ логика: какой месяц внизу, тот и выбран
+    final monthIndex = month - 1;
+    final monthAngle = monthIndex * (2 * math.pi / 12);
+    final targetRotation = -monthAngle;
     
     setState(() {
       _selectedMonth = month;
-      _loadHolidaysForMonth(month); // Важно: загружаем праздники ПРАВИЛЬНОГО месяца
+      _loadHolidaysForMonth(month);
       
       if (!_hasInteracted) {
         _hasInteracted = true;
@@ -179,15 +173,14 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   void _rotateToCurrentMonth() {
     final currentMonth = DateTime.now().month;
     
-    // ТА ЖЕ логика что и в _rotateToMonth
-    final monthIndex = currentMonth - 1;
-    final monthCenterAngle = (monthIndex * 2 * math.pi / 12) + (math.pi / 12);
-    final targetRotation = (math.pi / 2) - monthCenterAngle;
+    // ПРОСТАЯ логика: поворачиваем так, чтобы текущий месяц был внизу
+    final monthIndex = currentMonth - 1; // 0-11
+    final monthAngle = monthIndex * (2 * math.pi / 12); // угол месяца
+    final targetRotation = -monthAngle; // поворачиваем на -угол, чтобы месяц оказался внизу
     
     setState(() {
       _currentRotation = targetRotation;
       _selectedMonth = currentMonth;
-      // Обязательно загружаем праздники для текущего месяца
       _loadHolidaysForMonth(currentMonth);
     });
   }
@@ -740,6 +733,37 @@ class WheelPainter extends CustomPainter {
       canvas.rotate(textRotation);
       textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
       canvas.restore();
+
+      // ДОБАВЛЯЕМ языческие символы для каждого месяца
+      final symbolRadius = radius * 0.55; // Ближе к центру
+      final symbolX = center.dx + math.cos(midAngle) * symbolRadius;
+      final symbolY = center.dy + math.sin(midAngle) * symbolRadius;
+      
+      final monthSymbol = _getMonthSymbol(i + 1);
+      final symbolPainter = TextPainter(
+        text: TextSpan(
+          text: monthSymbol,
+          style: TextStyle(
+            color: month.color.withOpacity(0.8),
+            fontSize: 24,
+            fontWeight: FontWeight.w400,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.7),
+                blurRadius: 2,
+                offset: const Offset(1, 1),
+              ),
+            ],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      
+      symbolPainter.layout();
+      canvas.save();
+      canvas.translate(symbolX, symbolY);
+      symbolPainter.paint(canvas, Offset(-symbolPainter.width / 2, -symbolPainter.height / 2));
+      canvas.restore();
     }
 
     final outerRingPaint = Paint()
@@ -831,6 +855,25 @@ class WheelPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+
+  // Настоящие языческие символы для каждого месяца
+  String _getMonthSymbol(int month) {
+    switch (month) {
+      case 1: return 'ᛁ'; // Январь - руна Иса (лед)
+      case 2: return 'ᚢ'; // Февраль - руна Уруз (сила)
+      case 3: return 'ᚦ'; // Март - руна Турисаз (великан, сила)
+      case 4: return 'ᚨ'; // Апрель - руна Ансуз (бог, дыхание)
+      case 5: return 'ᚱ'; // Май - руна Райдо (путь, движение)
+      case 6: return '☉'; // Июнь - символ солнца
+      case 7: return 'ᛋ'; // Июль - руна Совило (солнце)
+      case 8: return 'ᛃ'; // Август - руна Йера (урожай, год)
+      case 9: return 'ᛈ'; // Сентябрь - руна Перт (тайна, изменение)
+      case 10: return 'ᛇ'; // Октябрь - руна Эйваз (защита, смерть)
+      case 11: return 'ᛜ'; // Ноябрь - руна Ингуз (плодородие)
+      case 12: return '☾'; // Декабрь - символ луны
+      default: return '⚬';
+    }
+  }
 }
 
 class MonthData {

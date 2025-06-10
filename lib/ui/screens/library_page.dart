@@ -316,6 +316,9 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                 top: 12,
                 right: 12,
                 child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: 90, // Ограничиваем ширину, чтобы текст переносился
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _getCategoryColor(book.category),
@@ -327,7 +330,11 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                       fontSize: 11,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
+                      height: 1.2, // Немного уменьшаем межстрочный интервал
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2, // Разрешаем две строки
+                    overflow: TextOverflow.fade, // Плавное затухание если всё же не поместится
                   ),
                 ),
               ),
@@ -362,7 +369,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
       case 'philosophy':
         return 'Философия';
       case 'pagan':
-        return 'Язычество &/nТрадиционализм';
+        return 'Язычество &\nТрадиционализм'; // Принудительный перенос строки
       default:
         return 'Другое';
     }
