@@ -92,6 +92,19 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     ));
 
     _loadHolidaysForMonth(_selectedMonth);
+    
+    // Поворачиваем колесо к текущему месяцу при загрузке
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _rotateToCurrentMonth();
+    });
+  }
+
+  void _rotateToCurrentMonth() {
+    // Устанавливаем поворот так, чтобы текущий месяц был внизу под стрелкой
+    final targetRotation = ((DateTime.now().month - 1) / 12) * 2 * math.pi;
+    setState(() {
+      _currentRotation = targetRotation;
+    });
   }
 
   void _loadHolidaysForMonth(int month) {
@@ -103,29 +116,44 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _handleTap(TapDownDetails details) {
+    print('Tap detected at: ${details.localPosition}');
+    
     final localPosition = details.localPosition;
-    final centerX = 180.0;
-    final centerY = 180.0;
+    final centerX = 350.0; // Центр большого колеса (700px / 2)
+    final centerY = 350.0 + 80; // Центр + смещение вниз
     
     final dx = localPosition.dx - centerX;
     final dy = localPosition.dy - centerY;
     final distance = math.sqrt(dx * dx + dy * dy);
     
-    if (distance > 45 && distance < 160) {
+    print('Distance from center: $distance');
+    
+    // Зона клика для большого колеса (избегаем центральную иконку)
+    if (distance > 50 && distance < 300) {
+      // НОВАЯ логика - стрелка теперь СНИЗУ
       double angle = math.atan2(dy, dx);
-      angle = (angle + 2 * math.pi) % (2 * math.pi);
-      angle = (angle + 3 * math.pi / 2) % (2 * math.pi);
       
-      final monthFloat = (angle / (2 * math.pi)) * 12;
-      int targetMonth = (monthFloat.round() % 12);
-      if (targetMonth == 0) targetMonth = 12;
+      if (angle < 0) angle += 2 * math.pi;
+      
+      // Поворачиваем так, чтобы январь был СНИЗУ под стрелкой
+      // Снизу = -π/2, поэтому корректируем формулу
+      angle = (angle - math.pi / 2) % (2 * math.pi);
+      if (angle < 0) angle += 2 * math.pi;
+      
+      int monthIndex = (angle / (2 * math.pi / 12)).floor();
+      int targetMonth = monthIndex + 1;
+      if (targetMonth > 12) targetMonth = 1;
+      
+      print('Angle: $angle, Month index: $monthIndex, Target month: $targetMonth');
       
       _rotateToMonth(targetMonth);
+    } else {
+      print('Tap outside wheel area');
     }
   }
 
   void _rotateToMonth(int month) {
-    if (month == _selectedMonth) return;
+    print('Rotating to month: $month'); // Для отладки
     
     setState(() {
       _selectedMonth = month;
@@ -139,15 +167,14 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
     });
     
-    final targetRotation = -((month - 1) / 12) * 2 * math.pi;
+    // Упрощенная логика поворота
+    final targetRotation = ((month - 1) / 12) * 2 * math.pi;
     
     _rotationController.reset();
-    final rotationTween = Tween<double>(
+    _rotationAnimation = Tween<double>(
       begin: _currentRotation,
       end: targetRotation,
-    );
-    
-    _rotationAnimation = rotationTween.animate(CurvedAnimation(
+    ).animate(CurvedAnimation(
       parent: _rotationController,
       curve: Curves.easeOutCubic,
     ));
@@ -163,122 +190,181 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Колесо с эффектом тумана
+        // Колесо с правильной обрезкой - только половина, но намного больше размером
         Container(
-          height: 220,
+          height: 350, // Еще больше увеличиваем высоту
           width: double.infinity,
-          child: Stack(
-            children: [
-              // Само колесо
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: GestureDetector(
-                  onTapDown: _handleTap,
-                  child: Container(
-                    width: 360,
-                    height: 360,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Свечение
-                        AnimatedBuilder(
-                          animation: _glowAnimation,
-                          builder: (context, child) {
-                            return Container(
-                              width: 320,
-                              height: 320,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: _months[_selectedMonth - 1].color.withOpacity(0.1 * _glowAnimation.value),
-                                    blurRadius: 60,
-                                    spreadRadius: 20,
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                        
-                        // Само колесо
-                        AnimatedBuilder(
-                          animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
-                          builder: (context, child) {
-                            final currentRotation = _rotationController.isAnimating 
-                                ? _rotationAnimation.value 
-                                : _currentRotation;
-                            
-                            return Transform.rotate(
-                              angle: currentRotation,
-                              child: CustomPaint(
-                                size: const Size(320, 320),
-                                painter: WheelPainter(
-                                  months: _months,
-                                  selectedMonth: _selectedMonth - 1,
-                                  glowIntensity: _glowAnimation.value,
+          child: ClipRect(
+            child: Stack(
+              children: [
+                // Само колесо, намного больше
+                Positioned(
+                  bottom: -80, // Опускаем еще ниже
+                  left: -50, // Убираем отступы чтобы колесо было на всю ширину
+                  right: -50,
+                  child: GestureDetector(
+                    onTapDown: _handleTap,
+                    child: Container(
+                      width: 700, // Намного увеличиваем размер колеса
+                      height: 700,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Свечение
+                          AnimatedBuilder(
+                            animation: _glowAnimation,
+                            builder: (context, child) {
+                              return Container(
+                                width: 650,
+                                height: 650,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _months[_selectedMonth - 1].color.withOpacity(0.1 * _glowAnimation.value),
+                                      blurRadius: 100,
+                                      spreadRadius: 40,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        
-                        // Центральная иконка
-                        _buildCenterIcon(),
-                        
-                        // Указатель
-                        Positioned(
-                          top: 20,
-                          child: Container(
-                            width: 3,
-                            height: 25,
+                              );
+                            },
+                          ),
+                          
+                          // Само колесо
+                          AnimatedBuilder(
+                            animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
+                            builder: (context, child) {
+                              final currentRotation = _rotationController.isAnimating 
+                                  ? _rotationAnimation.value 
+                                  : _currentRotation;
+                              
+                              return Transform.rotate(
+                                angle: currentRotation,
+                                child: CustomPaint(
+                                  size: const Size(650, 650), // Намного увеличиваем размер
+                                  painter: WheelPainter(
+                                    months: _months,
+                                    selectedMonth: _selectedMonth - 1,
+                                    glowIntensity: _glowAnimation.value,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          
+                          // Центральная иконка (оставляем прежний размер)
+                          Container(
+                            width: 90,
+                            height: 90,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(2),
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.85),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.7 * _glowAnimation.value),
+                                width: 2,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.5),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                                  color: Colors.white.withOpacity(0.2 * _glowAnimation.value),
+                                  blurRadius: 25,
+                                  spreadRadius: 5,
                                 ),
                               ],
                             ),
+                            child: ClipOval(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    'assets/images/rune_icon.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: RadialGradient(
+                                            colors: [
+                                              Colors.white.withOpacity(0.8),
+                                              Colors.white.withOpacity(0.3),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.auto_awesome,
+                                          color: Colors.black.withOpacity(0.7),
+                                          size: 40,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          
+                          // Указатель СНИЗУ - хорошо видно
+                          Positioned(
+                            bottom: 40,
+                            child: Container(
+                              width: 4,
+                              height: 35,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.95),
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.7),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.3),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              
-              // Градиент тумана
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black,
-                        Colors.black.withOpacity(0.9),
-                        Colors.black.withOpacity(0.7),
-                        Colors.black.withOpacity(0.4),
-                        Colors.black.withOpacity(0.1),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                
+                // Градиент тумана
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 150, // Больше зона тумана для большого колеса
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black,
+                          Colors.black.withOpacity(0.9),
+                          Colors.black.withOpacity(0.6),
+                          Colors.black.withOpacity(0.2),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.3, 0.6, 0.85, 1.0],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         
         // Информация о месяце
         _buildMonthInfo(),
         
-        // Список праздников
+        // Список праздников - показываем всегда, не только после взаимодействия
         if (_hasInteracted) ...[
           SlideTransition(
             position: Tween<Offset>(
@@ -295,66 +381,20 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
               ),
             ),
           ),
+        ] else ...[
+          // Показываем контент сразу, без анимации
+          Column(
+            children: [
+              const SizedBox(height: 20),
+              _buildHolidaysList(),
+            ],
+          ),
         ],
       ],
     );
   }
 
-  Widget _buildCenterIcon() {
-    return AnimatedBuilder(
-      animation: _glowAnimation,
-      builder: (context, child) {
-        return Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.black.withOpacity(0.85),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.7 * _glowAnimation.value),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.white.withOpacity(0.2 * _glowAnimation.value),
-                blurRadius: 25,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/rune_icon.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.8),
-                            Colors.white.withOpacity(0.3),
-                          ],
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.auto_awesome,
-                        color: Colors.black.withOpacity(0.7),
-                        size: 40,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 
   Widget _buildMonthInfo() {
     final currentMonth = _months[_selectedMonth - 1];
