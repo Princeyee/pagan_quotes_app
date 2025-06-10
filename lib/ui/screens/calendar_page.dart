@@ -13,7 +13,7 @@ import '../../services/image_picker_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/calendar_quote_modal.dart';
 import '../widgets/holiday_info_modal.dart';
-import '../widgets/pagan_month_wheel.dart';
+import '../widgets/interactive_pagan_wheel.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -41,6 +41,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   List<PaganHoliday> _holidays = [];
   
   bool _isLoading = true;
+  bool _showCalendar = false;
   String? _selectedTradition;
   String? _backgroundImageUrl; // ИСПРАВЛЕНО: добавлено объявление переменной
   
@@ -267,33 +268,14 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildBackgroundWithBlur() {
-    return AnimatedBuilder(
-      animation: _backgroundAnimation,
-      child: _backgroundImageUrl != null // ИСПРАВЛЕНО: backgroundImageUrl -> _backgroundImageUrl
-          ? CachedNetworkImage(
-              imageUrl: _backgroundImageUrl!, // ИСПРАВЛЕНО: backgroundImageUrl -> _backgroundImageUrl
-              cacheManager: CustomCache.instance,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.grey[900]!, Colors.black],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-              errorWidget: (_, __, ___) => Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.grey[900]!, Colors.black],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-            )
-          : Container(
+  return AnimatedBuilder(
+    animation: _backgroundAnimation,
+    child: _backgroundImageUrl != null
+        ? CachedNetworkImage(
+            imageUrl: _backgroundImageUrl!,
+            cacheManager: CustomCache.instance,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.grey[900]!, Colors.black],
@@ -302,36 +284,55 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 ),
               ),
             ),
-      builder: (context, child) {
-        return Opacity(
-          opacity: _backgroundAnimation.value,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              child ?? const SizedBox(),
-              
-              // Блюр эффект
-              BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withOpacity(0.7),
-                        Colors.black.withOpacity(0.8),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
+            errorWidget: (_, __, ___) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.grey[900]!, Colors.black],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          )
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.grey[900]!, Colors.black],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+    builder: (context, child) {
+      return Opacity(
+        opacity: _backgroundAnimation.value,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox(),
+            
+            // Более темный блюр для колеса
+            BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.8),
+                      Colors.black.withOpacity(0.9),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
                 ),
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildScrollableContent() {
   return FadeTransition(
@@ -346,17 +347,43 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           // Отступ для AppBar
           const SizedBox(height: 100),
           
-          // ===== ЯЗЫЧЕСКОЕ КОЛЕСО МЕСЯЦЕВ =====
-          _buildWheelOfTime(),
+          // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
+          InteractivePaganWheel(
+            onMonthChanged: (month, holidays) {
+              setState(() {
+                _focusedDay = DateTime(_focusedDay.year, month);
+                _showCalendar = true; // Показываем календарь после первого взаимодействия
+                _prepareEvents();
+              });
+            },
+          ),
           
-          // Календарь
-          _buildEnhancedCalendar(),
-          
-          // Ближайший праздник
-          _buildSimpleHolidayCountdown(),
-          
-          // Информация о выбранном дне
-          if (_selectedDay != null) _buildSelectedDayInfo(),
+          // Календарь появляется только после взаимодействия с колесом
+          if (_showCalendar) ...[
+            const SizedBox(height: 20),
+            
+            // Анимированное появление календаря
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 800),
+              tween: Tween(begin: 0.0, end: 1.0),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.8 + (0.2 * value),
+                  child: Opacity(
+                    opacity: value,
+                    child: _buildEnhancedCalendar(),
+                  ),
+                );
+              },
+            ),
+            
+            // Ближайший праздник
+            _buildSimpleHolidayCountdown(),
+            
+            // Информация о выбранном дне
+            if (_selectedDay != null) _buildSelectedDayInfo(),
+          ],
           
           const SizedBox(height: 20),
         ],
