@@ -110,37 +110,32 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   void _handleTap(TapDownDetails details) {
     print('Tap detected at: ${details.localPosition}');
     
-    final localPosition = details.localPosition;
-    final centerX = 350.0; // Центр колеса
-    final centerY = 350.0 + 80; // Центр + смещение
+    final screenWidth = MediaQuery.of(context).size.width;
+    final tapX = details.globalPosition.dx;
     
-    final dx = localPosition.dx - centerX;
-    final dy = localPosition.dy - centerY;
-    final distance = math.sqrt(dx * dx + dy * dy);
+    print('Screen width: $screenWidth, Tap X: $tapX');
     
-    print('Distance from center: $distance');
-    
-    // Проверяем клик в области колеса
-    if (distance > 50 && distance < 300) {
-      // ПРОСТАЯ логика - определяем угол и месяц
-      double angle = math.atan2(dy, dx);
-      if (angle < 0) angle += 2 * math.pi;
-      
-      // Преобразуем угол в номер месяца (январь=0, февраль=1 и т.д.)
-      // Поворачиваем на 90 градусов, чтобы январь был справа (3 часа)
-      double adjustedAngle = (angle - math.pi / 2) % (2 * math.pi);
-      if (adjustedAngle < 0) adjustedAngle += 2 * math.pi;
-      
-      // Делим круг на 12 частей и определяем месяц
-      int monthIndex = (adjustedAngle / (2 * math.pi / 12)).round() % 12;
-      int targetMonth = monthIndex + 1;
-      
-      print('Angle: $angle, Adjusted: $adjustedAngle, Month: $targetMonth');
-      
-      _rotateToMonth(targetMonth);
+    if (tapX < screenWidth / 2) {
+      // Левая половина экрана - предыдущий месяц
+      print('Tap on LEFT - going to previous month');
+      _goToPreviousMonth();
     } else {
-      print('Tap outside wheel area');
+      // Правая половина экрана - следующий месяц  
+      print('Tap on RIGHT - going to next month');
+      _goToNextMonth();
     }
+  }
+
+  void _goToPreviousMonth() {
+    int newMonth = _selectedMonth - 1;
+    if (newMonth < 1) newMonth = 12;
+    _rotateToMonth(newMonth);
+  }
+
+  void _goToNextMonth() {
+    int newMonth = _selectedMonth + 1;
+    if (newMonth > 12) newMonth = 1;
+    _rotateToMonth(newMonth);
   }
 
   void _rotateToMonth(int month) {
@@ -158,10 +153,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
     });
     
-    // ПРОСТАЯ логика - поворачиваем выбранный месяц к стрелочке снизу
-    // Стрелочка снизу = позиция 6 часов = π/2 радиан от правой стороны
-    // Январь = 0, поэтому январь внизу = поворот на π/2
-    final targetRotation = (math.pi / 2) - ((month - 1) / 12) * 2 * math.pi;
+    // ИСПРАВЛЕННАЯ логика - стрелка указывает на ЦЕНТР месяца
+    // Январь в центре сектора снизу = π/2, февраль = π/2 + π/6, и т.д.
+    final sectorAngle = 2 * math.pi / 12; // Угол одного сектора
+    final targetRotation = (math.pi / 2) - ((month - 1) * sectorAngle);
     
     _rotationController.reset();
     _rotationAnimation = Tween<double>(
@@ -182,7 +177,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   void _rotateToCurrentMonth() {
     // Поворачиваем текущий месяц к стрелочке снизу
     final currentMonth = DateTime.now().month;
-    final targetRotation = (math.pi / 2) - ((currentMonth - 1) / 12) * 2 * math.pi;
+    final sectorAngle = 2 * math.pi / 12;
+    final targetRotation = (math.pi / 2) - ((currentMonth - 1) * sectorAngle);
     setState(() {
       _currentRotation = targetRotation;
     });
@@ -279,7 +275,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 padding: const EdgeInsets.all(8),
                                 child: ClipOval(
                                   child: Image.asset(
-                                    'assets/icon/old.png', // Новая иконка
+                                    'assets/icon/old.PNG', // Новая иконка
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
@@ -465,7 +461,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
           ),
         ),
         child: Text(
-          'В этом месяце нет особых праздников',
+          'В этом месяце нет особых языческих праздников',
           style: TextStyle(
             color: Colors.white.withOpacity(0.6),
             fontSize: 14,
@@ -744,16 +740,17 @@ class WheelPainter extends CustomPainter {
 
   void _drawSeasonLabels(Canvas canvas, Offset center, double radius) {
     final seasonData = [
-      {'name': 'ЗИМА', 'startMonth': 11, 'endMonth': 1},
-      {'name': 'ВЕСНА', 'startMonth': 2, 'endMonth': 4}, 
-      {'name': 'ЛЕТО', 'startMonth': 5, 'endMonth': 7},
-      {'name': 'ОСЕНЬ', 'startMonth': 8, 'endMonth': 10},
+      {'name': 'ЗИМА', 'startMonth': 11, 'endMonth': 1, 'color': const Color(0xFF87CEEB)}, // Голубой
+      {'name': 'ВЕСНА', 'startMonth': 2, 'endMonth': 4, 'color': const Color(0xFF90EE90)}, // Светло-зеленый
+      {'name': 'ЛЕТО', 'startMonth': 5, 'endMonth': 7, 'color': const Color(0xFFFFD700)}, // Золотой
+      {'name': 'ОСЕНЬ', 'startMonth': 8, 'endMonth': 10, 'color': const Color(0xFFDC143C)}, // Красный
     ];
 
     for (final season in seasonData) {
       final seasonName = season['name'] as String;
       final startMonth = season['startMonth'] as int;
       final endMonth = season['endMonth'] as int;
+      final seasonColor = season['color'] as Color;
       
       double middleAngle;
       if (startMonth > endMonth) {
@@ -764,11 +761,11 @@ class WheelPainter extends CustomPainter {
       
       middleAngle -= math.pi / 2;
 
-      _drawCurvedText(canvas, seasonName, center, radius, middleAngle);
+      _drawCurvedText(canvas, seasonName, center, radius, middleAngle, seasonColor);
     }
   }
 
-  void _drawCurvedText(Canvas canvas, String text, Offset center, double radius, double startAngle) {
+  void _drawCurvedText(Canvas canvas, String text, Offset center, double radius, double startAngle, Color seasonColor) {
     final textLength = text.length;
     final angleStep = 0.15;
     final totalAngle = angleStep * (textLength - 1);
@@ -785,15 +782,22 @@ class WheelPainter extends CustomPainter {
         text: TextSpan(
           text: char,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.85),
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.0,
+            color: seasonColor.withOpacity(0.9), // Цвет времени года
+            fontSize: 18, // Больше размер
+            fontWeight: FontWeight.w800, // Жирнее
+            letterSpacing: 1.5,
             shadows: [
+              // Темная тень для контраста
               Shadow(
-                color: Colors.black.withOpacity(0.8),
-                blurRadius: 3,
+                color: Colors.black.withOpacity(0.9),
+                blurRadius: 4,
                 offset: const Offset(1, 1),
+              ),
+              // Светлое свечение в цвет сезона
+              Shadow(
+                color: seasonColor.withOpacity(0.6),
+                blurRadius: 8,
+                offset: const Offset(0, 0),
               ),
             ],
           ),
