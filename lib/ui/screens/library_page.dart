@@ -362,7 +362,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
       case 'philosophy':
         return 'Философия';
       case 'pagan':
-        return 'Язычество';
+        return 'Язычество & Традиционализм';
       default:
         return 'Другое';
     }

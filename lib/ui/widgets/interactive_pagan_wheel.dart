@@ -99,14 +99,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     });
   }
 
-  void _rotateToCurrentMonth() {
-    // Устанавливаем поворот так, чтобы текущий месяц был внизу под стрелкой
-    final targetRotation = ((DateTime.now().month - 1) / 12) * 2 * math.pi;
-    setState(() {
-      _currentRotation = targetRotation;
-    });
-  }
-
   void _loadHolidaysForMonth(int month) {
     try {
       _currentMonthHolidays = PaganHolidayService.getHolidaysForMonth(month);
@@ -119,8 +111,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     print('Tap detected at: ${details.localPosition}');
     
     final localPosition = details.localPosition;
-    final centerX = 350.0; // Центр большого колеса (700px / 2)
-    final centerY = 350.0 + 80; // Центр + смещение вниз
+    final centerX = 350.0; // Центр колеса
+    final centerY = 350.0 + 80; // Центр + смещение
     
     final dx = localPosition.dx - centerX;
     final dy = localPosition.dy - centerY;
@@ -128,23 +120,22 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     
     print('Distance from center: $distance');
     
-    // Зона клика для большого колеса (избегаем центральную иконку)
+    // Проверяем клик в области колеса
     if (distance > 50 && distance < 300) {
-      // НОВАЯ логика - стрелка теперь СНИЗУ
+      // ПРОСТАЯ логика - определяем угол и месяц
       double angle = math.atan2(dy, dx);
-      
       if (angle < 0) angle += 2 * math.pi;
       
-      // Поворачиваем так, чтобы январь был СНИЗУ под стрелкой
-      // Снизу = -π/2, поэтому корректируем формулу
-      angle = (angle - math.pi / 2) % (2 * math.pi);
-      if (angle < 0) angle += 2 * math.pi;
+      // Преобразуем угол в номер месяца (январь=0, февраль=1 и т.д.)
+      // Поворачиваем на 90 градусов, чтобы январь был справа (3 часа)
+      double adjustedAngle = (angle - math.pi / 2) % (2 * math.pi);
+      if (adjustedAngle < 0) adjustedAngle += 2 * math.pi;
       
-      int monthIndex = (angle / (2 * math.pi / 12)).floor();
+      // Делим круг на 12 частей и определяем месяц
+      int monthIndex = (adjustedAngle / (2 * math.pi / 12)).round() % 12;
       int targetMonth = monthIndex + 1;
-      if (targetMonth > 12) targetMonth = 1;
       
-      print('Angle: $angle, Month index: $monthIndex, Target month: $targetMonth');
+      print('Angle: $angle, Adjusted: $adjustedAngle, Month: $targetMonth');
       
       _rotateToMonth(targetMonth);
     } else {
@@ -153,7 +144,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _rotateToMonth(int month) {
-    print('Rotating to month: $month'); // Для отладки
+    print('Rotating to month: $month');
     
     setState(() {
       _selectedMonth = month;
@@ -167,8 +158,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
     });
     
-    // Упрощенная логика поворота
-    final targetRotation = ((month - 1) / 12) * 2 * math.pi;
+    // ПРОСТАЯ логика - поворачиваем выбранный месяц к стрелочке снизу
+    // Стрелочка снизу = позиция 6 часов = π/2 радиан от правой стороны
+    // Январь = 0, поэтому январь внизу = поворот на π/2
+    final targetRotation = (math.pi / 2) - ((month - 1) / 12) * 2 * math.pi;
     
     _rotationController.reset();
     _rotationAnimation = Tween<double>(
@@ -183,6 +176,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       setState(() {
         _currentRotation = targetRotation;
       });
+    });
+  }
+
+  void _rotateToCurrentMonth() {
+    // Поворачиваем текущий месяц к стрелочке снизу
+    final currentMonth = DateTime.now().month;
+    final targetRotation = (math.pi / 2) - ((currentMonth - 1) / 12) * 2 * math.pi;
+    setState(() {
+      _currentRotation = targetRotation;
     });
   }
 
@@ -253,7 +255,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                             },
                           ),
                           
-                          // Центральная иконка (оставляем прежний размер)
+                          // Центральная иконка
                           Container(
                             width: 90,
                             height: 90,
@@ -261,12 +263,12 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                               shape: BoxShape.circle,
                               color: Colors.black.withOpacity(0.85),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.7 * _glowAnimation.value),
+                                color: Colors.white.withOpacity(0.7),
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.white.withOpacity(0.2 * _glowAnimation.value),
+                                  color: Colors.white.withOpacity(0.2),
                                   blurRadius: 25,
                                   spreadRadius: 5,
                                 ),
@@ -277,7 +279,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 padding: const EdgeInsets.all(8),
                                 child: ClipOval(
                                   child: Image.asset(
-                                    'assets/images/rune_icon.png',
+                                    'assets/icon/old.png', // Новая иконка
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Container(
@@ -299,31 +301,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                     },
                                   ),
                                 ),
-                              ),
-                            ),
-                          ),
-                          
-                          // Указатель СНИЗУ - хорошо видно
-                          Positioned(
-                            bottom: 40,
-                            child: Container(
-                              width: 4,
-                              height: 35,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.95),
-                                borderRadius: BorderRadius.circular(2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.7),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.white.withOpacity(0.3),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
                               ),
                             ),
                           ),
@@ -356,6 +333,35 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                     ),
                   ),
                 ),
+                
+                // Стрелочка СНИЗУ - за пределами ClipRect, чтобы была видна
+                Positioned(
+                  bottom: 10, // Стрелочка в самом низу контейнера
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      width: 6,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.8),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.4),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -364,7 +370,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         // Информация о месяце
         _buildMonthInfo(),
         
-        // Список праздников - показываем всегда, не только после взаимодействия
+        // Список праздников - показываем всегда
         if (_hasInteracted) ...[
           SlideTransition(
             position: Tween<Offset>(
@@ -393,8 +399,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       ],
     );
   }
-
-
 
   Widget _buildMonthInfo() {
     final currentMonth = _months[_selectedMonth - 1];
@@ -707,7 +711,7 @@ class WheelPainter extends CustomPainter {
           text: month.name,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -735,7 +739,7 @@ class WheelPainter extends CustomPainter {
       ..strokeWidth = 2;
     canvas.drawCircle(center, radius, outerRingPaint);
 
-    _drawSeasonLabels(canvas, center, radius + 15);
+    _drawSeasonLabels(canvas, center, radius + 20);
   }
 
   void _drawSeasonLabels(Canvas canvas, Offset center, double radius) {
@@ -782,7 +786,7 @@ class WheelPainter extends CustomPainter {
           text: char,
           style: TextStyle(
             color: Colors.white.withOpacity(0.85),
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.0,
             shadows: [
