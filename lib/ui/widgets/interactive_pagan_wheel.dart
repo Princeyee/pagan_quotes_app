@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import '../../models/pagan_holiday.dart';
-import '../widgets/holiday_info_modal.dart'; // Добавляем импорт модалки
+import '../widgets/holiday_info_modal.dart';
 
 class InteractivePaganWheel extends StatefulWidget {
   final Function(int month, List<PaganHoliday> holidays)? onMonthChanged;
@@ -33,7 +33,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   bool _hasInteracted = false;
   List<PaganHoliday> _currentMonthHolidays = [];
 
-  // Данные о месяцах с приглушенными цветами
   final List<MonthData> _months = [
     MonthData('Январь', SeasonType.winter, const Color(0xFF5A7A9A)),   
     MonthData('Февраль', SeasonType.winter, const Color(0xFF6B8FA8)), 
@@ -99,49 +98,28 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     try {
       _currentMonthHolidays = PaganHolidayService.getHolidaysForMonth(month);
     } catch (e) {
-      // Fallback если сервис недоступен
       _currentMonthHolidays = [];
     }
   }
 
-  bool _isPointerVisible() {
-    // Указатель видим только если он не в зоне тумана
-    // Проверяем текущий поворот и видим ли январь (который должен быть под указателем)
-    return true; // Пока всегда показываем для простоты
-  }
-
-  void _onTapDown(TapDownDetails details) {
-    // Получаем позицию клика относительно самого GestureDetector
+  void _handleTap(TapDownDetails details) {
     final localPosition = details.localPosition;
+    final centerX = 180.0;
+    final centerY = 180.0;
     
-    // Центр колеса в локальных координатах (колесо 360x360, по центру)
-    final centerX = 180.0; // Половина ширины колеса
-    final centerY = 180.0; // Половина высоты колеса
-    
-    // Вектор от центра к точке клика
     final dx = localPosition.dx - centerX;
     final dy = localPosition.dy - centerY;
-    
-    // Расстояние от центра
     final distance = math.sqrt(dx * dx + dy * dy);
     
-    // Проверяем что клик внутри колеса (но не в центральной иконке)
     if (distance > 45 && distance < 160) {
-      // Вычисляем угол клика
       double angle = math.atan2(dy, dx);
-      
-      // Нормализуем угол 
       angle = (angle + 2 * math.pi) % (2 * math.pi);
-      
-      // Поворачиваем на 90 градусов, чтобы 0 был вверху
       angle = (angle + 3 * math.pi / 2) % (2 * math.pi);
       
-      // Вычисляем месяц (12 месяцев в кругу)
       final monthFloat = (angle / (2 * math.pi)) * 12;
       int targetMonth = (monthFloat.round() % 12);
-      if (targetMonth == 0) targetMonth = 12; // Декабрь
+      if (targetMonth == 0) targetMonth = 12;
       
-      // Анимируем поворот к выбранному месяцу
       _rotateToMonth(targetMonth);
     }
   }
@@ -161,8 +139,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       widget.onMonthChanged?.call(_selectedMonth, _currentMonthHolidays);
     });
     
-    // Вычисляем целевой угол поворота
-    // Месяц 1 (январь) должен быть вверху (угол 0)
     final targetRotation = -((month - 1) / 12) * 2 * math.pi;
     
     _rotationController.reset();
@@ -183,115 +159,100 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     });
   }
 
-  void _onSectorTap(int month) {
-    _rotateToMonth(month);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Основное колесо с правильной обрезкой и затемнением
+        // Колесо с эффектом тумана
         Container(
           height: 220,
           width: double.infinity,
           child: Stack(
             children: [
-              // Само колесо - показываем ровно половину
-              Container(
-                height: 200,
-                child: ClipRect(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: GestureDetector(
-                      onPanUpdate: _onPanUpdate,
-                      onPanEnd: _onPanEnd,
-                      child: Container(
-                        width: 400,
-                        height: 400,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Фоновое свечение
-                            AnimatedBuilder(
-                              animation: _glowAnimation,
-                              builder: (context, child) {
-                                return Container(
-                                  width: 350,
-                                  height: 350,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _months[_selectedMonth - 1].color.withOpacity(0.1 * _glowAnimation.value),
-                                        blurRadius: 60,
-                                        spreadRadius: 20,
-                                      ),
-                                    ],
+              // Само колесо
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: GestureDetector(
+                  onTapDown: _handleTap,
+                  child: Container(
+                    width: 360,
+                    height: 360,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Свечение
+                        AnimatedBuilder(
+                          animation: _glowAnimation,
+                          builder: (context, child) {
+                            return Container(
+                              width: 320,
+                              height: 320,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _months[_selectedMonth - 1].color.withOpacity(0.1 * _glowAnimation.value),
+                                    blurRadius: 60,
+                                    spreadRadius: 20,
                                   ),
-                                );
-                              },
-                            ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        
+                        // Само колесо
+                        AnimatedBuilder(
+                          animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
+                          builder: (context, child) {
+                            final currentRotation = _rotationController.isAnimating 
+                                ? _rotationAnimation.value 
+                                : _currentRotation;
                             
-                            // Основное колесо с анимацией
-                            AnimatedBuilder(
-                              animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
-                              builder: (context, child) {
-                                final currentRotation = _rotationController.isAnimating 
-                                    ? _rotationAnimation.value 
-                                    : _currentRotation;
-                                
-                                return Transform.rotate(
-                                  angle: currentRotation,
-                                  child: CustomPaint(
-                                    size: const Size(320, 320),
-                                    painter: GradientWheelPainter(
-                                      months: _months,
-                                      selectedMonth: _selectedMonth - 1,
-                                      glowIntensity: _glowAnimation.value,
-                                      rotation: currentRotation,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            
-                            // Центральная иконка (без вращения)
-                            _buildCenterIcon(),
-                            
-                            // Указатель наверху (фиксированный)
-                            Positioned(
-                              top: 40,
-                              child: Container(
-                                width: 3,
-                                height: 25,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.9),
-                                  borderRadius: BorderRadius.circular(2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.5),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                            return Transform.rotate(
+                              angle: currentRotation,
+                              child: CustomPaint(
+                                size: const Size(320, 320),
+                                painter: WheelPainter(
+                                  months: _months,
+                                  selectedMonth: _selectedMonth - 1,
+                                  glowIntensity: _glowAnimation.value,
                                 ),
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      ),
+                        
+                        // Центральная иконка
+                        _buildCenterIcon(),
+                        
+                        // Указатель
+                        Positioned(
+                          top: 20,
+                          child: Container(
+                            width: 3,
+                            height: 25,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
               
-              // Градиентное затемнение сверху
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 50,
+              // Градиент тумана
+              Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -299,11 +260,13 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.black,
-                        Colors.black.withOpacity(0.8),
-                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.9),
+                        Colors.black.withOpacity(0.7),
+                        Colors.black.withOpacity(0.4),
+                        Colors.black.withOpacity(0.1),
                         Colors.transparent,
                       ],
-                      stops: const [0.0, 0.4, 0.8, 1.0],
+                      stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
                     ),
                   ),
                 ),
@@ -312,10 +275,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
           ),
         ),
         
-        // Информация о месяце (всегда видна)
+        // Информация о месяце
         _buildMonthInfo(),
         
-        // Контент появляется после взаимодействия
+        // Список праздников
         if (_hasInteracted) ...[
           SlideTransition(
             position: Tween<Offset>(
@@ -521,7 +484,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            _showHolidayDetails(holiday);
+            showHolidayInfoModal(context, holiday);
           },
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -607,11 +570,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     );
   }
 
-  void _showHolidayDetails(PaganHoliday holiday) {
-    // Используем импортированную функцию
-    showHolidayInfoModal(context, holiday);
-  }
-
   String _getSeasonName(SeasonType season) {
     switch (season) {
       case SeasonType.winter:
@@ -642,20 +600,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 }
 
-// Painter для колеса с сезонными надписями по периметру
-class GradientWheelPainter extends CustomPainter {
+class WheelPainter extends CustomPainter {
   final List<MonthData> months;
   final int selectedMonth;
   final double glowIntensity;
-  final double rotation;
-  final Function(int)? onSectorTap;
 
-  GradientWheelPainter({
+  WheelPainter({
     required this.months,
     required this.selectedMonth,
     required this.glowIntensity,
-    required this.rotation,
-    this.onSectorTap,
   });
 
   @override
@@ -664,15 +617,12 @@ class GradientWheelPainter extends CustomPainter {
     final radius = size.width / 2 - 10;
     final sectorAngle = 2 * math.pi / 12;
 
-    // Рисуем секторы (январь вверху, по часовой стрелке)
     for (int i = 0; i < 12; i++) {
       final month = months[i];
-      // Январь (i=0) должен быть вверху, остальные по часовой стрелке
       final startAngle = i * sectorAngle - math.pi / 2;
       final endAngle = startAngle + sectorAngle;
       final midAngle = startAngle + sectorAngle / 2;
 
-      // Радиальный градиент от черного центра к цвету месяца
       final gradient = RadialGradient(
         colors: [
           Colors.black,
@@ -683,7 +633,6 @@ class GradientWheelPainter extends CustomPainter {
         stops: const [0.0, 0.3, 0.7, 1.0],
       );
 
-      // Рисуем сектор
       final rect = Rect.fromCircle(center: center, radius: radius);
       final paint = Paint()
         ..shader = gradient.createShader(rect)
@@ -696,7 +645,6 @@ class GradientWheelPainter extends CustomPainter {
 
       canvas.drawPath(path, paint);
 
-      // Границы между секторами
       final borderPaint = Paint()
         ..color = Colors.white.withOpacity(0.15)
         ..style = PaintingStyle.stroke
@@ -710,7 +658,6 @@ class GradientWheelPainter extends CustomPainter {
       );
       canvas.drawPath(borderPath, borderPaint);
 
-      // Название месяца на секторе
       final textRadius = radius * 0.75;
       final textX = center.dx + math.cos(midAngle) * textRadius;
       final textY = center.dy + math.sin(midAngle) * textRadius;
@@ -742,18 +689,16 @@ class GradientWheelPainter extends CustomPainter {
       canvas.restore();
     }
 
-    // Внешнее кольцо
     final outerRingPaint = Paint()
       ..color = Colors.white.withOpacity(0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawCircle(center, radius, outerRingPaint);
 
-    // Сезонные надписи по периметру
-    _drawSeasonLabelsOnCircle(canvas, center, radius + 15);
+    _drawSeasonLabels(canvas, center, radius + 15);
   }
 
-  void _drawSeasonLabelsOnCircle(Canvas canvas, Offset center, double radius) {
+  void _drawSeasonLabels(Canvas canvas, Offset center, double radius) {
     final seasonData = [
       {'name': 'ЗИМА', 'startMonth': 11, 'endMonth': 1},
       {'name': 'ВЕСНА', 'startMonth': 2, 'endMonth': 4}, 
@@ -826,7 +771,6 @@ class GradientWheelPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-// Модель данных месяца
 class MonthData {
   final String name;
   final SeasonType season;
