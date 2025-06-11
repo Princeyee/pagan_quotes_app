@@ -60,12 +60,6 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       duration: 0,
     ),
     OnboardingStep(
-      type: StepType.dailyQuote,
-      title: 'Ежедневные цитаты',
-      description: 'Каждый день новая цитата от великих философов, поэтов и мыслителей откроет перед вами мир мудрости.',
-      duration: 0,
-    ),
-    OnboardingStep(
       type: StepType.contextDemo,
       title: 'Контекст цитат',
       description: 'Проведите пальцем вверх по цитате, чтобы узнать ее происхождение и исторический контекст.',
@@ -80,7 +74,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     OnboardingStep(
       type: StepType.menuDemo,
       title: 'Меню приложения',
-      description: 'В меню вы найдете избранные цитаты, свои заметки, полную библиотеку и настройки.\n\nДолгое нажатие на цитату создаст заметку.',
+      description: 'В меню вы найдете избранные цитаты, свои заметки, полную библиотеку, и календарь праздников.\n\nДолгое нажатие на цитату создаст заметку.',
       duration: 0,
     ),
     OnboardingStep(
@@ -756,7 +750,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                         _buildMenuItemDemo('Избранные цитаты'),
                         _buildMenuItemDemo('Ваши заметки'),
                         _buildMenuItemDemo('Полная библиотека'),
-                        _buildMenuItemDemo('Настройки'),
+                        _buildMenuItemDemo('Колесо года'),
                       ],
                     ),
                   ),
