@@ -1,4 +1,4 @@
-
+// lib/ui/widgets/interactive_pagan_wheel.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С ФИЛЬТРАМИ ДОСТОВЕРНОСТИ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
@@ -11,12 +11,14 @@ import '../../services/sound_manager.dart';
 
 class InteractivePaganWheel extends StatefulWidget {
   final Function(int month, List<PaganHoliday> holidays)? onMonthChanged;
-  final String? selectedTradition; // ДОБАВЛЯЕМ ФИЛЬТР ПО ТРАДИЦИЯМ
+  final String? selectedTradition; // Фильтр по традициям
+  final HistoricalAuthenticity? selectedAuthenticity; // НОВЫЙ ФИЛЬТР ПО ДОСТОВЕРНОСТИ
   
   const InteractivePaganWheel({
     super.key,
     this.onMonthChanged,
-    this.selectedTradition, // НОВЫЙ ПАРАМЕТР
+    this.selectedTradition,
+    this.selectedAuthenticity, // НОВЫЙ ПАРАМЕТР
   });
 
   @override
@@ -73,7 +75,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     _selectedMonth = currentMonth;
     _loadHolidaysForMonth(currentMonth);
     
-    // Показываем анимацию загрузки
     _loadingController.forward();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -81,41 +82,41 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     });
   }
 
-  // ОБНОВЛЯЕМ ПРИ ИЗМЕНЕНИИ ФИЛЬТРА
+  // ОБНОВЛЯЕМ ПРИ ИЗМЕНЕНИИ ЛЮБОГО ИЗ ФИЛЬТРОВ
   @override
   void didUpdateWidget(InteractivePaganWheel oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // Если изменился фильтр традиций, обновляем праздники
-    if (oldWidget.selectedTradition != widget.selectedTradition) {
+    // Если изменился любой из фильтров, обновляем праздники
+    if (oldWidget.selectedTradition != widget.selectedTradition ||
+        oldWidget.selectedAuthenticity != widget.selectedAuthenticity) {
       _loadHolidaysForMonth(_selectedMonth);
     }
   }
 
   void _initializeAnimations() {
-    // ОПТИМИЗАЦИЯ: Быстрее анимации, меньше нагрузки
     _rotationController = AnimationController(
-      duration: const Duration(milliseconds: 600), // Быстрее
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     
     _glowController = AnimationController(
-      duration: const Duration(seconds: 6), // Медленнее для плавности
+      duration: const Duration(seconds: 6),
       vsync: this,
     )..repeat(reverse: true);
     
     _contentRevealController = AnimationController(
-      duration: const Duration(milliseconds: 400), // Быстрее
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
     _shimmerController = AnimationController(
-      duration: const Duration(seconds: 4), // Чуть медленнее
+      duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat();
 
     _loadingController = AnimationController(
-      duration: const Duration(milliseconds: 1500), // Быстрее
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
@@ -161,7 +162,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Future<void> _initializeWheel() async {
-    // ОПТИМИЗАЦИЯ: Быстрее загрузка
     await Future.delayed(const Duration(milliseconds: 300));
     
     _rotateToCurrentMonth();
@@ -173,19 +173,26 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     });
   }
 
-  // ОБНОВЛЯЕМ МЕТОД ЗАГРУЗКИ ПРАЗДНИКОВ С УЧЕТОМ ФИЛЬТРА
+  // ОБНОВЛЯЕМ МЕТОД ЗАГРУЗКИ ПРАЗДНИКОВ С УЧЕТОМ ОБОИХ ФИЛЬТРОВ
   void _loadHolidaysForMonth(int month) {
     try {
       List<PaganHoliday> allHolidays = PaganHolidayService.getHolidaysForMonth(month);
       
       // ПРИМЕНЯЕМ ФИЛЬТР ПО ТРАДИЦИЯМ
       if (widget.selectedTradition != null) {
-        _currentMonthHolidays = allHolidays
+        allHolidays = allHolidays
             .where((holiday) => holiday.tradition == widget.selectedTradition)
             .toList();
-      } else {
-        _currentMonthHolidays = allHolidays;
       }
+      
+      // ПРИМЕНЯЕМ ФИЛЬТР ПО ДОСТОВЕРНОСТИ
+      if (widget.selectedAuthenticity != null) {
+        allHolidays = allHolidays
+            .where((holiday) => holiday.authenticity == widget.selectedAuthenticity)
+            .toList();
+      }
+      
+      _currentMonthHolidays = allHolidays;
       
       // Уведомляем родительский виджет об изменениях
       widget.onMonthChanged?.call(month, _currentMonthHolidays);
@@ -224,19 +231,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   Future<void> _playFireSound() async {
     if (!_soundManager.isMuted) {
       try {
-        // Останавливаем предыдущий звук и таймер
         _soundTimer?.cancel();
         await _wheelSoundPlayer?.stop();
         await _wheelSoundPlayer?.dispose();
         
-        // Создаем новый плеер
         _wheelSoundPlayer = AudioPlayer();
         await _wheelSoundPlayer!.setAsset('assets/sounds/fire.mp3');
         
-        // Запускаем звук
         _wheelSoundPlayer!.play();
         
-        // Устанавливаем таймер на 1 секунду для остановки
         _soundTimer = Timer(const Duration(milliseconds: 700), () async {
           await _wheelSoundPlayer?.stop();
           await _wheelSoundPlayer?.dispose();
@@ -254,12 +257,11 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     final monthCenterAngle = monthIndex * (2 * math.pi / 12) + (math.pi / 12);
     final targetRotation = -monthCenterAngle + math.pi;
     
-    // Воспроизводим звук огня
     _playFireSound();
     
     setState(() {
       _selectedMonth = month;
-      _loadHolidaysForMonth(month); // ПЕРЕЗАГРУЖАЕМ С УЧЕТОМ ФИЛЬТРА
+      _loadHolidaysForMonth(month); // ПЕРЕЗАГРУЖАЕМ С УЧЕТОМ ОБОИХ ФИЛЬТРОВ
       
       if (!_hasInteracted) {
         _hasInteracted = true;
@@ -307,7 +309,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
           width: double.infinity,
           child: Stack(
             children: [
-              // СИНХРОНИЗАЦИЯ С ФОНОМ: Убираем резкие границы
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
@@ -342,10 +343,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Многослойное свечение
                               ..._buildGlowLayers(),
                               
-                              // Анимация загрузки
                               if (_isLoading)
                                 AnimatedBuilder(
                                   animation: _loadingAnimation,
@@ -362,7 +361,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                   },
                                 ),
                               
-                              // Основное колесо (показываем с прозрачностью при загрузке)
                               AnimatedOpacity(
                                 duration: const Duration(milliseconds: 600),
                                 opacity: _isLoading ? 0.3 : 1.0,
@@ -389,7 +387,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 ),
                               ),
                               
-                              // ЦЕНТРАЛЬНАЯ ИКОНКА ВРАЩАЕТСЯ ВМЕСТЕ С КОЛЕСОМ
                               AnimatedBuilder(
                                 animation: _rotationAnimation,
                                 builder: (context, child) {
@@ -398,13 +395,12 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                       : _currentRotation;
                                   
                                   return Transform.rotate(
-                                    angle: currentRotation, // СИНХРОННО С КОЛЕСОМ!
+                                    angle: currentRotation,
                                     child: _buildCenterElement(),
                                   );
                                 },
                               ),
                               
-                              // Декоративные элементы
                               if (!_isLoading)
                                 _buildDecorativeElements(),
                             ],
@@ -413,10 +409,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                       ),
                     ),
                     
-                    // Градиент сверху
                     _buildTopGradient(),
                     
-                    // Индикатор текущего месяца
                     if (!_isLoading)
                       _buildMonthIndicator(),
                   ],
@@ -464,7 +458,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
 
   List<Widget> _buildGlowLayers() {
     return [
-      // Основное свечение
       AnimatedBuilder(
         animation: _glowAnimation,
         builder: (context, child) {
@@ -485,7 +478,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         },
       ),
       
-      // Вторичное свечение
       AnimatedBuilder(
         animation: _glowAnimation,
         builder: (context, child) {
@@ -599,7 +591,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildTopGradient() {
-    // СИНХРОНИЗАЦИЯ С ФОНОМ: Плавный градиент без резких краев
     return Positioned(
       top: 0,
       left: 0,
@@ -739,12 +730,20 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildHolidaysList() {
-    // ДОБАВЛЯЕМ ИНФОРМАЦИЮ О ФИЛЬТРЕ ЕСЛИ СПИСОК ПУСТ ИЗ-ЗА ФИЛЬТРА
+    // ОБНОВЛЯЕМ СООБЩЕНИЕ О ПУСТОМ СПИСКЕ С УЧЕТОМ ОБОИХ ФИЛЬТРОВ
     if (_currentMonthHolidays.isEmpty) {
       String emptyMessage;
-      if (widget.selectedTradition != null) {
+      
+      if (widget.selectedTradition != null && widget.selectedAuthenticity != null) {
+        final traditionName = _getTraditionDisplayName(widget.selectedTradition!);
+        final authenticityName = _getAuthenticityDisplayName(widget.selectedAuthenticity!);
+        emptyMessage = 'В этом месяце нет праздников из $traditionName традиции с достоверностью "$authenticityName"';
+      } else if (widget.selectedTradition != null) {
         final traditionName = _getTraditionDisplayName(widget.selectedTradition!);
         emptyMessage = 'В этом месяце нет праздников из $traditionName традиции';
+      } else if (widget.selectedAuthenticity != null) {
+        final authenticityName = _getAuthenticityDisplayName(widget.selectedAuthenticity!);
+        emptyMessage = 'В этом месяце нет праздников с достоверностью "$authenticityName"';
       } else {
         emptyMessage = 'В этом месяце нет особых языческих праздников';
       }
@@ -825,16 +824,47 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 color: Colors.white,
                               ),
                             ),
-                            // ДОБАВЛЯЕМ ИНФОРМАЦИЮ О ФИЛЬТРЕ
-                            if (widget.selectedTradition != null) ...[
+                            // ОБНОВЛЯЕМ ИНФОРМАЦИЮ О ФИЛЬТРАХ
+                            if (widget.selectedTradition != null || widget.selectedAuthenticity != null) ...[
                               const SizedBox(height: 4),
-                              Text(
-                                _getTraditionDisplayName(widget.selectedTradition!),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withOpacity(0.6),
-                                  fontStyle: FontStyle.italic,
-                                ),
+                              Row(
+                                children: [
+                                  if (widget.selectedTradition != null) ...[
+                                    Text(
+                                      _getTraditionDisplayName(widget.selectedTradition!),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.orange.withOpacity(0.8),
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                    if (widget.selectedAuthenticity != null) ...[
+                                      Text(
+                                        ' • ',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white.withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                  if (widget.selectedAuthenticity != null) ...[
+                                    Icon(
+                                      _getAuthenticityIcon(widget.selectedAuthenticity!),
+                                      size: 12,
+                                      color: _getAuthenticityColor(widget.selectedAuthenticity!),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _getAuthenticityDisplayName(widget.selectedAuthenticity!),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: _getAuthenticityColor(widget.selectedAuthenticity!).withOpacity(0.8),
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ],
@@ -911,13 +941,26 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        holiday.name,
-                        style: GoogleFonts.merriweather(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.95),
-                        ),
+                      // ДОБАВЛЯЕМ ИНДИКАТОР ДОСТОВЕРНОСТИ В НАЗВАНИЕ
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              holiday.name,
+                              style: GoogleFonts.merriweather(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withOpacity(0.95),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            _getAuthenticityIcon(holiday.authenticity),
+                            size: 14,
+                            color: _getAuthenticityColor(holiday.authenticity),
+                          ),
+                        ],
                       ),
                       if (holiday.nameOriginal != holiday.name) ...[
                         const SizedBox(height: 2),
@@ -956,6 +999,46 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     );
   }
 
+  // НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДОСТОВЕРНОСТЬЮ
+  IconData _getAuthenticityIcon(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return Icons.verified;
+      case HistoricalAuthenticity.likely:
+        return Icons.check_circle_outline;
+      case HistoricalAuthenticity.reconstructed:
+        return Icons.construction;
+      case HistoricalAuthenticity.modern:
+        return Icons.new_releases;
+    }
+  }
+
+  Color _getAuthenticityColor(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return Colors.green;
+      case HistoricalAuthenticity.likely:
+        return Colors.blue;
+      case HistoricalAuthenticity.reconstructed:
+        return Colors.orange;
+      case HistoricalAuthenticity.modern:
+        return Colors.red;
+    }
+  }
+
+  String _getAuthenticityDisplayName(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return 'Подлинные';
+      case HistoricalAuthenticity.likely:
+        return 'Вероятные';
+      case HistoricalAuthenticity.reconstructed:
+        return 'Реконструкции';
+      case HistoricalAuthenticity.modern:
+        return 'Современные';
+    }
+  }
+
   String _getSeasonName(SeasonType season) {
     switch (season) {
       case SeasonType.winter:
@@ -977,32 +1060,30 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     return months[month - 1];
   }
 
-  // ДОБАВЛЯЕМ МЕТОД ДЛЯ ОТОБРАЖЕНИЯ НАЗВАНИЙ ТРАДИЦИЙ
   String _getTraditionDisplayName(String tradition) {
-  switch (tradition.toLowerCase()) {
-    case 'nordic':
-    case 'scandinavian':
-      return 'Северная традиция';
-    case 'slavic':
-      return 'Славянская традиция';
-    case 'celtic':
-      return 'Кельтская традиция';
-    case 'germanic':
-      return 'Германская традиция';
-    case 'roman':
-      return 'Римская традиция'; // уже есть!
-    case 'greek':
-      return 'Греческая традиция'; // уже есть!
-    // НУЖНО ДОБАВИТЬ:
-    case 'baltic':
-      return 'Балтийская традиция';
-    case 'finnish':
-    case 'finno-ugric':
-      return 'Финно-угорская традиция';
-    default:
-      return tradition;
+    switch (tradition.toLowerCase()) {
+      case 'nordic':
+      case 'scandinavian':
+        return 'Северная традиция';
+      case 'slavic':
+        return 'Славянская традиция';
+      case 'celtic':
+        return 'Кельтская традиция';
+      case 'germanic':
+        return 'Германская традиция';
+      case 'roman':
+        return 'Римская традиция';
+      case 'greek':
+        return 'Греческая традиция';
+      case 'baltic':
+        return 'Балтийская традиция';
+      case 'finnish':
+      case 'finno-ugric':
+        return 'Финно-угорская традиция';
+      default:
+        return tradition;
+    }
   }
-}
 
   @override
   void dispose() {
@@ -1029,7 +1110,6 @@ class LoadingWheelPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 15;
     
-    // Рисуем дуги загрузки
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
@@ -1080,10 +1160,8 @@ class EnhancedWheelPainter extends CustomPainter {
     final radius = size.width / 2 - 15;
     final sectorAngle = 2 * math.pi / 12;
 
-    // Рисуем тени под колесом
     _drawWheelShadow(canvas, center, radius);
 
-    // Рисуем секторы месяцев
     for (int i = 0; i < 12; i++) {
       final month = months[i];
       final isSelected = i == selectedMonth;
@@ -1092,26 +1170,14 @@ class EnhancedWheelPainter extends CustomPainter {
       final endAngle = startAngle + sectorAngle;
       final midAngle = startAngle + sectorAngle / 2;
 
-      // Рисуем сектор
       _drawSector(canvas, center, radius, startAngle, sectorAngle, month, isSelected);
-      
-      // Рисуем декоративные линии
       _drawSectorLines(canvas, center, radius, startAngle);
-      
-      // Рисуем символ месяца
       _drawMonthSymbol(canvas, center, radius * 0.55, midAngle, i + 1, month);
-      
-      // Рисуем название месяца
       _drawMonthText(canvas, center, radius * 0.75, midAngle, month.name);
     }
 
-    // Рисуем внешнее кольцо
     _drawOuterRing(canvas, center, radius);
-    
-    // Рисуем сезонные метки
     _drawSeasonLabels(canvas, center, radius + 25);
-    
-    // Рисуем эффект мерцания
     _drawShimmerEffect(canvas, center, radius);
   }
 
@@ -1127,7 +1193,6 @@ class EnhancedWheelPainter extends CustomPainter {
       double sectorAngle, MonthData month, bool isSelected) {
     final rect = Rect.fromCircle(center: center, radius: radius);
     
-    // Градиент для сектора
     final gradient = RadialGradient(
       center: Alignment(
         math.cos(startAngle + sectorAngle / 2) * 0.5,
@@ -1153,7 +1218,6 @@ class EnhancedWheelPainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
 
-    // Подсветка выбранного сектора
     if (isSelected) {
       final highlightPaint = Paint()
         ..shader = RadialGradient(
@@ -1196,14 +1260,12 @@ class EnhancedWheelPainter extends CustomPainter {
     final symbolX = center.dx + math.cos(angle) * radius;
     final symbolY = center.dy + math.sin(angle) * radius;
     
-    // Свечение под символом
     final glowPaint = Paint()
       ..color = monthData.color.withOpacity(0.3 * glowIntensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     
     canvas.drawCircle(Offset(symbolX, symbolY), 15, glowPaint);
     
-    // Сам символ
     final monthSymbol = _getMonthSymbol(month);
     final symbolPainter = TextPainter(
       text: TextSpan(
@@ -1275,7 +1337,6 @@ class EnhancedWheelPainter extends CustomPainter {
   }
 
   void _drawOuterRing(Canvas canvas, Offset center, double radius) {
-    // Внешнее кольцо с градиентом
     final ringPaint = Paint()
       ..shader = LinearGradient(
         colors: [
@@ -1288,7 +1349,6 @@ class EnhancedWheelPainter extends CustomPainter {
     
     canvas.drawCircle(center, radius, ringPaint);
     
-    // Внутреннее кольцо
     final innerRingPaint = Paint()
       ..color = Colors.white.withOpacity(0.05)
       ..style = PaintingStyle.stroke

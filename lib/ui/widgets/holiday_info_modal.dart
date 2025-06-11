@@ -1,4 +1,5 @@
-// lib/ui/widgets/holiday_info_modal.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
+
+// lib/ui/widgets/holiday_info_modal.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С ИНДИКАТОРАМИ ДОСТОВЕРНОСТИ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -134,7 +135,6 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        // ПРИГЛУШЕННЫЙ ГРАДИЕНТ вместо яркого
         gradient: LinearGradient(
           colors: [
             traditionColor.withOpacity(0.08),
@@ -157,7 +157,6 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              // ПРИГЛУШЕННЫЙ ГРАДИЕНТ
               gradient: RadialGradient(
                 colors: [
                   traditionColor.withOpacity(0.15),
@@ -177,14 +176,24 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.holiday.name,
-                  style: GoogleFonts.merriweather(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                // Название с индикатором достоверности
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.holiday.name,
+                        style: GoogleFonts.merriweather(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildAuthenticityBadge(widget.holiday.authenticity),
+                  ],
                 ),
+                
                 if (widget.holiday.nameOriginal != widget.holiday.name) ...[
                   const SizedBox(height: 4),
                   Text(
@@ -229,13 +238,77 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     );
   }
 
+  Widget _buildAuthenticityBadge(HistoricalAuthenticity authenticity) {
+    final authenticityData = _getAuthenticityData(authenticity);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: authenticityData['color'].withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: authenticityData['color'].withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            authenticityData['icon'],
+            size: 12,
+            color: authenticityData['color'],
+          ),
+          const SizedBox(width: 4),
+          Text(
+            authenticityData['shortLabel'],
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: authenticityData['color'],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getAuthenticityData(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return {
+          'icon': Icons.verified,
+          'color': Colors.green,
+          'shortLabel': 'Подлинный',
+        };
+      case HistoricalAuthenticity.likely:
+        return {
+          'icon': Icons.check_circle_outline,
+          'color': Colors.blue,
+          'shortLabel': 'Вероятный',
+        };
+      case HistoricalAuthenticity.reconstructed:
+        return {
+          'icon': Icons.construction,
+          'color': Colors.orange,
+          'shortLabel': 'Реконструкция',
+        };
+      case HistoricalAuthenticity.modern:
+        return {
+          'icon': Icons.new_releases,
+          'color': Colors.red,
+          'shortLabel': 'Современный',
+        };
+    }
+  }
+
   Widget _buildContent(Color traditionColor) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // УБИРАЕМ ИКОНКИ из описаний
+          // Дата празднования
           _buildSimpleInfoSection(
             'Дата празднования',
             '${widget.holiday.date.day} ${_getMonthName(widget.holiday.date.month)}',
@@ -244,12 +317,14 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           
           const SizedBox(height: 20),
           
+          // Описание
           _buildSimpleInfoSection(
             'Описание',
             widget.holiday.description,
             traditionColor,
           ),
           
+          // Расширенное описание
           if (widget.holiday.longDescription != null) ...[
             const SizedBox(height: 16),
             Container(
@@ -275,6 +350,12 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           
           const SizedBox(height: 20),
           
+          // Историческая достоверность
+          _buildAuthenticityInfo(widget.holiday),
+          
+          const SizedBox(height: 20),
+          
+          // Традиции празднования
           if (widget.holiday.traditions.isNotEmpty)
             _buildSimpleListSection(
               'Традиции празднования',
@@ -284,6 +365,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           
           const SizedBox(height: 20),
           
+          // Символы
           if (widget.holiday.symbols.isNotEmpty)
             _buildSimpleListSection(
               'Символы',
@@ -293,17 +375,173 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           
           const SizedBox(height: 20),
           
+          // Тип праздника
           _buildSimpleInfoSection(
             'Тип праздника',
             _getHolidayTypeDisplayName(widget.holiday.type),
             traditionColor,
           ),
+          
+          // Источники
+          if (widget.holiday.sources.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _buildSourcesSection(widget.holiday.sources),
+          ],
         ],
       ),
     );
   }
 
-  // ПРОСТЫЕ секции БЕЗ иконок
+  Widget _buildAuthenticityInfo(PaganHoliday holiday) {
+    final authenticityData = _getAuthenticityData(holiday.authenticity);
+    final authenticityColor = authenticityData['color'] as Color;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Уровень достоверности
+        _buildSimpleInfoSection(
+          'Историческая достоверность',
+          holiday.authenticityDescription,
+          authenticityColor,
+        ),
+        
+        // Предупреждение для современных изобретений
+        if (holiday.authenticity == HistoricalAuthenticity.modern) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.warning, color: Colors.red, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'ВНИМАНИЕ: Это современное изобретение, не имеющее исторических корней',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        
+        // Предупреждение для реконструкций
+        if (holiday.authenticity == HistoricalAuthenticity.reconstructed) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info, color: Colors.orange, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'ПРИМЕЧАНИЕ: Праздник реконструирован на основе фольклорных данных и может не соответствовать древним практикам',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSourcesSection(List<String> sources) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.library_books,
+              size: 16,
+              color: Colors.white.withOpacity(0.7),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Источники',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.9),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: sources.map((source) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 4,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 8, right: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      source,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.8),
+                        height: 1.4,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSimpleInfoSection(String title, String content, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,7 +621,6 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       ),
       child: Row(
         children: [
-          // УБИРАЕМ кнопку "В календарь", оставляем только "Поделиться"
           Expanded(
             child: _buildActionButton(
               icon: Icons.share_outlined,
@@ -420,11 +657,11 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min, // ИСПРАВЛЯЕМ переполнение
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, color: color, size: 18),
               const SizedBox(width: 8),
-              Flexible( // ИСПРАВЛЯЕМ переполнение текста
+              Flexible(
                 child: Text(
                   label,
                   style: TextStyle(
@@ -442,49 +679,49 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     );
   }
 
- Widget _getHolidayIcon(PaganHolidayType type, Color color) {
-  IconData iconData;
-  switch (type) {
-    case PaganHolidayType.seasonal:
-      iconData = Icons.brightness_7; // Солнечные лучи - символ солнцестояний/равноденствий
-      break;
-    case PaganHolidayType.lunar:
-      iconData = Icons.nightlight_round; // Полная луна - классический лунный символ
-      break;
-    case PaganHolidayType.harvest:
-      iconData = Icons.grain; // Колосья - универсальный символ урожая и плодородия земли
-      break;
-    case PaganHolidayType.ancestor:
-      iconData = Icons.family_restroom; // Древо рода - символ связи поколений и предков
-      break;
-    case PaganHolidayType.deity:
-      iconData = Icons.auto_awesome; // Сияние/звезды - символ божественного и священного
-      break;
-    case PaganHolidayType.fire:
-      iconData = Icons.whatshot; // Пламя - более динамичный огненный символ
-      break;
-    case PaganHolidayType.water:
-      iconData = Icons.waves; // Волны - символ водной стихии и очищения
-      break;
-    case PaganHolidayType.nature:
-      iconData = Icons.park; // Дерево в природе - символ живой природы и леса
-      break;
-    case PaganHolidayType.protection:
-      iconData = Icons.security; // Символ защиты и оберега
-      break;
-    case PaganHolidayType.fertility:
-      iconData = Icons.spa; // Символ жизненной силы и женского начала (более деликатно чем цветок)
-      break;
-    default:
-      iconData = Icons.auto_awesome; // Магический символ по умолчанию
-  }
+  Widget _getHolidayIcon(PaganHolidayType type, Color color) {
+    IconData iconData;
+    switch (type) {
+      case PaganHolidayType.seasonal:
+        iconData = Icons.brightness_7;
+        break;
+      case PaganHolidayType.lunar:
+        iconData = Icons.nightlight_round;
+        break;
+      case PaganHolidayType.harvest:
+        iconData = Icons.grain;
+        break;
+      case PaganHolidayType.ancestor:
+        iconData = Icons.family_restroom;
+        break;
+      case PaganHolidayType.deity:
+        iconData = Icons.auto_awesome;
+        break;
+      case PaganHolidayType.fire:
+        iconData = Icons.whatshot;
+        break;
+      case PaganHolidayType.water:
+        iconData = Icons.waves;
+        break;
+      case PaganHolidayType.nature:
+        iconData = Icons.park;
+        break;
+      case PaganHolidayType.protection:
+        iconData = Icons.security;
+        break;
+      case PaganHolidayType.fertility:
+        iconData = Icons.spa;
+        break;
+      default:
+        iconData = Icons.auto_awesome;
+    }
 
-  return Icon(
-    iconData,
-    color: color,
-    size: 24,
-  );
-}
+    return Icon(
+      iconData,
+      color: color,
+      size: 24,
+    );
+  }
 
   void _shareHoliday() {
     final holiday = widget.holiday;
@@ -495,6 +732,7 @@ ${_getTraditionDisplayName(holiday.tradition)}
 ${holiday.description}
 
 Дата: ${holiday.date.day} ${_getMonthName(holiday.date.month)}
+Достоверность: ${holiday.authenticityDescription}
 
 Из приложения Sacral
 ''';
@@ -503,30 +741,29 @@ ${holiday.description}
   }
 
   String _getTraditionDisplayName(String tradition) {
-  switch (tradition.toLowerCase()) {
-    case 'nordic':
-    case 'scandinavian':
-      return 'Северная традиция';
-    case 'slavic':
-      return 'Славянская традиция';
-    case 'celtic':
-      return 'Кельтская традиция';
-    case 'germanic':
-      return 'Германская традиция';
-    case 'roman':
-      return 'Римская традиция'; // уже есть!
-    case 'greek':
-      return 'Греческая традиция'; // уже есть!
-    // НУЖНО ДОБАВИТЬ:
-    case 'baltic':
-      return 'Балтийская традиция';
-    case 'finnish':
-    case 'finno-ugric':
-      return 'Финно-угорская традиция';
-    default:
-      return tradition;
+    switch (tradition.toLowerCase()) {
+      case 'nordic':
+      case 'scandinavian':
+        return 'Северная традиция';
+      case 'slavic':
+        return 'Славянская традиция';
+      case 'celtic':
+        return 'Кельтская традиция';
+      case 'germanic':
+        return 'Германская традиция';
+      case 'roman':
+        return 'Римская традиция';
+      case 'greek':
+        return 'Греческая традиция';
+      case 'baltic':
+        return 'Балтийская традиция';
+      case 'finnish':
+      case 'finno-ugric':
+        return 'Финно-угорская традиция';
+      default:
+        return tradition;
+    }
   }
-}
 
   String _getHolidayTypeDisplayName(PaganHolidayType type) {
     switch (type) {

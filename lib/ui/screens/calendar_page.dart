@@ -1,4 +1,4 @@
-// lib/ui/screens/calendar_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ С ФИЛЬТРОМ ДЛЯ КОЛЕСА
+// lib/ui/screens/calendar_page.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С ФИЛЬТРАМИ ДОСТОВЕРНОСТИ
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -41,10 +41,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   
   bool _isLoading = true;
   bool _showCalendar = false;
-  String? _selectedTradition; // ЭТОТ ФИЛЬТР ТЕПЕРЬ ПЕРЕДАЕТСЯ В КОЛЕСО
+  String? _selectedTradition; // Фильтр по традициям
+  HistoricalAuthenticity? _selectedAuthenticity; // НОВЫЙ ФИЛЬТР ПО ДОСТОВЕРНОСТИ
   String? _backgroundImageUrl;
   
-  // Данные для ближайшего праздника (без живого таймера)
+  // Данные для ближайшего праздника
   PaganHoliday? _nextHoliday;
   int? _daysUntilHoliday;
   DateTime? _nextHolidayDate;
@@ -58,7 +59,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   void _initializeAnimations() {
-    // Быстрые анимации для лучшей производительности
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -108,24 +108,13 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     setState(() => _isLoading = true);
     
     try {
-      // Загружаем фоновое изображение
       await _loadBackgroundImage();
-      
-      // Загружаем праздники
       _holidays = PaganHolidayService.getAllHolidays();
-      
-      // Обновляем ближайший праздник
       _updateNextHoliday();
-      
-      // Загружаем кэшированные цитаты
       await _loadCachedQuotes();
-      
-      // Подготавливаем события
       _prepareEvents();
       
       setState(() => _isLoading = false);
-      
-      // Быстрые анимации
       _fadeController.forward();
       _backgroundController.forward();
       
@@ -176,14 +165,29 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     _events.clear();
     final currentYear = _focusedDay.year;
     
-    // Добавляем праздники
-    for (final holiday in _holidays) {
-      if (_selectedTradition == null || holiday.tradition == _selectedTradition) {
-        final holidayDate = holiday.getDateForYear(currentYear);
-        final dateKey = DateTime(holidayDate.year, holidayDate.month, holidayDate.day);
-        
-        _events.putIfAbsent(dateKey, () => []).add(holiday);
-      }
+    // Применяем фильтры к праздникам
+    List<PaganHoliday> filteredHolidays = _holidays;
+    
+    // Фильтр по традициям
+    if (_selectedTradition != null) {
+      filteredHolidays = filteredHolidays
+          .where((holiday) => holiday.tradition == _selectedTradition)
+          .toList();
+    }
+    
+    // НОВЫЙ ФИЛЬТР ПО ДОСТОВЕРНОСТИ
+    if (_selectedAuthenticity != null) {
+      filteredHolidays = filteredHolidays
+          .where((holiday) => holiday.authenticity == _selectedAuthenticity)
+          .toList();
+    }
+    
+    // Добавляем отфильтрованные праздники
+    for (final holiday in filteredHolidays) {
+      final holidayDate = holiday.getDateForYear(currentYear);
+      final dateKey = DateTime(holidayDate.year, holidayDate.month, holidayDate.day);
+      
+      _events.putIfAbsent(dateKey, () => []).add(holiday);
     }
     
     // Добавляем цитаты
@@ -203,7 +207,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      // УЛУЧШЕННАЯ СИНХРОНИЗАЦИЯ: AppBar с плавным фоном
       appBar: AppBar(
         backgroundColor: Colors.black.withOpacity(0.3),
         elevation: 0,
@@ -228,6 +231,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           ),
         ),
         actions: [
+          // Фильтр по традициям
           Container(
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
@@ -235,14 +239,16 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               borderRadius: BorderRadius.circular(20),
             ),
             child: PopupMenuButton<String>(
-              icon: Icon(Icons.filter_list, color: Colors.white.withOpacity(0.9)),
+              icon: Icon(
+                Icons.filter_list, 
+                color: _selectedTradition != null ? Colors.orange : Colors.white.withOpacity(0.9)
+              ),
               color: Colors.grey[900],
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               onSelected: (value) {
                 setState(() {
                   _selectedTradition = value == 'all' ? null : value;
-                  _prepareEvents(); // Обновляем события для календаря
-                  // Колесо обновится автоматически через rebuild
+                  _prepareEvents();
                 });
               },
               itemBuilder: (context) => [
@@ -262,6 +268,54 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               ],
             ),
           ),
+          
+          // НОВЫЙ ФИЛЬТР ПО ДОСТОВЕРНОСТИ
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: PopupMenuButton<HistoricalAuthenticity?>(
+              icon: Icon(
+                Icons.verified_user, 
+                color: _selectedAuthenticity != null ? Colors.green : Colors.white.withOpacity(0.9)
+              ),
+              color: Colors.grey[900],
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              onSelected: (value) {
+                setState(() {
+                  _selectedAuthenticity = value;
+                  _prepareEvents();
+                });
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: null,
+                  child: Text('Все уровни', style: TextStyle(color: Colors.white)),
+                ),
+                ...HistoricalAuthenticity.values.map(
+                  (auth) => PopupMenuItem(
+                    value: auth,
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getAuthenticityIcon(auth),
+                          size: 16,
+                          color: _getAuthenticityColor(auth),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _getAuthenticityDisplayName(auth),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       body: _isLoading
@@ -269,14 +323,51 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           : Stack(
               fit: StackFit.expand,
               children: [
-                // Фоновое изображение с блюром
                 _buildBackgroundWithBlur(),
-                
-                // Основной контент
                 _buildScrollableContent(),
               ],
             ),
     );
+  }
+
+  // НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДОСТОВЕРНОСТЬЮ
+  IconData _getAuthenticityIcon(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return Icons.verified;
+      case HistoricalAuthenticity.likely:
+        return Icons.check_circle_outline;
+      case HistoricalAuthenticity.reconstructed:
+        return Icons.construction;
+      case HistoricalAuthenticity.modern:
+        return Icons.new_releases;
+    }
+  }
+
+  Color _getAuthenticityColor(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return Colors.green;
+      case HistoricalAuthenticity.likely:
+        return Colors.blue;
+      case HistoricalAuthenticity.reconstructed:
+        return Colors.orange;
+      case HistoricalAuthenticity.modern:
+        return Colors.red;
+    }
+  }
+
+  String _getAuthenticityDisplayName(HistoricalAuthenticity authenticity) {
+    switch (authenticity) {
+      case HistoricalAuthenticity.authentic:
+        return 'Подлинные';
+      case HistoricalAuthenticity.likely:
+        return 'Вероятные';
+      case HistoricalAuthenticity.reconstructed:
+        return 'Реконструкции';
+      case HistoricalAuthenticity.modern:
+        return 'Современные';
+    }
   }
 
   Widget _buildBackgroundWithBlur() {
@@ -322,8 +413,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             fit: StackFit.expand,
             children: [
               child ?? const SizedBox(),
-              
-              // Более темный блюр для колеса
               BackdropFilter(
                 filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
                 child: Container(
@@ -356,12 +445,12 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         ),
         child: Column(
           children: [
-            // Отступ для AppBar
             const SizedBox(height: 100),
             
-            // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО С ФИЛЬТРОМ =====
+            // Интерактивное языческое колесо с фильтрами
             InteractivePaganWheel(
-              selectedTradition: _selectedTradition, // ПЕРЕДАЕМ ФИЛЬТР
+              selectedTradition: _selectedTradition,
+              selectedAuthenticity: _selectedAuthenticity, // ПЕРЕДАЁМ НОВЫЙ ФИЛЬТР
               onMonthChanged: (month, holidays) {
                 setState(() {
                   _focusedDay = DateTime(_focusedDay.year, month);
@@ -371,11 +460,13 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               },
             ),
             
-            // Календарь появляется только после взаимодействия с колесом
+            // Индикаторы активных фильтров
+            if (_selectedTradition != null || _selectedAuthenticity != null)
+              _buildActiveFiltersIndicator(),
+            
             if (_showCalendar) ...[
               const SizedBox(height: 20),
               
-              // Анимированное появление календаря
               TweenAnimationBuilder<double>(
                 duration: const Duration(milliseconds: 800),
                 tween: Tween(begin: 0.0, end: 1.0),
@@ -391,16 +482,85 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 },
               ),
               
-              // Ближайший праздник
               _buildSimpleHolidayCountdown(),
               
-              // Информация о выбранном дне
               if (_selectedDay != null) _buildSelectedDayInfo(),
             ],
             
             const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  // НОВЫЙ ВИДЖЕТ - ИНДИКАТОР АКТИВНЫХ ФИЛЬТРОВ
+  Widget _buildActiveFiltersIndicator() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Wrap(
+        spacing: 8,
+        children: [
+          if (_selectedTradition != null)
+            _buildFilterChip(
+              'Традиция: ${_getTraditionDisplayName(_selectedTradition!)}',
+              Icons.public,
+              Colors.orange,
+              () {
+                setState(() {
+                  _selectedTradition = null;
+                  _prepareEvents();
+                });
+              },
+            ),
+          if (_selectedAuthenticity != null)
+            _buildFilterChip(
+              'Достоверность: ${_getAuthenticityDisplayName(_selectedAuthenticity!)}',
+              _getAuthenticityIcon(_selectedAuthenticity!),
+              _getAuthenticityColor(_selectedAuthenticity!),
+              () {
+                setState(() {
+                  _selectedAuthenticity = null;
+                  _prepareEvents();
+                });
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, IconData icon, Color color, VoidCallback onRemove) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: Icon(
+              Icons.close,
+              size: 14,
+              color: color.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -426,180 +586,170 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        // СИНХРОНИЗАЦИЯ: Убираем тяжелый блюр, оставляем легкий
         child: Container(
           padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Заголовок календаря
-                _buildCalendarHeader(),
-                
-                const SizedBox(height: 16),
-                
-                // Сам календарь
-                TableCalendar<dynamic>(
-                  firstDay: DateTime(2020),
-                  lastDay: DateTime(2030),
-                  focusedDay: _focusedDay,
-                  calendarFormat: _calendarFormat,
-                  eventLoader: _getEventsForDay,
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  pageJumpingEnabled: false,
-                  pageAnimationEnabled: false,
-                  pageAnimationDuration: Duration.zero,
-                  selectedDayPredicate: (day) {
-                    return isSameDay(_selectedDay, day);
-                  },
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                    });
-                  },
-                  onFormatChanged: (format) {
-                    setState(() {
-                      _calendarFormat = format;
-                    });
-                  },
-                  onPageChanged: (focusedDay) {
-                    setState(() {
-                      _focusedDay = focusedDay;
-                      _prepareEvents();
-                    });
-                  },
-                  calendarStyle: CalendarStyle(
-                    // Основные дни
-                    defaultTextStyle: GoogleFonts.merriweather(
-                      color: Colors.white.withOpacity(0.9),
-                      fontWeight: FontWeight.w400,
-                    ),
-                    weekendTextStyle: GoogleFonts.merriweather(
-                      color: Colors.white.withOpacity(0.7),
-                      fontWeight: FontWeight.w300,
-                    ),
-                    outsideDaysVisible: false,
-                    
-                    // Выбранный день
-                    selectedDecoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.8),
-                          Colors.white.withOpacity(0.6),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.3),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
+          child: Column(
+            children: [
+              _buildCalendarHeader(),
+              const SizedBox(height: 16),
+              
+              TableCalendar<dynamic>(
+                firstDay: DateTime(2020),
+                lastDay: DateTime(2030),
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                eventLoader: _getEventsForDay,
+                startingDayOfWeek: StartingDayOfWeek.monday,
+                pageJumpingEnabled: false,
+                pageAnimationEnabled: false,
+                pageAnimationDuration: Duration.zero,
+                selectedDayPredicate: (day) {
+                  return isSameDay(_selectedDay, day);
+                },
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                onPageChanged: (focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+                    _prepareEvents();
+                  });
+                },
+                calendarStyle: CalendarStyle(
+                  defaultTextStyle: GoogleFonts.merriweather(
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w400,
+                  ),
+                  weekendTextStyle: GoogleFonts.merriweather(
+                    color: Colors.white.withOpacity(0.7),
+                    fontWeight: FontWeight.w300,
+                  ),
+                  outsideDaysVisible: false,
+                  
+                  selectedDecoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.8),
+                        Colors.white.withOpacity(0.6),
                       ],
                     ),
-                    selectedTextStyle: GoogleFonts.merriweather(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    
-                    // Сегодня
-                    todayDecoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 2,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 2,
                       ),
-                    ),
-                    todayTextStyle: GoogleFonts.merriweather(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    
-                    // События (маркеры)
-                    markerDecoration: const BoxDecoration(
-                      color: Color(0xFFE2A94A),
-                      shape: BoxShape.circle,
-                    ),
-                    markersMaxCount: 3,
-                    markerSize: 7,
-                    markerMargin: const EdgeInsets.symmetric(horizontal: 0.5),
+                    ],
                   ),
-                  headerStyle: HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    titleTextStyle: GoogleFonts.merriweather(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    leftChevronVisible: false,
-                    rightChevronVisible: false,
+                  selectedTextStyle: GoogleFonts.merriweather(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
                   ),
-                  daysOfWeekStyle: DaysOfWeekStyle(
-                    weekdayStyle: GoogleFonts.merriweather(
-                      color: Colors.white.withOpacity(0.7),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    weekendStyle: GoogleFonts.merriweather(
+                  
+                  todayDecoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
                       color: Colors.white.withOpacity(0.5),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
+                      width: 2,
                     ),
                   ),
-                  calendarBuilders: CalendarBuilders(
-                    markerBuilder: (context, day, events) {
-                      if (events.isEmpty) return const SizedBox.shrink();
-                      
-                      return Positioned(
-                        bottom: 1,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: events.take(3).map((event) {
-                            Color markerColor;
-                            if (event is PaganHoliday) {
-                              markerColor = Color(int.parse(event.traditionColor.replaceFirst('#', '0xFF')));
-                            } else if (event is DailyQuote) {
-                              markerColor = Colors.white;
-                            } else {
-                              markerColor = Colors.grey;
-                            }
-                            
-                            return Container(
-                              width: 6,
-                              height: 6,
-                              margin: const EdgeInsets.symmetric(horizontal: 0.5),
-                              decoration: BoxDecoration(
-                                color: markerColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: markerColor.withOpacity(0.5),
-                                    blurRadius: 3,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      );
-                    },
+                  todayTextStyle: GoogleFonts.merriweather(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  
+                  markerDecoration: const BoxDecoration(
+                    color: Color(0xFFE2A94A),
+                    shape: BoxShape.circle,
+                  ),
+                  markersMaxCount: 3,
+                  markerSize: 7,
+                  markerMargin: const EdgeInsets.symmetric(horizontal: 0.5),
+                ),
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  titleTextStyle: GoogleFonts.merriweather(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  leftChevronVisible: false,
+                  rightChevronVisible: false,
+                ),
+                daysOfWeekStyle: DaysOfWeekStyle(
+                  weekdayStyle: GoogleFonts.merriweather(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  weekendStyle: GoogleFonts.merriweather(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
                   ),
                 ),
-              ],
-            ),
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, day, events) {
+                    if (events.isEmpty) return const SizedBox.shrink();
+                    
+                    return Positioned(
+                      bottom: 1,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: events.take(3).map((event) {
+                          Color markerColor;
+                          if (event is PaganHoliday) {
+                            markerColor = Color(int.parse(event.traditionColor.replaceFirst('#', '0xFF')));
+                          } else if (event is DailyQuote) {
+                            markerColor = Colors.white;
+                          } else {
+                            markerColor = Colors.grey;
+                          }
+                          
+                          return Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                            decoration: BoxDecoration(
+                              color: markerColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: markerColor.withOpacity(0.5),
+                                  blurRadius: 3,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    
+      ),
+    );
   }
 
   Widget _buildCalendarHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Название месяца и года с анимацией
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: Text(
@@ -613,7 +763,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           ),
         ),
         
-        // Кнопки навигации
         Row(
           children: [
             _buildNavButton(
@@ -751,13 +900,25 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              _nextHoliday!.name,
-                              style: GoogleFonts.merriweather(
-                                fontSize: 18,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _nextHoliday!.name,
+                                    style: GoogleFonts.merriweather(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                // ДОБАВЛЯЕМ ИНДИКАТОР ДОСТОВЕРНОСТИ
+                                Icon(
+                                  _getAuthenticityIcon(_nextHoliday!.authenticity),
+                                  size: 16,
+                                  color: _getAuthenticityColor(_nextHoliday!.authenticity),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -924,13 +1085,25 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        holiday.name,
-                        style: GoogleFonts.merriweather(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              holiday.name,
+                              style: GoogleFonts.merriweather(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            _getAuthenticityIcon(holiday.authenticity),
+                            size: 14,
+                            color: _getAuthenticityColor(holiday.authenticity),
+                          ),
+                        ],
                       ),
                       if (holiday.nameOriginal != holiday.name)
                         Text(
@@ -1073,31 +1246,30 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return months[month - 1];
   }
 
- String _getTraditionDisplayName(String tradition) {
-  switch (tradition.toLowerCase()) {
-    case 'nordic':
-    case 'scandinavian':
-      return 'Северная традиция';
-    case 'slavic':
-      return 'Славянская традиция';
-    case 'celtic':
-      return 'Кельтская традиция';
-    case 'germanic':
-      return 'Германская традиция';
-    case 'roman':
-      return 'Римская традиция'; // уже есть!
-    case 'greek':
-      return 'Греческая традиция'; // уже есть!
-    // НУЖНО ДОБАВИТЬ:
-    case 'baltic':
-      return 'Балтийская традиция';
-    case 'finnish':
-    case 'finno-ugric':
-      return 'Финно-угорская традиция';
-    default:
-      return tradition;
+  String _getTraditionDisplayName(String tradition) {
+    switch (tradition.toLowerCase()) {
+      case 'nordic':
+      case 'scandinavian':
+        return 'Северная традиция';
+      case 'slavic':
+        return 'Славянская традиция';
+      case 'celtic':
+        return 'Кельтская традиция';
+      case 'germanic':
+        return 'Германская традиция';
+      case 'roman':
+        return 'Римская традиция';
+      case 'greek':
+        return 'Греческая традиция';
+      case 'baltic':
+        return 'Балтийская традиция';
+      case 'finnish':
+      case 'finno-ugric':
+        return 'Финно-угорская традиция';
+      default:
+        return tradition;
+    }
   }
-}
 
   @override
   void dispose() {
