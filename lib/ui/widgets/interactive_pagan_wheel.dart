@@ -1,9 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import '../../models/pagan_holiday.dart';
 import '../widgets/holiday_info_modal.dart';
+import '../../services/sound_manager.dart';
 
 class InteractivePaganWheel extends StatefulWidget {
   final Function(int month, List<PaganHoliday> holidays)? onMonthChanged;
@@ -23,19 +25,22 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   late AnimationController _rotationController;
   late AnimationController _glowController;
   late AnimationController _contentRevealController;
-  late AnimationController _pulseController;
   late AnimationController _shimmerController;
+  late AnimationController _loadingController;
   
   late Animation<double> _rotationAnimation;
   late Animation<double> _glowAnimation;
   late Animation<double> _contentRevealAnimation;
-  late Animation<double> _pulseAnimation;
   late Animation<double> _shimmerAnimation;
+  late Animation<double> _loadingAnimation;
 
   double _currentRotation = 0.0;
   int _selectedMonth = DateTime.now().month;
   bool _hasInteracted = false;
+  bool _isLoading = true;
   List<PaganHoliday> _currentMonthHolidays = [];
+  
+  final SoundManager _soundManager = SoundManager();
 
   final List<MonthData> _months = [
     MonthData('Январь', SeasonType.winter, const Color(0xFF4A6FA5)),   
@@ -62,8 +67,11 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     _selectedMonth = currentMonth;
     _loadHolidaysForMonth(currentMonth);
     
+    // Показываем анимацию загрузки
+    _loadingController.forward();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _rotateToCurrentMonth();
+      _initializeWheel();
     });
   }
 
@@ -83,15 +91,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       vsync: this,
     );
 
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-
     _shimmerController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat();
+
+    _loadingController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
 
     _rotationAnimation = Tween<double>(
       begin: 0.0,
@@ -106,14 +114,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       end: 0.8,
     ).animate(CurvedAnimation(
       parent: _glowController,
-      curve: Curves.easeInOut,
-    ));
-
-    _pulseAnimation = Tween<double>(
-      begin: 0.95,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
       curve: Curves.easeInOut,
     ));
 
@@ -132,6 +132,28 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       parent: _contentRevealController,
       curve: Curves.easeOutBack,
     ));
+
+    _loadingAnimation = Tween<double>(
+      begin: 0.0,
+      end: 2 * math.pi,
+    ).animate(CurvedAnimation(
+      parent: _loadingController,
+      curve: Curves.linear,
+    ));
+  }
+
+  Future<void> _initializeWheel() async {
+    // Даем время для прогрузки UI
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    _rotateToCurrentMonth();
+    
+    // Ждем завершения начальной ротации
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _loadHolidaysForMonth(int month) {
@@ -143,6 +165,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   void _handleTap(TapDownDetails details) {
+    if (_isLoading) return;
+    
     final screenWidth = MediaQuery.of(context).size.width;
     final tapX = details.globalPosition.dx;
     
@@ -165,10 +189,32 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     _rotateToMonth(newMonth);
   }
 
+  Future<void> _playFireSound() async {
+    if (!_soundManager.isMuted) {
+      try {
+        await _soundManager.playSound(
+          'wheel_rotation',
+          'assets/sounds/fire.mp3',
+          loop: false,
+        );
+        
+        // Автоматически останавливаем через 500мс
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _soundManager.stopSound('wheel_rotation');
+        });
+      } catch (e) {
+        print('Fire sound not available: $e');
+      }
+    }
+  }
+
   void _rotateToMonth(int month) {
     final monthIndex = month - 1;
     final monthCenterAngle = monthIndex * (2 * math.pi / 12) + (math.pi / 12);
     final targetRotation = -monthCenterAngle + math.pi;
+    
+    // Воспроизводим звук огня
+    _playFireSound();
     
     setState(() {
       _selectedMonth = month;
@@ -260,17 +306,35 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                               // Многослойное свечение
                               ..._buildGlowLayers(),
                               
-                              // Основное колесо
-                              AnimatedBuilder(
-                                animation: Listenable.merge([_rotationAnimation, _glowAnimation, _pulseAnimation]),
-                                builder: (context, child) {
-                                  final currentRotation = _rotationController.isAnimating 
-                                      ? _rotationAnimation.value 
-                                      : _currentRotation;
-                                  
-                                  return Transform.scale(
-                                    scale: _pulseAnimation.value,
-                                    child: Transform.rotate(
+                              // Анимация загрузки
+                              if (_isLoading)
+                                AnimatedBuilder(
+                                  animation: _loadingAnimation,
+                                  builder: (context, child) {
+                                    return Transform.rotate(
+                                      angle: _loadingAnimation.value,
+                                      child: CustomPaint(
+                                        size: const Size(650, 650),
+                                        painter: LoadingWheelPainter(
+                                          progress: _loadingController.value,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              
+                              // Основное колесо (показываем с прозрачностью при загрузке)
+                              AnimatedOpacity(
+                                duration: const Duration(milliseconds: 600),
+                                opacity: _isLoading ? 0.3 : 1.0,
+                                child: AnimatedBuilder(
+                                  animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
+                                  builder: (context, child) {
+                                    final currentRotation = _rotationController.isAnimating 
+                                        ? _rotationAnimation.value 
+                                        : _currentRotation;
+                                    
+                                    return Transform.rotate(
                                       angle: currentRotation,
                                       child: CustomPaint(
                                         size: const Size(650, 650),
@@ -281,16 +345,17 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                           shimmerProgress: _shimmerAnimation.value,
                                         ),
                                       ),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                               
                               // Центральный элемент
                               _buildCenterElement(),
                               
                               // Декоративные элементы
-                              _buildDecorativeElements(),
+                              if (!_isLoading)
+                                _buildDecorativeElements(),
                             ],
                           ),
                         ),
@@ -301,7 +366,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                     _buildTopGradient(),
                     
                     // Индикатор текущего месяца
-                    _buildMonthIndicator(),
+                    if (!_isLoading)
+                      _buildMonthIndicator(),
                   ],
                 ),
               ),
@@ -310,10 +376,14 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         ),
         
         // Информация о месяце
-        _buildMonthInfo(),
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 600),
+          opacity: _isLoading ? 0.0 : 1.0,
+          child: _buildMonthInfo(),
+        ),
         
         // Список праздников
-        if (_hasInteracted) ...[
+        if (_hasInteracted && !_isLoading) ...[
           SlideTransition(
             position: Tween<Offset>(
               begin: const Offset(0, 0.3),
@@ -329,7 +399,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
               ),
             ),
           ),
-        ] else ...[
+        ] else if (!_isLoading) ...[
           Column(
             children: [
               const SizedBox(height: 20),
@@ -389,81 +459,76 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildCenterElement() {
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        return Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                Colors.black.withOpacity(0.9),
-                Colors.black.withOpacity(0.7),
-              ],
-            ),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-              BoxShadow(
-                color: _months[_selectedMonth - 1].color.withOpacity(0.2),
-                blurRadius: 30,
-                spreadRadius: 0,
-              ),
-            ],
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            Colors.black.withOpacity(0.9),
+            Colors.black.withOpacity(0.7),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 20,
+            spreadRadius: 5,
           ),
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withOpacity(0.05),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/icon/old1.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              colors: [
-                                _months[_selectedMonth - 1].color.withOpacity(0.6),
-                                _months[_selectedMonth - 1].color.withOpacity(0.2),
-                              ],
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.auto_awesome,
-                            color: Colors.white.withOpacity(0.9),
-                            size: 40,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+          BoxShadow(
+            color: _months[_selectedMonth - 1].color.withOpacity(0.2),
+            blurRadius: 30,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  Colors.white.withOpacity(0.05),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/icon/old1.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            _months[_selectedMonth - 1].color.withOpacity(0.6),
+                            _months[_selectedMonth - 1].color.withOpacity(0.2),
+                          ],
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.auto_awesome,
+                        color: Colors.white.withOpacity(0.9),
+                        size: 40,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -837,10 +902,53 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     _rotationController.dispose();
     _glowController.dispose();
     _contentRevealController.dispose();
-    _pulseController.dispose();
     _shimmerController.dispose();
+    _loadingController.dispose();
+    _soundManager.stopSound('wheel_rotation');
     super.dispose();
   }
+}
+
+// Painter для анимации загрузки
+class LoadingWheelPainter extends CustomPainter {
+  final double progress;
+
+  LoadingWheelPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 15;
+    
+    // Рисуем дуги загрузки
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    
+    for (int i = 0; i < 3; i++) {
+      final startAngle = (i * 120) * math.pi / 180;
+      final sweepAngle = progress * math.pi * 0.6;
+      
+      paint.shader = LinearGradient(
+        colors: [
+          Colors.white.withOpacity(0.1),
+          Colors.white.withOpacity(0.3 * progress),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+      
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius - i * 20),
+        startAngle,
+        sweepAngle,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // Улучшенный Painter для колеса
