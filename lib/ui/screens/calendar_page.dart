@@ -1073,25 +1073,31 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return months[month - 1];
   }
 
-  String _getTraditionDisplayName(String tradition) {
-    switch (tradition.toLowerCase()) {
-      case 'nordic':
-      case 'scandinavian':
-        return 'Северная традиция';
-      case 'slavic':
-        return 'Славянская традиция';
-      case 'celtic':
-        return 'Кельтская традиция';
-      case 'germanic':
-        return 'Германская традиция';
-      case 'roman':
-        return 'Римская традиция';
-      case 'greek':
-        return 'Греческая традиция';
-      default:
-        return tradition;
-    }
+ String _getTraditionDisplayName(String tradition) {
+  switch (tradition.toLowerCase()) {
+    case 'nordic':
+    case 'scandinavian':
+      return 'Северная традиция';
+    case 'slavic':
+      return 'Славянская традиция';
+    case 'celtic':
+      return 'Кельтская традиция';
+    case 'germanic':
+      return 'Германская традиция';
+    case 'roman':
+      return 'Римская традиция'; // уже есть!
+    case 'greek':
+      return 'Греческая традиция'; // уже есть!
+    // НУЖНО ДОБАВИТЬ:
+    case 'baltic':
+      return 'Балтийская традиция';
+    case 'finnish':
+    case 'finno-ugric':
+      return 'Финно-угорская традиция';
+    default:
+      return tradition;
   }
+}
 
   @override
   void dispose() {

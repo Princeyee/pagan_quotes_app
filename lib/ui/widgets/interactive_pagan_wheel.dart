@@ -979,24 +979,30 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
 
   // ДОБАВЛЯЕМ МЕТОД ДЛЯ ОТОБРАЖЕНИЯ НАЗВАНИЙ ТРАДИЦИЙ
   String _getTraditionDisplayName(String tradition) {
-    switch (tradition.toLowerCase()) {
-      case 'nordic':
-      case 'scandinavian':
-        return 'Северной';
-      case 'slavic':
-        return 'Славянской';
-      case 'celtic':
-        return 'Кельтской';
-      case 'germanic':
-        return 'Германской';
-      case 'roman':
-        return 'Римской';
-      case 'greek':
-        return 'Греческой';
-      default:
-        return tradition;
-    }
+  switch (tradition.toLowerCase()) {
+    case 'nordic':
+    case 'scandinavian':
+      return 'Северная традиция';
+    case 'slavic':
+      return 'Славянская традиция';
+    case 'celtic':
+      return 'Кельтская традиция';
+    case 'germanic':
+      return 'Германская традиция';
+    case 'roman':
+      return 'Римская традиция'; // уже есть!
+    case 'greek':
+      return 'Греческая традиция'; // уже есть!
+    // НУЖНО ДОБАВИТЬ:
+    case 'baltic':
+      return 'Балтийская традиция';
+    case 'finnish':
+    case 'finno-ugric':
+      return 'Финно-угорская традиция';
+    default:
+      return tradition;
   }
+}
 
   @override
   void dispose() {
