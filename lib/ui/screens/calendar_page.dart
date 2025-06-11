@@ -1,5 +1,4 @@
-
-// lib/ui/screens/calendar_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// lib/ui/screens/calendar_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ С ФИЛЬТРОМ ДЛЯ КОЛЕСА
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -23,7 +22,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
-  final CustomCachePrefs _cache = CustomCache.prefs; // ИСПРАВЛЕНО: cage -> _cache
+  final CustomCachePrefs _cache = CustomCache.prefs;
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final ScrollController _scrollController = ScrollController();
   
@@ -42,8 +41,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   
   bool _isLoading = true;
   bool _showCalendar = false;
-  String? _selectedTradition;
-  String? _backgroundImageUrl; // ИСПРАВЛЕНО: добавлено объявление переменной
+  String? _selectedTradition; // ЭТОТ ФИЛЬТР ТЕПЕРЬ ПЕРЕДАЕТСЯ В КОЛЕСО
+  String? _backgroundImageUrl;
   
   // Данные для ближайшего праздника (без живого таймера)
   PaganHoliday? _nextHoliday;
@@ -61,18 +60,18 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   void _initializeAnimations() {
     // Быстрые анимации для лучшей производительности
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 400), // Быстрее
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
     
     _backgroundController = AnimationController(
-      duration: const Duration(milliseconds: 600), // Быстрее
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeOut, // Более быстрая кривая
+      curve: Curves.easeOut,
     );
 
     _backgroundAnimation = CurvedAnimation(
@@ -136,14 +135,12 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     }
   }
 
-  
-
   Future<void> _loadBackgroundImage() async {
     try {
       final today = DateTime.now();
       final dateString = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       
-      String? cachedImageUrl = _cache.getSetting<String>('daily_image_$dateString'); // ИСПРАВЛЕНО: cage -> _cache
+      String? cachedImageUrl = _cache.getSetting<String>('daily_image_$dateString');
       cachedImageUrl ??= ImagePickerService.getRandomImage('philosophy');
       
       setState(() {
@@ -206,9 +203,23 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
+      // УЛУЧШЕННАЯ СИНХРОНИЗАЦИЯ: AppBar с плавным фоном
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black.withOpacity(0.3),
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.7),
+                Colors.black.withOpacity(0.3),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
         title: Text(
           'Календарь',
           style: GoogleFonts.merriweather(
@@ -230,7 +241,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               onSelected: (value) {
                 setState(() {
                   _selectedTradition = value == 'all' ? null : value;
-                  _prepareEvents();
+                  _prepareEvents(); // Обновляем события для календаря
+                  // Колесо обновится автоматически через rebuild
                 });
               },
               itemBuilder: (context) => [
@@ -260,7 +272,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 // Фоновое изображение с блюром
                 _buildBackgroundWithBlur(),
                 
-                // Основной контент - ДОБАВЛЯЕМ СКРОЛЛ
+                // Основной контент
                 _buildScrollableContent(),
               ],
             ),
@@ -268,131 +280,130 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildBackgroundWithBlur() {
-  return AnimatedBuilder(
-    animation: _backgroundAnimation,
-    child: _backgroundImageUrl != null
-        ? CachedNetworkImage(
-            imageUrl: _backgroundImageUrl!,
-            cacheManager: CustomCache.instance,
-            fit: BoxFit.cover,
-            placeholder: (_, __) => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.grey[900]!, Colors.black],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-            errorWidget: (_, __, ___) => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.grey[900]!, Colors.black],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          )
-        : Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.grey[900]!, Colors.black],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-    builder: (context, child) {
-      return Opacity(
-        opacity: _backgroundAnimation.value,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            child ?? const SizedBox(),
-            
-            // Более темный блюр для колеса
-            BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-              child: Container(
+    return AnimatedBuilder(
+      animation: _backgroundAnimation,
+      child: _backgroundImageUrl != null
+          ? CachedNetworkImage(
+              imageUrl: _backgroundImageUrl!,
+              cacheManager: CustomCache.instance,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.8),
-                      Colors.black.withOpacity(0.9),
-                    ],
+                    colors: [Colors.grey[900]!, Colors.black],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
                 ),
               ),
+              errorWidget: (_, __, ___) => Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.grey[900]!, Colors.black],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.grey[900]!, Colors.black],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
             ),
-          ],
-        ),
-      );
-    },
-  );
-}
+      builder: (context, child) {
+        return Opacity(
+          opacity: _backgroundAnimation.value,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              child ?? const SizedBox(),
+              
+              // Более темный блюр для колеса
+              BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withOpacity(0.8),
+                        Colors.black.withOpacity(0.9),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildScrollableContent() {
-  return FadeTransition(
-    opacity: _fadeAnimation,
-    child: SingleChildScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      child: Column(
-        children: [
-          // Отступ для AppBar
-          const SizedBox(height: 100),
-          
-          // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
-          InteractivePaganWheel(
-            onMonthChanged: (month, holidays) {
-              setState(() {
-                _focusedDay = DateTime(_focusedDay.year, month);
-                _showCalendar = true; // Показываем календарь после первого взаимодействия
-                _prepareEvents();
-              });
-            },
-          ),
-          
-          // Календарь появляется только после взаимодействия с колесом
-          if (_showCalendar) ...[
-            const SizedBox(height: 20),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        child: Column(
+          children: [
+            // Отступ для AppBar
+            const SizedBox(height: 100),
             
-            // Анимированное появление календаря
-            TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 800),
-              tween: Tween(begin: 0.0, end: 1.0),
-              curve: Curves.easeOutBack,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: 0.8 + (0.2 * value),
-                  child: Opacity(
-                    opacity: value,
-                    child: _buildEnhancedCalendar(),
-                  ),
-                );
+            // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО С ФИЛЬТРОМ =====
+            InteractivePaganWheel(
+              selectedTradition: _selectedTradition, // ПЕРЕДАЕМ ФИЛЬТР
+              onMonthChanged: (month, holidays) {
+                setState(() {
+                  _focusedDay = DateTime(_focusedDay.year, month);
+                  _showCalendar = true;
+                  _prepareEvents();
+                });
               },
             ),
             
-            // Ближайший праздник
-            _buildSimpleHolidayCountdown(),
+            // Календарь появляется только после взаимодействия с колесом
+            if (_showCalendar) ...[
+              const SizedBox(height: 20),
+              
+              // Анимированное появление календаря
+              TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 800),
+                tween: Tween(begin: 0.0, end: 1.0),
+                curve: Curves.easeOutBack,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Opacity(
+                      opacity: value,
+                      child: _buildEnhancedCalendar(),
+                    ),
+                  );
+                },
+              ),
+              
+              // Ближайший праздник
+              _buildSimpleHolidayCountdown(),
+              
+              // Информация о выбранном дне
+              if (_selectedDay != null) _buildSelectedDayInfo(),
+            ],
             
-            // Информация о выбранном дне
-            if (_selectedDay != null) _buildSelectedDayInfo(),
+            const SizedBox(height: 20),
           ],
-          
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
-    ),
-  );
-}
-
-
+    );
+  }
 
   Widget _buildEnhancedCalendar() {
     return Container(
@@ -415,10 +426,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(16),
+        // СИНХРОНИЗАЦИЯ: Убираем тяжелый блюр, оставляем легкий
+        child: Container(
+          padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 // Заголовок календаря
@@ -434,7 +444,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   calendarFormat: _calendarFormat,
                   eventLoader: _getEventsForDay,
                   startingDayOfWeek: StartingDayOfWeek.monday,
-                  // Отключаем проблемные анимации
                   pageJumpingEnabled: false,
                   pageAnimationEnabled: false,
                   pageAnimationDuration: Duration.zero,
@@ -582,8 +591,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
           ),
         ),
-      ),
-    );
+      );
+    
   }
 
   Widget _buildCalendarHeader() {
@@ -592,7 +601,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       children: [
         // Название месяца и года с анимацией
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200), // Быстрее
+          duration: const Duration(milliseconds: 200),
           child: Text(
             '${_getMonthName(_focusedDay.month)} ${_focusedDay.year}',
             key: ValueKey('${_focusedDay.month}_${_focusedDay.year}'),
@@ -670,7 +679,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     );
   }
 
-  // ПРОСТОЙ счетчик праздника БЕЗ живого таймера
   Widget _buildSimpleHolidayCountdown() {
     if (_nextHoliday == null || _daysUntilHoliday == null || _nextHolidayDate == null) {
       return const SizedBox.shrink();
@@ -907,8 +915,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         color: traditionColor.withOpacity(0.5),
                         blurRadius: 4,
                         spreadRadius: 1,
-                      )
-],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),

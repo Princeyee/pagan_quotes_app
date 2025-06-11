@@ -11,10 +11,12 @@ import '../../services/sound_manager.dart';
 
 class InteractivePaganWheel extends StatefulWidget {
   final Function(int month, List<PaganHoliday> holidays)? onMonthChanged;
+  final String? selectedTradition; // ДОБАВЛЯЕМ ФИЛЬТР ПО ТРАДИЦИЯМ
   
   const InteractivePaganWheel({
     super.key,
     this.onMonthChanged,
+    this.selectedTradition, // НОВЫЙ ПАРАМЕТР
   });
 
   @override
@@ -79,29 +81,41 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     });
   }
 
+  // ОБНОВЛЯЕМ ПРИ ИЗМЕНЕНИИ ФИЛЬТРА
+  @override
+  void didUpdateWidget(InteractivePaganWheel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Если изменился фильтр традиций, обновляем праздники
+    if (oldWidget.selectedTradition != widget.selectedTradition) {
+      _loadHolidaysForMonth(_selectedMonth);
+    }
+  }
+
   void _initializeAnimations() {
+    // ОПТИМИЗАЦИЯ: Быстрее анимации, меньше нагрузки
     _rotationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600), // Быстрее
       vsync: this,
     );
     
     _glowController = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 6), // Медленнее для плавности
       vsync: this,
     )..repeat(reverse: true);
     
     _contentRevealController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400), // Быстрее
       vsync: this,
     );
 
     _shimmerController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4), // Чуть медленнее
       vsync: this,
     )..repeat();
 
     _loadingController = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1500), // Быстрее
       vsync: this,
     );
 
@@ -147,24 +161,38 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Future<void> _initializeWheel() async {
-    // Даем время для прогрузки UI
-    await Future.delayed(const Duration(milliseconds: 500));
+    // ОПТИМИЗАЦИЯ: Быстрее загрузка
+    await Future.delayed(const Duration(milliseconds: 300));
     
     _rotateToCurrentMonth();
     
-    // Ждем завершения начальной ротации
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
     
     setState(() {
       _isLoading = false;
     });
   }
 
+  // ОБНОВЛЯЕМ МЕТОД ЗАГРУЗКИ ПРАЗДНИКОВ С УЧЕТОМ ФИЛЬТРА
   void _loadHolidaysForMonth(int month) {
     try {
-      _currentMonthHolidays = PaganHolidayService.getHolidaysForMonth(month);
+      List<PaganHoliday> allHolidays = PaganHolidayService.getHolidaysForMonth(month);
+      
+      // ПРИМЕНЯЕМ ФИЛЬТР ПО ТРАДИЦИЯМ
+      if (widget.selectedTradition != null) {
+        _currentMonthHolidays = allHolidays
+            .where((holiday) => holiday.tradition == widget.selectedTradition)
+            .toList();
+      } else {
+        _currentMonthHolidays = allHolidays;
+      }
+      
+      // Уведомляем родительский виджет об изменениях
+      widget.onMonthChanged?.call(month, _currentMonthHolidays);
+      
     } catch (e) {
       _currentMonthHolidays = [];
+      widget.onMonthChanged?.call(month, []);
     }
   }
 
@@ -231,14 +259,12 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     
     setState(() {
       _selectedMonth = month;
-      _loadHolidaysForMonth(month);
+      _loadHolidaysForMonth(month); // ПЕРЕЗАГРУЖАЕМ С УЧЕТОМ ФИЛЬТРА
       
       if (!_hasInteracted) {
         _hasInteracted = true;
         _contentRevealController.forward();
       }
-      
-      widget.onMonthChanged?.call(month, _currentMonthHolidays);
     });
     
     _rotationController.reset();
@@ -281,20 +307,20 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
           width: double.infinity,
           child: Stack(
             children: [
-              // Фоновый blur слой
+              // СИНХРОНИЗАЦИЯ С ФОНОМ: Убираем резкие границы
               Positioned.fill(
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 30.0, sigmaY: 30.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: const Alignment(0, 0.8),
-                        radius: 1.5,
-                        colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.black.withOpacity(0.6),
-                        ],
-                      ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(0, 0.6),
+                      radius: 1.5,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.1),
+                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.5),
+                      ],
+                      stops: const [0.0, 0.4, 0.7, 1.0],
                     ),
                   ),
                 ),
@@ -363,8 +389,20 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 ),
                               ),
                               
-                              // Центральный элемент
-                              _buildCenterElement(),
+                              // ЦЕНТРАЛЬНАЯ ИКОНКА ВРАЩАЕТСЯ ВМЕСТЕ С КОЛЕСОМ
+                              AnimatedBuilder(
+                                animation: _rotationAnimation,
+                                builder: (context, child) {
+                                  final currentRotation = _rotationController.isAnimating 
+                                      ? _rotationAnimation.value 
+                                      : _currentRotation;
+                                  
+                                  return Transform.rotate(
+                                    angle: currentRotation, // СИНХРОННО С КОЛЕСОМ!
+                                    child: _buildCenterElement(),
+                                  );
+                                },
+                              ),
                               
                               // Декоративные элементы
                               if (!_isLoading)
@@ -561,6 +599,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildTopGradient() {
+    // СИНХРОНИЗАЦИЯ С ФОНОМ: Плавный градиент без резких краев
     return Positioned(
       top: 0,
       left: 0,
@@ -572,13 +611,13 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black,
-              Colors.black.withOpacity(0.95),
               Colors.black.withOpacity(0.8),
-              Colors.black.withOpacity(0.4),
+              Colors.black.withOpacity(0.6),
+              Colors.black.withOpacity(0.3),
+              Colors.black.withOpacity(0.1),
               Colors.transparent,
             ],
-            stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
+            stops: const [0.0, 0.3, 0.6, 0.8, 1.0],
           ),
         ),
       ),
@@ -700,7 +739,16 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildHolidaysList() {
+    // ДОБАВЛЯЕМ ИНФОРМАЦИЮ О ФИЛЬТРЕ ЕСЛИ СПИСОК ПУСТ ИЗ-ЗА ФИЛЬТРА
     if (_currentMonthHolidays.isEmpty) {
+      String emptyMessage;
+      if (widget.selectedTradition != null) {
+        final traditionName = _getTraditionDisplayName(widget.selectedTradition!);
+        emptyMessage = 'В этом месяце нет праздников из $traditionName традиции';
+      } else {
+        emptyMessage = 'В этом месяце нет особых языческих праздников';
+      }
+      
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
         child: ClipRRect(
@@ -717,7 +765,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                 ),
               ),
               child: Text(
-                'В этом месяце нет особых языческих праздников',
+                emptyMessage,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.5),
                   fontSize: 14,
@@ -765,12 +813,31 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        'Праздники месяца',
-                        style: GoogleFonts.merriweather(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Праздники месяца',
+                              style: GoogleFonts.merriweather(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            // ДОБАВЛЯЕМ ИНФОРМАЦИЮ О ФИЛЬТРЕ
+                            if (widget.selectedTradition != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                _getTraditionDisplayName(widget.selectedTradition!),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.6),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ],
@@ -908,6 +975,27 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
       'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
     ];
     return months[month - 1];
+  }
+
+  // ДОБАВЛЯЕМ МЕТОД ДЛЯ ОТОБРАЖЕНИЯ НАЗВАНИЙ ТРАДИЦИЙ
+  String _getTraditionDisplayName(String tradition) {
+    switch (tradition.toLowerCase()) {
+      case 'nordic':
+      case 'scandinavian':
+        return 'Северной';
+      case 'slavic':
+        return 'Славянской';
+      case 'celtic':
+        return 'Кельтской';
+      case 'germanic':
+        return 'Германской';
+      case 'roman':
+        return 'Римской';
+      case 'greek':
+        return 'Греческой';
+      default:
+        return tradition;
+    }
   }
 
   @override
