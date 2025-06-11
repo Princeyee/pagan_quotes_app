@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import '../../models/pagan_holiday.dart';
 import '../widgets/holiday_info_modal.dart';
 import '../../services/sound_manager.dart';
+import 'dart:async';
 
 class InteractivePaganWheel extends StatefulWidget {
   final Function(int month, List<PaganHoliday> holidays)? onMonthChanged;
@@ -39,6 +40,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   bool _hasInteracted = false;
   bool _isLoading = true;
   List<PaganHoliday> _currentMonthHolidays = [];
+  Timer? _soundTimer;
   
   final SoundManager _soundManager = SoundManager();
 
@@ -190,23 +192,28 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Future<void> _playFireSound() async {
-    if (!_soundManager.isMuted) {
-      try {
-        await _soundManager.playSound(
-          'wheel_rotation',
-          'assets/sounds/fire.mp3',
-          loop: false,
-        );
-        
-        // Автоматически останавливаем через 500мс
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _soundManager.stopSound('wheel_rotation');
-        });
-      } catch (e) {
-        print('Fire sound not available: $e');
-      }
+  if (!_soundManager.isMuted) {
+    try {
+      // Останавливаем предыдущий звук и таймер, если они есть
+      _soundTimer?.cancel();
+      _soundManager.stopSound('wheel_rotation');
+      
+      // Запускаем новый звук
+      await _soundManager.playSound(
+        'wheel_rotation',
+        'assets/sounds/fire.mp3',
+        loop: false,
+      );
+      
+      // Устанавливаем таймер на 1 секунду для гарантированной остановки
+      _soundTimer = Timer(const Duration(milliseconds: 1000), () {
+        _soundManager.stopSound('wheel_rotation');
+      });
+    } catch (e) {
+      print('Fire sound not available: $e');
     }
   }
+}
 
   void _rotateToMonth(int month) {
     final monthIndex = month - 1;
@@ -904,6 +911,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     _contentRevealController.dispose();
     _shimmerController.dispose();
     _loadingController.dispose();
+    _soundTimer?.cancel();
     _soundManager.stopSound('wheel_rotation');
     super.dispose();
   }
