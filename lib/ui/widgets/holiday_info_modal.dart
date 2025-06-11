@@ -442,49 +442,49 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
     );
   }
 
-  Widget _getHolidayIcon(PaganHolidayType type, Color color) {
-    IconData iconData;
-    switch (type) {
-      case PaganHolidayType.seasonal:
-        iconData = Icons.wb_sunny;
-        break;
-      case PaganHolidayType.lunar:
-        iconData = Icons.nights_stay;
-        break;
-      case PaganHolidayType.harvest:
-        iconData = Icons.agriculture;
-        break;
-      case PaganHolidayType.ancestor:
-        iconData = Icons.family_restroom;
-        break;
-      case PaganHolidayType.deity:
-        iconData = Icons.auto_awesome;
-        break;
-      case PaganHolidayType.fire:
-        iconData = Icons.local_fire_department;
-        break;
-      case PaganHolidayType.water:
-        iconData = Icons.waves;
-        break;
-      case PaganHolidayType.nature:
-        iconData = Icons.nature;
-        break;
-      case PaganHolidayType.protection:
-        iconData = Icons.shield;
-        break;
-      case PaganHolidayType.fertility:
-        iconData = Icons.eco;
-        break;
-      default:
-        iconData = Icons.celebration;
-    }
-
-    return Icon(
-      iconData,
-      color: color,
-      size: 24,
-    );
+ Widget _getHolidayIcon(PaganHolidayType type, Color color) {
+  IconData iconData;
+  switch (type) {
+    case PaganHolidayType.seasonal:
+      iconData = Icons.brightness_7; // Солнечные лучи - символ солнцестояний/равноденствий
+      break;
+    case PaganHolidayType.lunar:
+      iconData = Icons.nightlight_round; // Полная луна - классический лунный символ
+      break;
+    case PaganHolidayType.harvest:
+      iconData = Icons.grain; // Колосья - универсальный символ урожая и плодородия земли
+      break;
+    case PaganHolidayType.ancestor:
+      iconData = Icons.family_restroom; // Древо рода - символ связи поколений и предков
+      break;
+    case PaganHolidayType.deity:
+      iconData = Icons.auto_awesome; // Сияние/звезды - символ божественного и священного
+      break;
+    case PaganHolidayType.fire:
+      iconData = Icons.whatshot; // Пламя - более динамичный огненный символ
+      break;
+    case PaganHolidayType.water:
+      iconData = Icons.waves; // Волны - символ водной стихии и очищения
+      break;
+    case PaganHolidayType.nature:
+      iconData = Icons.park; // Дерево в природе - символ живой природы и леса
+      break;
+    case PaganHolidayType.protection:
+      iconData = Icons.security; // Символ защиты и оберега
+      break;
+    case PaganHolidayType.fertility:
+      iconData = Icons.spa; // Символ жизненной силы и женского начала (более деликатно чем цветок)
+      break;
+    default:
+      iconData = Icons.auto_awesome; // Магический символ по умолчанию
   }
+
+  return Icon(
+    iconData,
+    color: color,
+    size: 24,
+  );
+}
 
   void _shareHoliday() {
     final holiday = widget.holiday;
