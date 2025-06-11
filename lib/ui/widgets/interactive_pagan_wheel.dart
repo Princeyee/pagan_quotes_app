@@ -850,9 +850,9 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                   ],
                                   if (widget.selectedAuthenticity != null) ...[
                                     Icon(
-                                      _getAuthenticityIcon(widget.selectedAuthenticity!),
+                                      Icons.info_outline,
                                       size: 12,
-                                      color: _getAuthenticityColor(widget.selectedAuthenticity!),
+                                      color: Colors.grey,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -955,10 +955,13 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(
-                            _getAuthenticityIcon(holiday.authenticity),
-                            size: 14,
-                            color: _getAuthenticityColor(holiday.authenticity),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ],
                       ),
@@ -999,43 +1002,27 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     );
   }
 
-  // НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДОСТОВЕРНОСТЬЮ
+  // УПРОЩЕННЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДОСТОВЕРНОСТЬЮ
   IconData _getAuthenticityIcon(HistoricalAuthenticity authenticity) {
-    switch (authenticity) {
-      case HistoricalAuthenticity.authentic:
-        return Icons.verified;
-      case HistoricalAuthenticity.likely:
-        return Icons.check_circle_outline;
-      case HistoricalAuthenticity.reconstructed:
-        return Icons.construction;
-      case HistoricalAuthenticity.modern:
-        return Icons.new_releases;
-    }
+    // ВСЕ ИКОНКИ ОДИНАКОВЫЕ
+    return Icons.info_outline;
   }
 
   Color _getAuthenticityColor(HistoricalAuthenticity authenticity) {
-    switch (authenticity) {
-      case HistoricalAuthenticity.authentic:
-        return Colors.green;
-      case HistoricalAuthenticity.likely:
-        return Colors.blue;
-      case HistoricalAuthenticity.reconstructed:
-        return Colors.orange;
-      case HistoricalAuthenticity.modern:
-        return Colors.red;
-    }
+    // ВСЕ ЦВЕТА СЕРЫЕ
+    return Colors.grey;
   }
 
   String _getAuthenticityDisplayName(HistoricalAuthenticity authenticity) {
     switch (authenticity) {
       case HistoricalAuthenticity.authentic:
-        return 'Подлинные';
+        return 'Древние';
       case HistoricalAuthenticity.likely:
         return 'Вероятные';
       case HistoricalAuthenticity.reconstructed:
-        return 'Реконструкции';
+        return 'Восстановленные';
       case HistoricalAuthenticity.modern:
-        return 'Современные';
+        return 'Новые';
     }
   }
 
