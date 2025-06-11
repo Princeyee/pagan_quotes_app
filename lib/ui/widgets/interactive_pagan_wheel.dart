@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+import 'dart:async';
+import 'package:just_audio/just_audio.dart';
 import '../../models/pagan_holiday.dart';
 import '../widgets/holiday_info_modal.dart';
 import '../../services/sound_manager.dart';
-import 'dart:async';
 
 class InteractivePaganWheel extends StatefulWidget {
   final Function(int month, List<PaganHoliday> holidays)? onMonthChanged;
@@ -41,6 +42,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   bool _isLoading = true;
   List<PaganHoliday> _currentMonthHolidays = [];
   Timer? _soundTimer;
+  AudioPlayer? _wheelSoundPlayer;
   
   final SoundManager _soundManager = SoundManager();
 
@@ -192,28 +194,32 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Future<void> _playFireSound() async {
-  if (!_soundManager.isMuted) {
-    try {
-      // Останавливаем предыдущий звук и таймер, если они есть
-      _soundTimer?.cancel();
-      _soundManager.stopSound('wheel_rotation');
-      
-      // Запускаем новый звук
-      await _soundManager.playSound(
-        'wheel_rotation',
-        'assets/sounds/fire.mp3',
-        loop: false,
-      );
-      
-      // Устанавливаем таймер на 1 секунду для гарантированной остановки
-      _soundTimer = Timer(const Duration(milliseconds: 1000), () {
-        _soundManager.stopSound('wheel_rotation');
-      });
-    } catch (e) {
-      print('Fire sound not available: $e');
+    if (!_soundManager.isMuted) {
+      try {
+        // Останавливаем предыдущий звук и таймер
+        _soundTimer?.cancel();
+        await _wheelSoundPlayer?.stop();
+        await _wheelSoundPlayer?.dispose();
+        
+        // Создаем новый плеер
+        _wheelSoundPlayer = AudioPlayer();
+        await _wheelSoundPlayer!.setAsset('assets/sounds/fire.mp3');
+        
+        // Запускаем звук
+        _wheelSoundPlayer!.play();
+        
+        // Устанавливаем таймер на 1 секунду для остановки
+        _soundTimer = Timer(const Duration(milliseconds: 1000), () async {
+          await _wheelSoundPlayer?.stop();
+          await _wheelSoundPlayer?.dispose();
+          _wheelSoundPlayer = null;
+        });
+        
+      } catch (e) {
+        print('Fire sound not available: $e');
+      }
     }
   }
-}
 
   void _rotateToMonth(int month) {
     final monthIndex = month - 1;
@@ -912,7 +918,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     _shimmerController.dispose();
     _loadingController.dispose();
     _soundTimer?.cancel();
-    _soundManager.stopSound('wheel_rotation');
+    _wheelSoundPlayer?.stop();
+    _wheelSoundPlayer?.dispose();
     super.dispose();
   }
 }
