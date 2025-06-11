@@ -209,7 +209,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         _wheelSoundPlayer!.play();
         
         // Устанавливаем таймер на 1 секунду для остановки
-        _soundTimer = Timer(const Duration(milliseconds: 1000), () async {
+        _soundTimer = Timer(const Duration(milliseconds: 700), () async {
           await _wheelSoundPlayer?.stop();
           await _wheelSoundPlayer?.dispose();
           _wheelSoundPlayer = null;
