@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
 import '../../models/daily_quote.dart';
@@ -199,6 +200,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   List<dynamic> _getEventsForDay(DateTime day) {
     final dateKey = DateTime(day.year, day.month, day.day);
     return _events[dateKey] ?? [];
+  }
+
+  bool _isSameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
@@ -558,7 +564,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   pageAnimationEnabled: false,
                   pageAnimationDuration: Duration.zero,
                   selectedDayPredicate: (day) {
-                    return isSameDay(_selectedDay, day);
+                    return _isSameDay(_selectedDay, day);
                   },
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
