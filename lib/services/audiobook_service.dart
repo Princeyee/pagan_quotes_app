@@ -41,43 +41,55 @@ class AudiobookService {
     }
   }
 
-  Future<List<Audiobook>> _getLocalAudiobooks() async {
-    try {
-      final String configString = await rootBundle.loadString('assets/config/audiobooks.json');
-      final Map<String, dynamic> config = json.decode(configString);
+  // В методе _getLocalAudiobooks() нужно изменить логику:
+
+Future<List<Audiobook>> _getLocalAudiobooks() async {
+  try {
+    final String configString = await rootBundle.loadString('assets/config/audiobooks.json');
+    final Map<String, dynamic> config = json.decode(configString);
+    
+    final List<dynamic> audiobooksJson = config['audiobooks'] ?? [];
+    final List<Audiobook> audiobooks = [];
+    
+    for (final json in audiobooksJson) {
+      final audiobook = Audiobook.fromJson(json);
       
-      final List<dynamic> audiobooksJson = config['audiobooks'] ?? [];
-      final List<Audiobook> audiobooks = [];
+      // Если coverPath пустой или это тема (не URL и не путь к файлу)
+      String finalCoverPath = audiobook.coverPath;
       
-      for (final json in audiobooksJson) {
-        final audiobook = Audiobook.fromJson(json);
-        
-        // Если coverPath пустой, используем BookImageService
-        if (audiobook.coverPath.isEmpty) {
-          final generatedCover = await BookImageService.getStableBookImage(
-            audiobook.id, 
-            'pagan'
-          );
-          final updatedAudiobook = Audiobook(
-            id: audiobook.id,
-            title: audiobook.title,
-            author: audiobook.author,
-            coverPath: generatedCover,
-            chapters: audiobook.chapters,
-            totalDuration: audiobook.totalDuration,
-            description: audiobook.description,
-          );
-          audiobooks.add(updatedAudiobook);
-        } else {
-          audiobooks.add(audiobook);
-        }
+      if (audiobook.coverPath.isEmpty) {
+        // Если пустой, используем 'philosophy' по умолчанию
+        finalCoverPath = await BookImageService.getStableBookImage(
+          audiobook.id, 
+          'philosophy'
+        );
+      } else if (!audiobook.coverPath.startsWith('http') && 
+                 !audiobook.coverPath.startsWith('assets/')) {
+        // Если это тема (например "pagan", "nordic"), используем её
+        finalCoverPath = await BookImageService.getStableBookImage(
+          audiobook.id, 
+          audiobook.coverPath  // ← Используем тему из конфигурации
+        );
       }
+      // Если это URL или путь к файлу - оставляем как есть
       
-      return audiobooks;
-    } catch (e) {
-      return await _scanAudiobookDirectory();
+      final updatedAudiobook = Audiobook(
+        id: audiobook.id,
+        title: audiobook.title,
+        author: audiobook.author,
+        coverPath: finalCoverPath,  // ← Обновленный путь
+        chapters: audiobook.chapters,
+        totalDuration: audiobook.totalDuration,
+        description: audiobook.description,
+      );
+      audiobooks.add(updatedAudiobook);
     }
+    
+    return audiobooks;
+  } catch (e) {
+    return await _scanAudiobookDirectory();
   }
+}
 
   Future<List<Audiobook>> _getOnlineAudiobooks() async {
     try {
