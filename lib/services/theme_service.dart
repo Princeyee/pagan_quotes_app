@@ -34,6 +34,11 @@ class ThemeService {
     final current = await getEnabledThemes();
     return current.contains(themeId);
   }
+<<<<<<< HEAD
+=======
+
+  // Метод для получения случайной активной темы
+>>>>>>> 8252fec (Assistant checkpoint: Добавлен метод получения случайной активной темы)
   static Future<String> getRandomActiveTheme() async {
     final enabledThemes = await getEnabledThemes();
     if (enabledThemes.isEmpty) {
