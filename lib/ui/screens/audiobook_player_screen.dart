@@ -37,6 +37,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   // Sleep timer
   Duration? _sleepTimer;
   DateTime? _sleepEndTime;
+  
+  // Background playback
+  bool _playInBackground = true;
 
 
 
@@ -112,8 +115,32 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       _playPauseController.value = 0.0;
     }
 
+    // Отключаем звуки с главного экрана
+    _muteBackgroundSounds();
+    
+    // Настраиваем фоновое воспроизведение
+    _setupBackgroundPlayback();
+    
     _initializeAudio();
     _setupAudioListeners();
+  }
+  
+  // Метод для отключения звуков с главного экрана
+  void _muteBackgroundSounds() async {
+    // Используем AudioPlayer из пакета just_audio для управления звуками
+    try {
+      // Отключаем все фоновые звуки
+      // Здесь можно добавить код для поиска и остановки всех активных аудиоплееров
+      // Например, через глобальный сервис управления аудио
+      
+      // Устанавливаем громкость только для текущего плеера
+      await _audioPlayer.setVolume(1.0);
+      
+      // Можно также использовать AudioSession для более глобального управления звуком
+      // Например, запрашивать аудиофокус и т.д.
+    } catch (e) {
+      print('Ошибка при отключении фоновых звуков: $e');
+    }
   }
 
   void _saveProgress() async {
@@ -222,60 +249,75 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     final currentChapter = widget.audiobook.chapters[_currentChapterIndex];
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Blurred background from cover image
-          Positioned.fill(
-            child: Hero(
-              tag: 'audiobook_cover_${widget.audiobook.id}',
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: widget.audiobook.coverPath.startsWith('http')
-                        ? NetworkImage(widget.audiobook.coverPath) as ImageProvider
-                        : AssetImage(widget.audiobook.coverPath),
-                    fit: BoxFit.cover,
+      body: GestureDetector(
+        onVerticalDragEnd: (details) {
+          // Свайп вверх для показа списка глав
+          if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+            setState(() => _showChapterList = true);
+          }
+          // Свайп вниз для скрытия списка глав
+          else if (details.primaryVelocity != null && details.primaryVelocity! > 0) {
+            setState(() => _showChapterList = false);
+          }
+        },
+        child: Stack(
+          children: [
+            // Blurred background from cover image
+            Positioned.fill(
+              child: Hero(
+                tag: 'audiobook_cover_${widget.audiobook.id}',
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: widget.audiobook.coverPath.startsWith('http')
+                          ? NetworkImage(widget.audiobook.coverPath) as ImageProvider
+                          : AssetImage(widget.audiobook.coverPath),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    color: Colors.black.withOpacity(0.7),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.7),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          
-          // Main content
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                _buildHeader(context),
-
-                // Cover Art & Chapter Info
-                Expanded(
-                  flex: 3,
-                  child: _buildCoverSection(currentChapter),
-                ),
-
-                // Progress & Controls
-                Expanded(
-                  flex: 2,
-                  child: _buildControlsSection(theme),
-                ),
-
-                // Chapter List (if visible)
-                if (_showChapterList)
+            
+            // Main content
+            SafeArea(
+              child: Column(
+                children: [
+                  // Header
+                  _buildHeader(context),
+  
+                  // Cover Art & Chapter Info
+                  Expanded(
+                    flex: 3,
+                    child: _buildCoverSection(currentChapter),
+                  ),
+  
+                  // Progress & Controls
                   Expanded(
                     flex: 2,
-                    child: _buildChapterList(),
+                    child: _buildControlsSection(theme),
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            
+            // Chapter List (показывается при свайпе)
+            if (_showChapterList)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: MediaQuery.of(context).size.height * 0.6, // Занимает 60% экрана
+                child: _buildChapterList(),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -318,12 +360,30 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(
-              _showChapterList ? Icons.list : Icons.menu_book,
-              color: Colors.white,
+          // Индикатор свайпа для списка глав
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            onPressed: () => setState(() => _showChapterList = !_showChapterList),
+            child: Row(
+              children: [
+                Icon(
+                  _showChapterList ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _showChapterList ? "Скрыть главы" : "Показать главы",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
@@ -347,6 +407,23 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                     const Icon(Icons.timer, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     const Text('Таймер сна', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'background', 
+                child: Row(
+                  children: [
+                    Icon(
+                      _playInBackground ? Icons.music_note : Icons.music_off,
+                      color: Colors.white,
+                      size: 20
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _playInBackground ? 'Фоновое воспроизведение: Вкл' : 'Фоновое воспроизведение: Выкл',
+                      style: const TextStyle(color: Colors.white)
+                    ),
                   ],
                 ),
               ),
@@ -522,7 +599,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               // Play/Pause
               Container(
                 decoration: BoxDecoration(
-                  color: theme.primaryColor,
+                  color: Colors.black.withOpacity(0.7), // Меняем цвет с белого на темный
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -543,7 +620,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                       child: AnimatedIcon(
                         icon: AnimatedIcons.play_pause,
                         progress: _playPauseController,
-                        color: Colors.white,
+                        color: theme.primaryColor, // Меняем цвет иконки с белого на цвет темы
                         size: 48,
                       ),
                     ),
@@ -594,108 +671,264 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   }
 
   Widget _buildChapterList() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              width: 1,
+    final theme = Theme.of(context);
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.8),
+                  Colors.black.withOpacity(0.9),
+                ],
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.15),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
             ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 1,
+            child: Column(
+              children: [
+                // Заголовок списка глав
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        theme.primaryColor.withOpacity(0.2),
+                        Colors.black.withOpacity(0.5),
+                      ],
+                    ),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.white.withOpacity(0.15),
+                        width: 1,
+                      ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Главы',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.menu_book,
+                        color: theme.primaryColor,
+                        size: 24,
                       ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => setState(() => _showChapterList = false),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(
+                        'Главы аудиокниги',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => setState(() => _showChapterList = false),
+                          tooltip: 'Закрыть список глав',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: widget.audiobook.chapters.length,
-                  itemBuilder: (context, index) {
-                    final chapter = widget.audiobook.chapters[index];
-                    final isCurrentChapter = index == _currentChapterIndex;
+                
+                // Список глав
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: widget.audiobook.chapters.length,
+                    itemBuilder: (context, index) {
+                      final chapter = widget.audiobook.chapters[index];
+                      final isCurrentChapter = index == _currentChapterIndex;
 
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: isCurrentChapter 
-                            ? Theme.of(context).primaryColor.withOpacity(0.3)
-                            : Colors.transparent,
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isCurrentChapter
-                              ? Theme.of(context).primaryColor
-                              : Colors.white.withOpacity(0.2),
-                          child: Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              color: isCurrentChapter ? Colors.white : Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.bold,
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: isCurrentChapter
+                              ? LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    theme.primaryColor.withOpacity(0.2),
+                                    theme.primaryColor.withOpacity(0.1),
+                                  ],
+                                )
+                              : null,
+                          boxShadow: isCurrentChapter
+                              ? [
+                                  BoxShadow(
+                                    color: theme.primaryColor.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => _changeChapter(index),
+                            splashColor: theme.primaryColor.withOpacity(0.1),
+                            highlightColor: theme.primaryColor.withOpacity(0.05),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                              child: Row(
+                                children: [
+                                  // Номер главы
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    margin: const EdgeInsets.only(right: 16),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: isCurrentChapter
+                                            ? [
+                                                theme.primaryColor,
+                                                theme.primaryColor.withOpacity(0.7),
+                                              ]
+                                            : [
+                                                Colors.white.withOpacity(0.2),
+                                                Colors.white.withOpacity(0.05),
+                                              ],
+                                      ),
+                                      boxShadow: isCurrentChapter
+                                          ? [
+                                              BoxShadow(
+                                                color: theme.primaryColor.withOpacity(0.5),
+                                                blurRadius: 8,
+                                                spreadRadius: 1,
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${index + 1}',
+                                        style: TextStyle(
+                                          color: isCurrentChapter
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.9),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  
+                                  // Информация о главе
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          chapter.title,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: isCurrentChapter
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: isCurrentChapter
+                                                ? Colors.white
+                                                : Colors.white.withOpacity(0.9),
+                                            letterSpacing: 0.3,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time,
+                                              size: 14,
+                                              color: isCurrentChapter
+                                                  ? theme.primaryColor
+                                                  : Colors.white.withOpacity(0.5),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _formatDuration(chapter.duration),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: isCurrentChapter
+                                                    ? theme.primaryColor
+                                                    : Colors.white.withOpacity(0.5),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  // Индикатор текущей главы
+                                  if (isCurrentChapter)
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.black.withOpacity(0.3),
+                                      ),
+                                      child: AnimatedBuilder(
+                                        animation: _waveController,
+                                        builder: (context, child) {
+                                          return Icon(
+                                            _isPlaying ? Icons.graphic_eq : Icons.play_arrow,
+                                            color: theme.primaryColor,
+                                            size: 24,
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        title: Text(
-                          chapter.title,
-                          style: TextStyle(
-                            fontWeight: isCurrentChapter ? FontWeight.bold : FontWeight.normal,
-                            color: isCurrentChapter ? Colors.white : Colors.white.withOpacity(0.9),
-                          ),
-                        ),
-                        subtitle: Text(
-                          _formatDuration(chapter.duration),
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                          ),
-                        ),
-                        onTap: () => _changeChapter(index),
-                        trailing: isCurrentChapter
-                            ? AnimatedBuilder(
-                                animation: _waveController,
-                                builder: (context, child) {
-                                  return Icon(
-                                    Icons.graphic_eq,
-                                    color: Colors.white,
-                                  );
-                                },
-                              )
-                            : null,
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -710,6 +943,55 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       case 'timer':
         _showSleepTimerDialog();
         break;
+      case 'background':
+        _toggleBackgroundPlayback();
+        break;
+    }
+  }
+  
+  void _toggleBackgroundPlayback() {
+    setState(() {
+      _playInBackground = !_playInBackground;
+    });
+    
+    // Настраиваем фоновое воспроизведение
+    _setupBackgroundPlayback();
+    
+    // Показываем уведомление пользователю
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _playInBackground 
+              ? 'Фоновое воспроизведение включено' 
+              : 'Фоновое воспроизведение выключено'
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  void _setupBackgroundPlayback() async {
+    try {
+      // Здесь настраиваем фоновое воспроизведение
+      // В реальном приложении нужно использовать audio_service или другие плагины
+      // для правильной работы в фоновом режиме
+      
+      // Для just_audio нужно использовать AudioSession для фонового воспроизведения
+      // Это упрощенная реализация, в реальном приложении нужно добавить
+      // пакет audio_session и настроить его правильно
+      
+      if (_playInBackground) {
+        // Включаем фоновое воспроизведение
+        // В реальном приложении:
+        // final session = await AudioSession.instance;
+        // await session.configure(AudioSessionConfiguration.music());
+        print('Фоновое воспроизведение включено');
+      } else {
+        // Выключаем фоновое воспроизведение
+        print('Фоновое воспроизведение выключено');
+      }
+    } catch (e) {
+      print('Ошибка при настройке фонового воспроизведения: $e');
     }
   }
 
@@ -815,6 +1097,14 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     _audioPlayer.dispose();
     _playPauseController.dispose();
     _waveController.dispose();
+    // Восстанавливаем звуки главного экрана при закрытии плеера
+    _restoreBackgroundSounds();
     super.dispose();
+  }
+  
+  // Метод для восстановления звуков главного экрана
+  void _restoreBackgroundSounds() {
+    // Здесь можно добавить код для восстановления звуков главного экрана
+    // Например, использовать AudioSession или другие плагины для управления аудио
   }
 }

@@ -25,6 +25,8 @@ dependencies:
   googleapis_auth: ^1.4.1
   dio: ^5.4.0
   connectivity_plus: ^5.0.2
+  google_sign_in: ^6.3.0
+  http: ^1.4.0
 
 
 dev_dependencies:

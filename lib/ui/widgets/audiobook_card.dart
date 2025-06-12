@@ -14,164 +14,183 @@ class AudiobookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      color: Colors.black.withOpacity(0.8),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap ?? () => _navigateToPlayer(context),
-        child: Container(
-          height: 140,
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Cover Art
-              Hero(
-                tag: 'audiobook_cover_${audiobook.id}',
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+    return Column(
+      children: [
+        Card(
+          elevation: 8,
+          color: Colors.black.withOpacity(0.8),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap ?? () => _navigateToPlayer(context),
+            child: Container(
+              height: 140,
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Cover Art
+                  Hero(
+                    tag: 'audiobook_cover_${audiobook.id}',
+                    child: Container(
+                      width: 100,
+                      height: 140, // Увеличиваем высоту для прямоугольной обложки
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: audiobook.coverPath.startsWith('http')
-                    ? Image.network(
-                        audiobook.coverPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[800],
-                            child: const Icon(
-                              Icons.audiotrack,
-                              color: Colors.white,
-                              size: 50,
-                            ),
-                          );
-                        },
-                      )
-                    : Image.asset(
-                        audiobook.coverPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[800],
-                            child: const Icon(
-                              Icons.audiotrack,
-                              color: Colors.white,
-                              size: 50,
-                            ),
-                          );
-                        },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: audiobook.coverPath.startsWith('http')
+                        ? Image.network(
+                            audiobook.coverPath,
+                            fit: BoxFit.fill, // Меняем на fill чтобы заполнить весь контейнер
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[800],
+                                child: const Icon(
+                                  Icons.audiotrack,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            audiobook.coverPath,
+                            fit: BoxFit.fill, // Меняем на fill чтобы заполнить весь контейнер
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[800],
+                                child: const Icon(
+                                  Icons.audiotrack,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              );
+                            },
+                          ),
                       ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 16),
-
-              // Book Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      audiobook.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
+                  ),
 
-                    const SizedBox(height: 4),
+                  const SizedBox(width: 16),
 
-                    Text(
-                      audiobook.author,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Row(
+                  // Book Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.menu_book,
-                          size: 16,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          '${audiobook.chapters.length} глав',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
+                          audiobook.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.access_time,
-                          size: 16,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(width: 4),
+
+                        const SizedBox(height: 4),
+
                         Text(
-                          _formatTotalDuration(audiobook.totalDuration),
+                          audiobook.author,
                           style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
+                            fontSize: 14,
+                            color: Colors.grey[600],
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.menu_book,
+                              size: 16,
+                              color: Colors.grey[500],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${audiobook.chapters.length} глав',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Icon(
+                              Icons.access_time,
+                              size: 16,
+                              color: Colors.grey[500],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatTotalDuration(audiobook.totalDuration),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              // Play Button
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).primaryColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                  // Play Button
+                  Container(
+                    width: 36, // Уменьшаем размер кнопки
+                    height: 36, // Уменьшаем размер кнопки
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.8), // Делаем немного прозрачным
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).primaryColor.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 20, // Уменьшаем размер иконки
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
+        // Добавляем название аудиокниги под карточкой
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            audiobook.title,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 

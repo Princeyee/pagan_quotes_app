@@ -5,24 +5,37 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 class GoogleDriveService {
-  static const String _folderId = 'YOUR_GOOGLE_DRIVE_FOLDER_ID'; // Замените на ID папки с аудиокнигами
+  static const String _folderId = '1b7PFjESsnY6bsn9rDmdAe10AU0pQNwiM'; // ID папки с аудиокнигами
   static const List<String> _scopes = [drive.DriveApi.driveReadonlyScope];
+  // Client ID из JSON-файла
+  static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com';
   
   drive.DriveApi? _driveApi;
   final Dio _dio = Dio();
 
   Future<void> initialize() async {
     try {
-      // Здесь нужно настроить аутентификацию с Google Drive
-      // Для простоты используем service account или OAuth2
-      // В продакшене нужно будет настроить правильную аутентификацию
+      final googleSignIn = GoogleSignIn(
+        scopes: _scopes,
+        clientId: _clientId,
+      );
       
-      // Пример инициализации (нужно добавить credentials)
-      // final credentials = ServiceAccountCredentials.fromJson(credentialsJson);
-      // final client = await clientViaServiceAccount(credentials, _scopes);
-      // _driveApi = drive.DriveApi(client);
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        print('Пользователь отменил вход');
+        return;
+      }
+      
+      final authHeaders = await account.authHeaders;
+      final client = GoogleAuthClient(authHeaders);
+      _driveApi = drive.DriveApi(client);
+      
+      print('Google Drive API инициализирован успешно');
     } catch (e) {
       print('Ошибка инициализации Google Drive: $e');
     }
@@ -108,5 +121,19 @@ class GoogleDriveService {
   Future<bool> isFileCached(String fileName) async {
     final cachedPath = await getCachedFilePath(fileName);
     return cachedPath != null;
+  }
+}
+
+// Вспомогательный класс для аутентификации
+class GoogleAuthClient extends BaseClient {
+  final Map<String, String> _headers;
+  final Client _client = Client();
+
+  GoogleAuthClient(this._headers);
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) {
+    request.headers.addAll(_headers);
+    return _client.send(request);
   }
 }
