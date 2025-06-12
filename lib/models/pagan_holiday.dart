@@ -236,12 +236,6 @@ class PaganHolidayService {
       nameOriginal: 'Jól',
       date: DateTime(2024, 12, 25), // НЕ солнцестояние! Первое полнолуние после
       tradition: 'nordic',
-<<<<<<< HEAD
-      description: 'Главный северный праздник, трёхдневное пиршество',
-      longDescription: 'Йоль — исторически подтверждённый скандинавский праздник, длившийся три дня. Время жертвоприношений Фрейру за хороший урожай.',
-      traditions: ['Трёхдневные пиры', 'Жертвоприношения Фрейру', 'Запрет на ссоры', 'Клятвы и обеты'],
-      symbols: ['Кабан Фрейра', 'Рога для питья', 'Йольское полено', 'Вечнозеленые ветви'],
-=======
       description: 'Зимнее солнцестояние, праздник возрождения света',
       longDescription: 'Йоль — один из важнейших праздников северной традиции, отмечающий самую длинную ночь в году и возрождение солнца. В эти дни жгли костры, чтобы помочь солнцу вернуться, и проводили ритуалы защиты дома.',
       traditions: ['Сжигание йольского полена', 'Украшение елки', 'Пиры с родственниками', 'Ритуалы защиты'],
@@ -259,7 +253,6 @@ class PaganHolidayService {
       longDescription: 'Альбан Артан — древний кельтский праздник зимнего солнцестояния, когда друиды проводили ритуалы возрождения света и жизни.',
       traditions: ['Ритуалы в священных рощах', 'Зажигание костров', 'Сбор омелы', 'Пророчества на новый год'],
       symbols: ['Омела', 'Дуб', 'Белые камни', 'Золотой серп'],
->>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
       type: PaganHolidayType.seasonal,
       authenticity: HistoricalAuthenticity.authentic,
       sources: ['Сага об Инглингах', 'Сага о Хаконе Добром', 'Сага о Харальде Прекрасноволосом'],
@@ -759,14 +752,8 @@ class PaganHolidayService {
   static List<String> getAllTraditions() {
     return _holidays.map((h) => h.tradition).toSet().toList();
   }
-<<<<<<< HEAD
-=======
 }
-```
 
-The provided changes are not applicable to the current code. The changes seem to be intended for older version of code. I will generate code based on the intention, focusing on adding tradition and reliabilityLevel to the `PaganHoliday` model.
-
-```dart
 // lib/models/pagan_holiday.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С ДОПОЛНИТЕЛЬНЫМИ ПРАЗДНИКАМИ
 class PaganHoliday {
   final String id;
@@ -1209,7 +1196,6 @@ class PaganHolidayService {
     if (reliabilityLevel != null) {
       filteredHolidays = filteredHolidays.where((h) => h.reliabilityLevel == reliabilityLevel).toList();
     }
->>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
 
   /// Получает статистику по достоверности
   static Map<HistoricalAuthenticity, int> getAuthenticityStats() {
@@ -1220,30 +1206,6 @@ class PaganHolidayService {
     return stats;
   }
 
-<<<<<<< HEAD
-  /// Проверяет, является ли праздник исторически достоверным
-  static bool isAuthentic(String holidayId) {
-    final holiday = _holidays.firstWhere((h) => h.id == holidayId, orElse: () => 
-      throw ArgumentError('Holiday with id $holidayId not found'));
-    return holiday.authenticity == HistoricalAuthenticity.authentic || 
-           holiday.authenticity == HistoricalAuthenticity.likely;
-  }
-
-  /// Получает предупреждение о современном происхождении (если нужно)
-  static String? getModernWarning(String holidayId) {
-    final holiday = _holidays.firstWhere((h) => h.id == holidayId, orElse: () => 
-      throw ArgumentError('Holiday with id $holidayId not found'));
-    
-    if (holiday.authenticity == HistoricalAuthenticity.modern) {
-      return 'ВНИМАНИЕ: Этот праздник является современным изобретением и не имеет исторических корней.';
-    }
-    
-    if (holiday.authenticity == HistoricalAuthenticity.reconstructed) {
-      return 'ПРИМЕЧАНИЕ: Этот праздник реконструирован на основе фольклорных данных и может не соответствовать древним практикам.';
-    }
-    
-    return null;
-=======
     // Ищем праздники в этом году после текущей даты
     var upcomingThisYear = filteredHolidays
         .map((h) => h.getDateForYear(currentYear))
@@ -1269,6 +1231,5 @@ class PaganHolidayService {
   /// Получает все традиции
   static List<String> getAllTraditions() {
     return _holidays.map((h) => h.tradition).toSet().toList();
->>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
   }
 }
