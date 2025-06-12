@@ -1,6 +1,7 @@
 // lib/ui/widgets/note_modal.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/quote.dart';
 import '../../utils/custom_cache.dart';
@@ -35,12 +36,12 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     _animController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
       vsync: this,
     );
     
     _scaleAnimation = Tween<double>(
-      begin: 0.8,
+      begin: 0.95,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animController,
@@ -107,6 +108,9 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
     setState(() => _isSaving = false);
     widget.onSaved?.call();
     
+    // Добавляем вибрацию при сохранении
+    HapticFeedback.mediumImpact();
+    
     await _animController.reverse();
     if (mounted) Navigator.of(context).pop();
   }
@@ -129,22 +133,32 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Container(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withOpacity(0.5),
             child: SafeArea(
-              child: Center(
+              child: Align(
+                alignment: Alignment.bottomCenter,
                 child: GestureDetector(
                   onTap: () {}, // Предотвращаем закрытие при тапе на контент
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: _animController,
+                      curve: Curves.easeOutQuart,
+                    )),
                     child: Container(
-                      margin: const EdgeInsets.all(20),
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 20),
                       constraints: BoxConstraints(
-                        maxWidth: 500,
                         maxHeight: MediaQuery.of(context).size.height * 0.85,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[900],
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.3),
@@ -152,10 +166,27 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                             spreadRadius: 5,
                           ),
                         ],
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 0.5,
+                        ),
                       ),
+                      clipBehavior: Clip.antiAlias,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Индикатор для свайпа вниз
+                          Container(
+                            margin: const EdgeInsets.only(top: 12),
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
                           // Заголовок
                           Container(
                             padding: const EdgeInsets.all(24),
@@ -191,9 +222,16 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                     ),
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  icon: const Icon(Icons.close, color: Colors.white54),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    iconSize: 20,
+                                  ),
                                 ),
                               ],
                             ),
@@ -382,6 +420,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
           ),
         ),
       ),
+      )
     );
   }
 }
@@ -392,6 +431,7 @@ Future<void> showNoteModal(BuildContext context, Quote quote, {VoidCallback? onS
     context: context,
     barrierDismissible: true,
     barrierColor: Colors.transparent,
+    useSafeArea: false,
     builder: (context) => NoteModal(
       quote: quote,
       onSaved: onSaved,

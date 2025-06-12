@@ -7,7 +7,8 @@ class BookSource {
   final String language; // en, ru
   final String? translator;
   final String rawFilePath; // путь к raw.txt
-  final String cleanedFilePath; // путь к cleaned.txt  
+  final String cleanedFilePath; // путь к cleaned.txt
+  final bool hasAudioVersion; // флаг наличия аудиоверсии
 
   const BookSource({
     required this.id,
@@ -18,6 +19,7 @@ class BookSource {
     this.translator,
     required this.rawFilePath,
     required this.cleanedFilePath,
+    this.hasAudioVersion = false,
   });
 
   factory BookSource.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class BookSource {
       translator: json['translator'] as String?,
       rawFilePath: json['rawFilePath'] as String,
       cleanedFilePath: json['cleanedFilePath'] as String,
+      hasAudioVersion: json['hasAudioVersion'] as bool? ?? false,
     );
   }
 
@@ -43,6 +46,7 @@ class BookSource {
       'translator': translator,
       'rawFilePath': rawFilePath,
       'cleanedFilePath': cleanedFilePath,
+      'hasAudioVersion': hasAudioVersion,
     };
   }
 

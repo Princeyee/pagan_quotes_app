@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/book_source.dart';
 import 'logger_service.dart';
+import 'audiobook_service.dart';
 
 class TextFileService {
   static final TextFileService _instance = TextFileService._internal();
@@ -22,6 +23,10 @@ class TextFileService {
     if (_cachedSources.isNotEmpty) {
       return _cachedSources.values.expand((list) => list).toList();
     }
+    
+    // Загружаем список аудиокниг для проверки наличия аудиоверсий
+    final audiobookService = AudiobookService();
+    final audiobooks = await audiobookService.getAudiobooks();
 
     // ХАРДКОД - точно такие же книги как в random_curator.dart
     final sources = <BookSource>[
@@ -316,6 +321,30 @@ class TextFileService {
       ),
     ];
 
+    // Проверяем наличие аудиоверсий для книг
+    for (int i = 0; i < sources.length; i++) {
+      final book = sources[i];
+      // Проверяем, есть ли аудиокнига с таким же ID или названием
+      final hasAudio = audiobooks.any((audiobook) => 
+        audiobook.id == book.id || 
+        audiobook.title.toLowerCase() == book.title.toLowerCase()
+      );
+      
+      if (hasAudio) {
+        sources[i] = BookSource(
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          category: book.category,
+          language: book.language,
+          translator: book.translator,
+          rawFilePath: book.rawFilePath,
+          cleanedFilePath: book.cleanedFilePath,
+          hasAudioVersion: true,
+        );
+      }
+    }
+    
     // Группируем по категориям для кэша
     final Map<String, List<BookSource>> categorizedSources = {};
     for (final source in sources) {

@@ -6,7 +6,9 @@ import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
 import '../../services/book_image_service.dart';
 import '../../utils/custom_cache.dart';
+import '../../services/audiobook_service.dart';
 import 'book_reader_page.dart';
+import 'audiobook_player_screen.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -338,6 +340,29 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                   ),
                 ),
               ),
+              
+              // Значок аудиоверсии
+              if (book.hasAudioVersion)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.headphones,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -380,7 +405,56 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
     return cache.getSetting<double>('reading_progress_$bookId') ?? 0.0;
   }
 
-  void _openBook(BookSource book) {
+  void _openBook(BookSource book) async {
+    if (book.hasAudioVersion) {
+      // Показываем диалог выбора между текстом и аудио
+      final choice = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Выберите формат',
+            style: GoogleFonts.merriweather(color: Colors.white),
+          ),
+          content: Text(
+            'Эта книга доступна в текстовом и аудио формате',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('text'),
+              child: Text('Читать текст', style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () => Navigator.of(context).pop('audio'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.headphones, size: 16),
+                  SizedBox(width: 6),
+                  Text('Слушать аудио'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+      
+      if (choice == 'audio') {
+        _openAudioVersion(book);
+        return;
+      } else if (choice == null) {
+        // Пользователь отменил диалог
+        return;
+      }
+      // Если выбран текст или диалог отменен, продолжаем с открытием текста
+    }
+    
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => 
@@ -400,5 +474,27 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
         transitionDuration: const Duration(milliseconds: 400),
       ),
     );
+  }
+  
+  void _openAudioVersion(BookSource book) async {
+    try {
+      final audiobookService = AudiobookService();
+      final audiobooks = await audiobookService.getAudiobooks();
+      
+      final audiobook = audiobooks.firstWhere(
+        (a) => a.id == book.id || a.title.toLowerCase() == book.title.toLowerCase(),
+        orElse: () => throw Exception('Аудиоверсия не найдена'),
+      );
+      
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => AudiobookPlayerScreen(audiobook: audiobook),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка при открытии аудиокниги: $e')),
+      );
+    }
   }
 }
