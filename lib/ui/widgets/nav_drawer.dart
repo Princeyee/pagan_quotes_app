@@ -299,7 +299,7 @@ class _NavDrawerState extends State<NavDrawer>
                               delay: 125,
                               onTap: () {
                                 _closeDrawer(context);
-                                _navigateToPage(const AudioLibraryPage());
+                                _navigateToPage( AudioLibraryPage());
                               },
                             ),
                             
