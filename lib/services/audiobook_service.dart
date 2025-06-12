@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/audiobook.dart';
+import 'book_image_service.dart';
 
 class AudiobookService {
   static const String _progressKey = 'audiobook_progress';
@@ -16,9 +17,33 @@ class AudiobookService {
       final Map<String, dynamic> config = json.decode(configString);
       
       final List<dynamic> audiobooksJson = config['audiobooks'] ?? [];
-      return audiobooksJson
-          .map((json) => Audiobook.fromJson(json))
-          .toList();
+      final List<Audiobook> audiobooks = [];
+      
+      for (final json in audiobooksJson) {
+        final audiobook = Audiobook.fromJson(json);
+        
+        // Если coverPath пустой, используем BookImageService
+        if (audiobook.coverPath.isEmpty) {
+          final generatedCover = await BookImageService.getStableBookImage(
+            audiobook.id, 
+            'pagan' // можно добавить поле category в JSON для разных тем
+          );
+          final updatedAudiobook = Audiobook(
+            id: audiobook.id,
+            title: audiobook.title,
+            author: audiobook.author,
+            coverPath: generatedCover,
+            chapters: audiobook.chapters,
+            totalDuration: audiobook.totalDuration,
+            description: audiobook.description,
+          );
+          audiobooks.add(updatedAudiobook);
+        } else {
+          audiobooks.add(audiobook);
+        }
+      }
+      
+      return audiobooks;
     } catch (e) {
       // Если конфига нет, сканируем директорию
       return await _scanAudiobookDirectory();
@@ -57,12 +82,20 @@ class AudiobookService {
         final bookName = entry.key;
         final files = entry.value;
         
-        // Ищем обложку
-        final coverFile = files.firstWhere(
+        // Ищем обложку или используем BookImageService
+        String coverPath;
+        final localCoverFile = files.firstWhere(
           (file) => file.contains('cover.') && 
                    (file.endsWith('.jpg') || file.endsWith('.png')),
-          orElse: () => 'assets/images/book_background.jpg',
+          orElse: () => '',
         );
+        
+        if (localCoverFile.isNotEmpty) {
+          coverPath = localCoverFile;
+        } else {
+          // Используем BookImageService для генерации обложки
+          coverPath = await BookImageService.getStableBookImage(bookName, 'pagan');
+        }
         
         // Ищем аудиофайлы
         final audioFiles = files
@@ -94,7 +127,7 @@ class AudiobookService {
             id: bookName,
             title: _formatBookTitle(bookName),
             author: 'Неизвестный автор',
-            coverPath: coverFile,
+            coverPath: coverPath,
             chapters: chapters,
             totalDuration: totalDuration,
           ));

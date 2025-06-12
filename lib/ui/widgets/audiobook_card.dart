@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../models/audiobook.dart';
 import '../screens/audiobook_player_screen.dart';
@@ -45,25 +44,40 @@ class AudiobookCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    audiobook.coverPath,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: const Icon(
-                          Icons.audiobook,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                      );
-                    },
-                  ),
+                  child: audiobook.coverPath.startsWith('http')
+                  ? Image.network(
+                      audiobook.coverPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[800],
+                          child: Icon(
+                            Icons.audiotrack,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      audiobook.coverPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[800],
+                          child: Icon(
+                            Icons.audiotrack,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        );
+                      },
+                    ),
                 ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               // Book Info
               Expanded(
                 child: Column(
@@ -79,9 +93,9 @@ class AudiobookCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     const SizedBox(height: 4),
-                    
+
                     Text(
                       audiobook.author,
                       style: TextStyle(
@@ -91,9 +105,9 @@ class AudiobookCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     Row(
                       children: [
                         Icon(
@@ -128,7 +142,7 @@ class AudiobookCard extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // Play Button
               Container(
                 width: 48,
@@ -185,7 +199,7 @@ class AudiobookCard extends StatelessWidget {
   String _formatTotalDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours}ч ${minutes}м';
     } else {

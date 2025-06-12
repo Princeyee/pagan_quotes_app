@@ -5,7 +5,7 @@
       "id": "example_audiobook",
       "title": "Пример аудиокниги",
       "author": "Пример автора",
-      "coverPath": "assets/audiobooks/example_audiobook/cover.jpg",
+      "coverPath": "",
       "description": "Описание примера аудиокниги",
       "totalDurationMs": 7200000,
       "chapters": [

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../models/audiobook.dart';
@@ -22,10 +21,10 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     with TickerProviderStateMixin {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final AudiobookService _audiobookService = AudiobookService();
-  
+
   late AnimationController _playPauseController;
   late AnimationController _waveController;
-  
+
   int _currentChapterIndex = 0;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
@@ -33,7 +32,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   bool _isLoading = false;
   bool _showChapterList = false;
   double _playbackSpeed = 1.0;
-  
+
   // Sleep timer
   Duration? _sleepTimer;
   DateTime? _sleepEndTime;
@@ -42,28 +41,28 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   void initState() {
     super.initState();
     _currentChapterIndex = widget.initialChapter ?? 0;
-    
+
     _playPauseController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _waveController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     )..repeat();
-    
+
     _initializeAudio();
     _setupAudioListeners();
   }
 
   void _initializeAudio() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final chapterPath = widget.audiobook.chapters[_currentChapterIndex].filePath;
       await _audioPlayer.setAsset(chapterPath);
-      
+
       // Восстановить позицию из сохраненного прогресса
       final progress = await _audiobookService.getProgress(widget.audiobook.id);
       if (progress != null && progress.chapterIndex == _currentChapterIndex) {
@@ -137,7 +136,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       try {
         final chapterPath = widget.audiobook.chapters[index].filePath;
         await _audioPlayer.setAsset(chapterPath);
-        
+
         // Проверить сохраненный прогресс для новой главы
         final progress = await _audiobookService.getProgress(widget.audiobook.id);
         if (progress != null && progress.chapterIndex == index) {
@@ -199,7 +198,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     String hours = twoDigits(duration.inHours);
     String minutes = twoDigits(duration.inMinutes.remainder(60));
     String seconds = twoDigits(duration.inSeconds.remainder(60));
-    
+
     if (duration.inHours > 0) {
       return '$hours:$minutes:$seconds';
     } else {
@@ -229,19 +228,19 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
             children: [
               // Header
               _buildHeader(context),
-              
+
               // Cover Art & Chapter Info
               Expanded(
                 flex: 3,
                 child: _buildCoverSection(currentChapter),
               ),
-              
+
               // Progress & Controls
               Expanded(
                 flex: 2,
                 child: _buildControlsSection(theme),
               ),
-              
+
               // Chapter List (if visible)
               if (_showChapterList)
                 Expanded(
@@ -322,27 +321,50 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  widget.audiobook.coverPath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: const Icon(
-                        Icons.music_note,
-                        size: 80,
-                        color: Colors.grey,
-                      ),
-                    );
-                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: widget.audiobook.coverPath.startsWith('http')
+                      ? Image.network(
+                          widget.audiobook.coverPath,
+                          width: 250,
+                          height: 250,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 250,
+                              height: 250,
+                              color: Colors.grey[800],
+                              child: Icon(
+                                Icons.audiotrack,
+                                color: Colors.white,
+                                size: 80,
+                              ),
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          widget.audiobook.coverPath,
+                          width: 250,
+                          height: 250,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 250,
+                              height: 250,
+                              color: Colors.grey[800],
+                              child: Icon(
+                                Icons.audiotrack,
+                                color: Colors.white,
+                                size: 80,
+                              ),
+                            );
+                          },
+                        ),
                 ),
-              ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Chapter Title
           Text(
             currentChapter.title,
@@ -354,9 +376,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Chapter Progress
           Text(
             'Глава ${_currentChapterIndex + 1} из ${widget.audiobook.chapters.length}',
@@ -402,7 +424,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   ),
                 ],
               ),
-              
+
               // Sleep Timer Info
               if (_sleepTimer != null)
                 Text(
@@ -414,9 +436,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Playback Controls
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -427,7 +449,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 iconSize: 32,
                 onPressed: _currentChapterIndex > 0 ? _previousChapter : null,
               ),
-              
+
               // Rewind 30s
               IconButton(
                 icon: const Icon(Icons.replay_30),
@@ -437,7 +459,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   _seek(newPosition < Duration.zero ? Duration.zero : newPosition);
                 },
               ),
-              
+
               // Play/Pause
               Container(
                 decoration: BoxDecoration(
@@ -454,7 +476,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   onPressed: _isLoading ? null : _playPause,
                 ),
               ),
-              
+
               // Forward 30s
               IconButton(
                 icon: const Icon(Icons.forward_30),
@@ -464,7 +486,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   _seek(newPosition > _totalDuration ? _totalDuration : newPosition);
                 },
               ),
-              
+
               // Next Chapter
               IconButton(
                 icon: const Icon(Icons.skip_next),
@@ -475,9 +497,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Speed Control
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -530,7 +552,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               itemBuilder: (context, index) {
                 final chapter = widget.audiobook.chapters[index];
                 final isCurrentChapter = index == _currentChapterIndex;
-                
+
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: isCurrentChapter
