@@ -34,4 +34,12 @@ class ThemeService {
     final current = await getEnabledThemes();
     return current.contains(themeId);
   }
+  static Future<String> getRandomActiveTheme() async {
+    final enabledThemes = await getEnabledThemes();
+    if (enabledThemes.isEmpty) {
+      return 'greece'; // fallback
+    }
+    enabledThemes.shuffle();
+    return enabledThemes.first;
+  }
 }
