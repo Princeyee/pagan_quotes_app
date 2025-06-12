@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/auth_io.dart';
@@ -12,8 +11,7 @@ import 'package:http/http.dart' as http;
 class GoogleDriveService {
   static const String _folderId = '1b7PFjESsnY6bsn9rDmdAe10AU0pQNwiM'; // ID папки с аудиокнигами
   static const List<String> _scopes = [drive.DriveApi.driveReadonlyScope];
-  // Client ID из JSON-файла
-  static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com';
+  static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com'; // Client ID из JSON-файла
   
   drive.DriveApi? _driveApi;
   final Dio _dio = Dio();

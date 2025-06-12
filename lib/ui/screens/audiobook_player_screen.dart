@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:audio_session/audio_session.dart';
 import '../../models/audiobook.dart';
 import '../../services/audiobook_service.dart';
 
@@ -118,11 +119,23 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     // Отключаем звуки с главного экрана
     _muteBackgroundSounds();
     
-    // Настраиваем фоновое воспроизведение
-    _setupBackgroundPlayback();
+    // Инициализируем аудио сессию и настраиваем фоновое воспроизведение
+    _initAudioSession();
     
     _initializeAudio();
     _setupAudioListeners();
+  }
+  
+  // Инициализация аудио сессии
+  Future<void> _initAudioSession() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(AudioSessionConfiguration.music());
+      // По умолчанию включаем фоновое воспроизведение
+      _setupBackgroundPlayback();
+    } catch (e) {
+      print('Ошибка инициализации аудио сессии: $e');
+    }
   }
   
   // Метод для отключения звуков с главного экрана
@@ -972,22 +985,33 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   
   void _setupBackgroundPlayback() async {
     try {
-      // Здесь настраиваем фоновое воспроизведение
-      // В реальном приложении нужно использовать audio_service или другие плагины
-      // для правильной работы в фоновом режиме
-      
-      // Для just_audio нужно использовать AudioSession для фонового воспроизведения
-      // Это упрощенная реализация, в реальном приложении нужно добавить
-      // пакет audio_session и настроить его правильно
+      // Получаем экземпляр AudioSession
+      final session = await AudioSession.instance;
       
       if (_playInBackground) {
-        // Включаем фоновое воспроизведение
-        // В реальном приложении:
-        // final session = await AudioSession.instance;
-        // await session.configure(AudioSessionConfiguration.music());
+        // Настраиваем сессию для фонового воспроизведения музыки
+        await session.configure(AudioSessionConfiguration(
+          avAudioSessionCategory: AVAudioSessionCategory.playback,
+          avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+          avAudioSessionMode: AVAudioSessionMode.defaultMode,
+          avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+          avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+          androidAudioAttributes: const AndroidAudioAttributes(
+            contentType: AndroidAudioContentType.music,
+            flags: AndroidAudioFlags.none,
+            usage: AndroidAudioUsage.media,
+          ),
+          androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+          androidWillPauseWhenDucked: true,
+        ));
+        
+        // Активируем сессию
+        await session.setActive(true);
         print('Фоновое воспроизведение включено');
       } else {
-        // Выключаем фоновое воспроизведение
+        // При отключении фонового воспроизведения можно деактивировать сессию
+        // или оставить её активной, но с другими настройками
+        await session.setActive(false);
         print('Фоновое воспроизведение выключено');
       }
     } catch (e) {
@@ -1103,8 +1127,13 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   }
   
   // Метод для восстановления звуков главного экрана
-  void _restoreBackgroundSounds() {
-    // Здесь можно добавить код для восстановления звуков главного экрана
-    // Например, использовать AudioSession или другие плагины для управления аудио
+  Future<void> _restoreBackgroundSounds() async {
+    try {
+      // Деактивируем аудио сессию при закрытии плеера
+      final session = await AudioSession.instance;
+      await session.setActive(false);
+    } catch (e) {
+      print('Ошибка при восстановлении звуков: $e');
+    }
   }
 }
