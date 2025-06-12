@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
 import '../../models/daily_quote.dart';
@@ -23,7 +22,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
-  late final CustomCachePrefs _cache;
+  final CustomCachePrefs _cache = CustomCache.prefs;
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final ScrollController _scrollController = ScrollController();
 
@@ -43,7 +42,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   bool _isLoading = true;
   bool _showCalendar = false;
   String? _selectedTradition;
-  HistoricalAuthenticity? _selectedAuthenticity;
   String? _backgroundImageUrl; // ИСПРАВЛЕНО: добавлено объявление переменной
 
   // Данные для ближайшего праздника (без живого таймера)
@@ -54,7 +52,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _cache = CustomCache.prefs;
     _initializeAnimations();
     _loadData();
     _selectedDay = DateTime.now();
@@ -181,8 +178,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
     // Добавляем праздники
     for (final holiday in _holidays) {
-      if ((_selectedTradition == null || holiday.tradition == _selectedTradition) && 
-          (_selectedAuthenticity == null || holiday.authenticity == _selectedAuthenticity)) {
+      if (_selectedTradition == null || holiday.tradition == _selectedTradition) {
         final holidayDate = holiday.getDateForYear(currentYear);
         final dateKey = DateTime(holidayDate.year, holidayDate.month, holidayDate.day);
 
@@ -200,11 +196,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   List<dynamic> _getEventsForDay(DateTime day) {
     final dateKey = DateTime(day.year, day.month, day.day);
     return _events[dateKey] ?? [];
-  }
-
-  bool _isSameDay(DateTime? a, DateTime? b) {
-    if (a == null || b == null) return false;
-    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
@@ -427,60 +418,60 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildScrollableContent() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        child: Column(
-          children: [
-            // Отступ для AppBar
-            const SizedBox(height: 100),
+  return FadeTransition(
+    opacity: _fadeAnimation,
+    child: SingleChildScrollView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      child: Column(
+        children: [
+          // Отступ для AppBar
+          const SizedBox(height: 100),
 
-            // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
-            InteractivePaganWheel(
-              onMonthChanged: (month, holidays) {
-                setState(() {
-                  _focusedDay = DateTime(_focusedDay.year, month);
-                  _showCalendar = true; // Показываем календарь после первого взаимодействия
-                  _prepareEvents();
-                });
+          // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
+          InteractivePaganWheel(
+            onMonthChanged: (month, holidays) {
+              setState(() {
+                _focusedDay = DateTime(_focusedDay.year, month);
+                _showCalendar = true; // Показываем календарь после первого взаимодействия
+                _prepareEvents();
+              });
+            },
+          ),
+
+          // Календарь появляется только после взаимодействия с колесом
+          if (_showCalendar) ...[
+            const SizedBox(height: 20),
+
+            // Анимированное появление календаря
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 800),
+              tween: Tween(begin: 0.0, end: 1.0),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.8 + (0.2 * value),
+                  child: Opacity(
+                    opacity: value,
+                    child: _buildEnhancedCalendar(),
+                  ),
+                );
               },
             ),
 
-            // Календарь появляется только после взаимодействия с колесом
-            if (_showCalendar) ...[
-              const SizedBox(height: 20),
+            // Ближайший праздник
+            _buildSimpleHolidayCountdown(),
 
-              // Анимированное появление календаря
-              TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 800),
-                tween: Tween(begin: 0.0, end: 1.0),
-                curve: Curves.easeOutBack,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: 0.8 + (0.2 * value),
-                    child: Opacity(
-                      opacity: value,
-                      child: _buildEnhancedCalendar(),
-                    ),
-                  );
-                },
-              ),
-
-              // Ближайший праздник
-              _buildSimpleHolidayCountdown(),
-
-              // Информация о выбранном дне
-              if (_selectedDay != null) _buildSelectedDayInfo(),
-            ],
-
-            const SizedBox(height: 20),
+            // Информация о выбранном дне
+            if (_selectedDay != null) _buildSelectedDayInfo(),
           ],
-        ),
+
+          const SizedBox(height: 20),
+        ],
       ),
+    )
     );
   }
 
@@ -564,7 +555,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   pageAnimationEnabled: false,
                   pageAnimationDuration: Duration.zero,
                   selectedDayPredicate: (day) {
-                    return _isSameDay(_selectedDay, day);
+                    return isSameDay(_selectedDay, day);
                   },
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
@@ -686,6 +677,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         ),
       ),
     );
+  }
   }
 
   Widget _buildCalendarHeader() {
