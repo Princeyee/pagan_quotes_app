@@ -22,7 +22,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
-  final CustomCachePrefs _cache = CustomCache.prefs;
+  late final CustomCachePrefs _cache;
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final ScrollController _scrollController = ScrollController();
 
@@ -42,6 +42,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   bool _isLoading = true;
   bool _showCalendar = false;
   String? _selectedTradition;
+  HistoricalAuthenticity? _selectedAuthenticity;
   String? _backgroundImageUrl; // ИСПРАВЛЕНО: добавлено объявление переменной
 
   // Данные для ближайшего праздника (без живого таймера)
@@ -52,6 +53,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+    _cache = CustomCache.prefs;
     _initializeAnimations();
     _loadData();
     _selectedDay = DateTime.now();
@@ -178,7 +180,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
     // Добавляем праздники
     for (final holiday in _holidays) {
-      if (_selectedTradition == null || holiday.tradition == _selectedTradition) {
+      if ((_selectedTradition == null || holiday.tradition == _selectedTradition) && 
+          (_selectedAuthenticity == null || holiday.authenticity == _selectedAuthenticity)) {
         final holidayDate = holiday.getDateForYear(currentYear);
         final dateKey = DateTime(holidayDate.year, holidayDate.month, holidayDate.day);
 
@@ -353,53 +356,14 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildBackgroundWithBlur() {
-  return AnimatedBuilder(
-    animation: _backgroundAnimation,
-    child: _backgroundImageUrl != null
-        ? CachedNetworkImage(
-            imageUrl: _backgroundImageUrl!,
-            cacheManager: CustomCache.instance,
-            fit: BoxFit.cover,
-            placeholder: (_, __) => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.grey[900]!, Colors.black],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-            errorWidget: (_, __, ___) => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.grey[900]!, Colors.black],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          )
-        : Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.grey[900]!, Colors.black],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-    builder: (context, child) {
-      return Opacity(
-        opacity: _backgroundAnimation.value,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            child ?? const SizedBox(),
-
-            // Более темный блюр для колеса
-            BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-              child: Container(
+    return AnimatedBuilder(
+      animation: _backgroundAnimation,
+      child: _backgroundImageUrl != null
+          ? CachedNetworkImage(
+              imageUrl: _backgroundImageUrl!,
+              cacheManager: CustomCache.instance,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.grey[900]!, Colors.black],
@@ -457,58 +421,59 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildScrollableContent() {
-  return FadeTransition(
-    opacity: _fadeAnimation,
-    child: SingleChildScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      child: Column(
-        children: [
-          // Отступ для AppBar
-          const SizedBox(height: 100),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        child: Column(
+          children: [
+            // Отступ для AppBar
+            const SizedBox(height: 100),
 
-          // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
-          InteractivePaganWheel(
-            onMonthChanged: (month, holidays) {
-              setState(() {
-                _focusedDay = DateTime(_focusedDay.year, month);
-                _showCalendar = true; // Показываем календарь после первого взаимодействия
-                _prepareEvents();
-              });
-            },
-          ),
-
-          // Календарь появляется только после взаимодействия с колесом
-          if (_showCalendar) ...[
-            const SizedBox(height: 20),
-
-            // Анимированное появление календаря
-            TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 800),
-              tween: Tween(begin: 0.0, end: 1.0),
-              curve: Curves.easeOutBack,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: 0.8 + (0.2 * value),
-                  child: Opacity(
-                    opacity: value,
-                    child: _buildEnhancedCalendar(),
-                  ),
-                );
+            // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
+            InteractivePaganWheel(
+              onMonthChanged: (month, holidays) {
+                setState(() {
+                  _focusedDay = DateTime(_focusedDay.year, month);
+                  _showCalendar = true; // Показываем календарь после первого взаимодействия
+                  _prepareEvents();
+                });
               },
             ),
 
-            // Ближайший праздник
-            _buildSimpleHolidayCountdown(),
+            // Календарь появляется только после взаимодействия с колесом
+            if (_showCalendar) ...[
+              const SizedBox(height: 20),
 
-            // Информация о выбранном дне
-            if (_selectedDay != null) _buildSelectedDayInfo(),
+              // Анимированное появление календаря
+              TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 800),
+                tween: Tween(begin: 0.0, end: 1.0),
+                curve: Curves.easeOutBack,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Opacity(
+                      opacity: value,
+                      child: _buildEnhancedCalendar(),
+                    ),
+                  );
+                },
+              ),
+
+              // Ближайший праздник
+              _buildSimpleHolidayCountdown(),
+
+              // Информация о выбранном дне
+              if (_selectedDay != null) _buildSelectedDayInfo(),
+            ],
+
+            const SizedBox(height: 20),
           ],
-
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
     );
   }
@@ -669,19 +634,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     markerSize: 7,
                     markerMargin: const EdgeInsets.symmetric(horizontal: 0.5),
                   ),
-                  selectedTextStyle: GoogleFonts.merriweather(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  
-                  todayDecoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
-                      width: 2,
-                    ),
-                  ),
                   calendarBuilders: CalendarBuilders(
                     markerBuilder: (context, day, events) {
                       if (events.isEmpty) return const SizedBox.shrink();
@@ -722,47 +674,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     },
                   ),
                 ),
-                calendarBuilders: CalendarBuilders(
-                  markerBuilder: (context, day, events) {
-                    if (events.isEmpty) return const SizedBox.shrink();
-                    
-                    return Positioned(
-                      bottom: 1,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: events.take(3).map((event) {
-                          Color markerColor;
-                          if (event is PaganHoliday) {
-                            markerColor = Color(int.parse(event.traditionColor.replaceFirst('#', '0xFF')));
-                          } else if (event is DailyQuote) {
-                            markerColor = Colors.white;
-                          } else {
-                            markerColor = Colors.grey;
-                          }
-                          
-                          return Container(
-                            width: 6,
-                            height: 6,
-                            margin: const EdgeInsets.symmetric(horizontal: 0.5),
-                            decoration: BoxDecoration(
-                              color: markerColor,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: markerColor.withOpacity(0.5),
-                                  blurRadius: 3,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
