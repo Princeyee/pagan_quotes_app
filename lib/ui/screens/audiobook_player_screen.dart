@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../models/audiobook.dart';
@@ -37,24 +38,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   Duration? _sleepTimer;
   DateTime? _sleepEndTime;
 
-  @override
-  void initState() {
-    super.initState();
-    _currentChapterIndex = widget.initialChapter ?? 0;
 
-    _playPauseController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-
-    _waveController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat();
-
-    _initializeAudio();
-    _setupAudioListeners();
-  }
 
   void _initializeAudio() async {
     setState(() => _isLoading = true);
@@ -104,6 +88,32 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
         _nextChapter();
       }
     });
+  }
+  
+  @override
+  void initState() {
+    super.initState();
+    _currentChapterIndex = widget.initialChapter ?? 0;
+
+    _playPauseController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _waveController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat();
+
+    // Инициализируем контроллер анимации в правильном состоянии
+    if (_isPlaying) {
+      _playPauseController.value = 1.0;
+    } else {
+      _playPauseController.value = 0.0;
+    }
+
+    _initializeAudio();
+    _setupAudioListeners();
   }
 
   void _saveProgress() async {
@@ -212,55 +222,76 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     final currentChapter = widget.audiobook.chapters[_currentChapterIndex];
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.primaryColor.withOpacity(0.1),
-              theme.scaffoldBackgroundColor,
-            ],
+      body: Stack(
+        children: [
+          // Blurred background from cover image
+          Positioned.fill(
+            child: Hero(
+              tag: 'audiobook_cover_${widget.audiobook.id}',
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: widget.audiobook.coverPath.startsWith('http')
+                        ? NetworkImage(widget.audiobook.coverPath) as ImageProvider
+                        : AssetImage(widget.audiobook.coverPath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.7),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              _buildHeader(context),
+          
+          // Main content
+          SafeArea(
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(context),
 
-              // Cover Art & Chapter Info
-              Expanded(
-                flex: 3,
-                child: _buildCoverSection(currentChapter),
-              ),
+                // Cover Art & Chapter Info
+                Expanded(
+                  flex: 3,
+                  child: _buildCoverSection(currentChapter),
+                ),
 
-              // Progress & Controls
-              Expanded(
-                flex: 2,
-                child: _buildControlsSection(theme),
-              ),
-
-              // Chapter List (if visible)
-              if (_showChapterList)
+                // Progress & Controls
                 Expanded(
                   flex: 2,
-                  child: _buildChapterList(),
+                  child: _buildControlsSection(theme),
                 ),
-            ],
+
+                // Chapter List (if visible)
+                if (_showChapterList)
+                  Expanded(
+                    flex: 2,
+                    child: _buildChapterList(),
+                  ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      margin: const EdgeInsets.all(8.0),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           Expanded(
@@ -272,6 +303,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -280,21 +312,44 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   widget.audiobook.author,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Colors.white.withOpacity(0.7),
                   ),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: Icon(_showChapterList ? Icons.list : Icons.menu_book),
+            icon: Icon(
+              _showChapterList ? Icons.list : Icons.menu_book,
+              color: Colors.white,
+            ),
             onPressed: () => setState(() => _showChapterList = !_showChapterList),
           ),
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: _handleMenuAction,
+            color: Colors.black.withOpacity(0.8),
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'speed', child: Text('Скорость')),
-              const PopupMenuItem(value: 'timer', child: Text('Таймер сна')),
+              PopupMenuItem(
+                value: 'speed', 
+                child: Row(
+                  children: [
+                    const Icon(Icons.speed, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Скорость', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'timer', 
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Таймер сна', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -311,55 +366,59 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 15),
+                    spreadRadius: 5,
                   ),
                 ],
               ),
-              child: ClipRRect(
+              child: Hero(
+                tag: 'audiobook_cover_${widget.audiobook.id}',
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: widget.audiobook.coverPath.startsWith('http')
                       ? Image.network(
                           widget.audiobook.coverPath,
-                          width: 250,
-                          height: 250,
+                          width: 300,
+                          height: 300,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: 250,
-                              height: 250,
+                              width: 300,
+                              height: 300,
                               color: Colors.grey[800],
-                              child: Icon(
+                              child: const Icon(
                                 Icons.audiotrack,
                                 color: Colors.white,
-                                size: 80,
+                                size: 100,
                               ),
                             );
                           },
                         )
                       : Image.asset(
                           widget.audiobook.coverPath,
-                          width: 250,
-                          height: 250,
+                          width: 300,
+                          height: 300,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: 250,
-                              height: 250,
+                              width: 300,
+                              height: 300,
                               color: Colors.grey[800],
-                              child: Icon(
+                              child: const Icon(
                                 Icons.audiotrack,
                                 color: Colors.white,
-                                size: 80,
+                                size: 100,
                               ),
                             );
                           },
                         ),
                 ),
+              ),
             ),
           ),
 
@@ -465,15 +524,30 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 decoration: BoxDecoration(
                   color: theme.primaryColor,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.primaryColor.withOpacity(0.4),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: IconButton(
-                  icon: AnimatedIcon(
-                    icon: AnimatedIcons.play_pause,
-                    progress: _playPauseController,
-                    color: Colors.white,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(30),
+                    onTap: _isLoading ? null : _playPause,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: AnimatedIcon(
+                        icon: AnimatedIcons.play_pause,
+                        progress: _playPauseController,
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                    ),
                   ),
-                  iconSize: 48,
-                  onPressed: _isLoading ? null : _playPause,
                 ),
               ),
 
@@ -520,77 +594,110 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   }
 
   Widget _buildChapterList() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Text(
-                  'Главы',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => setState(() => _showChapterList = false),
-                ),
-              ],
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.audiobook.chapters.length,
-              itemBuilder: (context, index) {
-                final chapter = widget.audiobook.chapters[index];
-                final isCurrentChapter = index == _currentChapterIndex;
-
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: isCurrentChapter
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey[300],
-                    child: Text(
-                      '${index + 1}',
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Главы',
                       style: TextStyle(
-                        color: isCurrentChapter ? Colors.white : Colors.black,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                  title: Text(
-                    chapter.title,
-                    style: TextStyle(
-                      fontWeight: isCurrentChapter ? FontWeight.bold : FontWeight.normal,
-                      color: isCurrentChapter ? Theme.of(context).primaryColor : null,
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => setState(() => _showChapterList = false),
                     ),
-                  ),
-                  subtitle: Text(_formatDuration(chapter.duration)),
-                  onTap: () => _changeChapter(index),
-                  trailing: isCurrentChapter
-                      ? AnimatedBuilder(
-                          animation: _waveController,
-                          builder: (context, child) {
-                            return Icon(
-                              Icons.graphic_eq,
-                              color: Theme.of(context).primaryColor,
-                            );
-                          },
-                        )
-                      : null,
-                );
-              },
-            ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.audiobook.chapters.length,
+                  itemBuilder: (context, index) {
+                    final chapter = widget.audiobook.chapters[index];
+                    final isCurrentChapter = index == _currentChapterIndex;
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: isCurrentChapter 
+                            ? Theme.of(context).primaryColor.withOpacity(0.3)
+                            : Colors.transparent,
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: isCurrentChapter
+                              ? Theme.of(context).primaryColor
+                              : Colors.white.withOpacity(0.2),
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              color: isCurrentChapter ? Colors.white : Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          chapter.title,
+                          style: TextStyle(
+                            fontWeight: isCurrentChapter ? FontWeight.bold : FontWeight.normal,
+                            color: isCurrentChapter ? Colors.white : Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                        subtitle: Text(
+                          _formatDuration(chapter.duration),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                        onTap: () => _changeChapter(index),
+                        trailing: isCurrentChapter
+                            ? AnimatedBuilder(
+                                animation: _waveController,
+                                builder: (context, child) {
+                                  return Icon(
+                                    Icons.graphic_eq,
+                                    color: Colors.white,
+                                  );
+                                },
+                              )
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -609,23 +716,42 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   void _showSpeedDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Скорость воспроизведения'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((speed) {
-            return RadioListTile<double>(
-              title: Text('${speed}x'),
-              value: speed,
-              groupValue: _playbackSpeed,
-              onChanged: (value) {
-                if (value != null) {
-                  _changeSpeed(value);
-                  Navigator.pop(context);
-                }
-              },
-            );
-          }).toList(),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: Colors.black.withOpacity(0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          ),
+          title: const Text(
+            'Скорость воспроизведения',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((speed) {
+              final isSelected = speed == _playbackSpeed;
+              return RadioListTile<double>(
+                title: Text(
+                  '${speed}x',
+                  style: TextStyle(
+                    color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                value: speed,
+                groupValue: _playbackSpeed,
+                activeColor: Theme.of(context).primaryColor,
+                onChanged: (value) {
+                  if (value != null) {
+                    _changeSpeed(value);
+                    Navigator.pop(context);
+                  }
+                },
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -634,34 +760,51 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
   void _showSleepTimerDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Таймер сна'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_sleepTimer != null)
-              ListTile(
-                title: const Text('Отключить таймер'),
-                leading: const Icon(Icons.timer_off),
-                onTap: () {
-                  setState(() {
-                    _sleepTimer = null;
-                    _sleepEndTime = null;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-            ...[5, 10, 15, 30, 60].map((minutes) {
-              return ListTile(
-                title: Text('$minutes минут'),
-                leading: const Icon(Icons.timer),
-                onTap: () {
-                  _setSleepTimer(Duration(minutes: minutes));
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          ],
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: Colors.black.withOpacity(0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          ),
+          title: const Text(
+            'Таймер сна',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_sleepTimer != null)
+                ListTile(
+                  title: const Text(
+                    'Отключить таймер',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  leading: const Icon(Icons.timer_off, color: Colors.red),
+                  onTap: () {
+                    setState(() {
+                      _sleepTimer = null;
+                      _sleepEndTime = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ...[5, 10, 15, 30, 60].map((minutes) {
+                return ListTile(
+                  title: Text(
+                    '$minutes минут',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  leading: const Icon(Icons.timer, color: Colors.white),
+                  onTap: () {
+                    _setSleepTimer(Duration(minutes: minutes));
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
         ),
       ),
     );

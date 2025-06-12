@@ -16,6 +16,7 @@ class AudiobookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 8,
+      color: Colors.black.withOpacity(0.8),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -24,55 +25,58 @@ class AudiobookCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap ?? () => _navigateToPlayer(context),
         child: Container(
-          height: 120,
+          height: 140,
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Cover Art
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: audiobook.coverPath.startsWith('http')
-                  ? Image.network(
-                      audiobook.coverPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[800],
-                          child: Icon(
-                            Icons.audiotrack,
-                            color: Colors.white,
-                            size: 40,
-                          ),
-                        );
-                      },
-                    )
-                  : Image.asset(
-                      audiobook.coverPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[800],
-                          child: Icon(
-                            Icons.audiotrack,
-                            color: Colors.white,
-                            size: 40,
-                          ),
-                        );
-                      },
-                    ),
+              Hero(
+                tag: 'audiobook_cover_${audiobook.id}',
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: audiobook.coverPath.startsWith('http')
+                    ? Image.network(
+                        audiobook.coverPath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[800],
+                            child: const Icon(
+                              Icons.audiotrack,
+                              color: Colors.white,
+                              size: 50,
+                            ),
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        audiobook.coverPath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[800],
+                            child: const Icon(
+                              Icons.audiotrack,
+                              color: Colors.white,
+                              size: 50,
+                            ),
+                          );
+                        },
+                      ),
+                  ),
                 ),
               ),
 
