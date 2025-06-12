@@ -1,0 +1,39 @@
+
+{
+  "audiobooks": [
+    {
+      "id": "example_audiobook",
+      "title": "Пример аудиокниги",
+      "author": "Пример автора",
+      "coverPath": "assets/audiobooks/example_audiobook/cover.jpg",
+      "description": "Описание примера аудиокниги",
+      "totalDurationMs": 7200000,
+      "chapters": [
+        {
+          "title": "Глава 1: Введение",
+          "filePath": "assets/audiobooks/example_audiobook/chapter1.mp3",
+          "durationMs": 1800000,
+          "chapterNumber": 1
+        },
+        {
+          "title": "Глава 2: Развитие",
+          "filePath": "assets/audiobooks/example_audiobook/chapter2.mp3",
+          "durationMs": 2100000,
+          "chapterNumber": 2
+        },
+        {
+          "title": "Глава 3: Кульминация",
+          "filePath": "assets/audiobooks/example_audiobook/chapter3.mp3",
+          "durationMs": 1950000,
+          "chapterNumber": 3
+        },
+        {
+          "title": "Глава 4: Заключение",
+          "filePath": "assets/audiobooks/example_audiobook/chapter4.mp3",
+          "durationMs": 1350000,
+          "chapterNumber": 4
+        }
+      ]
+    }
+  ]
+}

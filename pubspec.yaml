@@ -71,6 +71,10 @@ flutter:
     - assets/full_texts/philosophy/
     - assets/full_texts/greece/
     - assets/config/book_sources.json
+
+#Аудиокниги
+    - assets/audiobooks/
+    - assets/config/audiobooks.json
     - assets/full_texts/greece/aristotle/metaphysics_raw.txt
     - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt
     - assets/full_texts/greece/aristotle/ethics_raw.txt
