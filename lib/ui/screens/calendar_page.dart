@@ -569,71 +569,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-<<<<<<< HEAD
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildCalendarHeader(),
-              const SizedBox(height: 16),
-              
-              TableCalendar<dynamic>(
-                firstDay: DateTime(2020),
-                lastDay: DateTime(2030),
-                focusedDay: _focusedDay,
-                calendarFormat: _calendarFormat,
-                eventLoader: _getEventsForDay,
-                startingDayOfWeek: StartingDayOfWeek.monday,
-                pageJumpingEnabled: false,
-                pageAnimationEnabled: false,
-                pageAnimationDuration: Duration.zero,
-                selectedDayPredicate: (day) {
-                  return isSameDay(_selectedDay, day);
-                },
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onFormatChanged: (format) {
-                  setState(() {
-                    _calendarFormat = format;
-                  });
-                },
-                onPageChanged: (focusedDay) {
-                  setState(() {
-                    _focusedDay = focusedDay;
-                    _prepareEvents();
-                  });
-                },
-                calendarStyle: CalendarStyle(
-                  defaultTextStyle: GoogleFonts.merriweather(
-                    color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w400,
-                  ),
-                  weekendTextStyle: GoogleFonts.merriweather(
-                    color: Colors.white.withOpacity(0.7),
-                    fontWeight: FontWeight.w300,
-                  ),
-                  outsideDaysVisible: false,
-                  
-                  selectedDecoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.8),
-                        Colors.white.withOpacity(0.6),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.3),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ],
-=======
         child: BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
@@ -733,7 +668,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     markersMaxCount: 3,
                     markerSize: 7,
                     markerMargin: const EdgeInsets.symmetric(horizontal: 0.5),
-
                   ),
                   selectedTextStyle: GoogleFonts.merriweather(
                     color: Colors.black,
