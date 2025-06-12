@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // lib/ui/screens/calendar_page.dart - ОБНОВЛЕННАЯ ВЕРСИЯ С ФИЛЬТРАМИ ДОСТОВЕРНОСТИ
+=======
+// lib/ui/screens/calendar_page.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -25,27 +29,34 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   final CustomCachePrefs _cache = CustomCache.prefs;
   final QuoteExtractionService _quoteService = QuoteExtractionService();
   final ScrollController _scrollController = ScrollController();
-  
+
   late AnimationController _fadeController;
   late AnimationController _backgroundController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _backgroundAnimation;
-  
+
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  
+
   Map<DateTime, List<dynamic>> _events = {};
   Map<DateTime, DailyQuote> _cachedQuotes = {};
   List<PaganHoliday> _holidays = [];
-  
+
   bool _isLoading = true;
   bool _showCalendar = false;
+<<<<<<< HEAD
   String? _selectedTradition; // Фильтр по традициям
   HistoricalAuthenticity? _selectedAuthenticity; // НОВЫЙ ФИЛЬТР ПО ДОСТОВЕРНОСТИ
   String? _backgroundImageUrl;
   
   // Данные для ближайшего праздника
+=======
+  String? _selectedTradition;
+  String? _backgroundImageUrl; // ИСПРАВЛЕНО: добавлено объявление переменной
+
+  // Данные для ближайшего праздника (без живого таймера)
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
   PaganHoliday? _nextHoliday;
   int? _daysUntilHoliday;
   DateTime? _nextHolidayDate;
@@ -63,7 +74,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    
+
     _backgroundController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -86,16 +97,16 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       final now = DateTime.now();
       final currentYear = now.year;
       final holidayThisYear = nextHoliday.getDateForYear(currentYear);
-      
+
       DateTime targetDate;
       if (holidayThisYear.isAfter(now)) {
         targetDate = holidayThisYear;
       } else {
         targetDate = nextHoliday.getDateForYear(currentYear + 1);
       }
-      
+
       final daysUntil = targetDate.difference(now).inDays;
-      
+
       setState(() {
         _nextHoliday = nextHoliday;
         _daysUntilHoliday = daysUntil;
@@ -106,32 +117,61 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       await _loadBackgroundImage();
+<<<<<<< HEAD
       _holidays = PaganHolidayService.getAllHolidays();
       _updateNextHoliday();
       await _loadCachedQuotes();
+=======
+
+      // Загружаем праздники
+      _holidays = PaganHolidayService.getAllHolidays();
+
+      // Обновляем ближайший праздник
+      _updateNextHoliday();
+
+      // Загружаем кэшированные цитаты
+      await _loadCachedQuotes();
+
+      // Подготавливаем события
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
       _prepareEvents();
-      
+
       setState(() => _isLoading = false);
+<<<<<<< HEAD
+=======
+
+      // Быстрые анимации
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
       _fadeController.forward();
       _backgroundController.forward();
-      
+
     } catch (e) {
       print('Error loading calendar data: $e');
       setState(() => _isLoading = false);
     }
   }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
   Future<void> _loadBackgroundImage() async {
     try {
       final today = DateTime.now();
       final dateString = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+<<<<<<< HEAD
       
       String? cachedImageUrl = _cache.getSetting<String>('daily_image_$dateString');
+=======
+
+      String? cachedImageUrl = _cache.getSetting<String>('daily_image_$dateString'); // ИСПРАВЛЕНО: cage -> _cache
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
       cachedImageUrl ??= ImagePickerService.getRandomImage('philosophy');
-      
+
       setState(() {
         _backgroundImageUrl = cachedImageUrl;
       });
@@ -146,7 +186,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   Future<void> _loadCachedQuotes() async {
     final prefs = _cache.prefs;
     final keys = prefs.getKeys().where((key) => key.startsWith('daily_quote_'));
-    
+
     for (final key in keys) {
       try {
         final json = prefs.getString(key);
@@ -164,6 +204,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   void _prepareEvents() {
     _events.clear();
     final currentYear = _focusedDay.year;
+<<<<<<< HEAD
     
     // Применяем фильтры к праздникам
     List<PaganHoliday> filteredHolidays = _holidays;
@@ -188,8 +229,19 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       final dateKey = DateTime(holidayDate.year, holidayDate.month, holidayDate.day);
       
       _events.putIfAbsent(dateKey, () => []).add(holiday);
+=======
+
+    // Добавляем праздники
+    for (final holiday in _holidays) {
+      if (_selectedTradition == null || holiday.tradition == _selectedTradition) {
+        final holidayDate = holiday.getDateForYear(currentYear);
+        final dateKey = DateTime(holidayDate.year, holidayDate.month, holidayDate.day);
+
+        _events.putIfAbsent(dateKey, () => []).add(holiday);
+      }
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
     }
-    
+
     // Добавляем цитаты
     for (final entry in _cachedQuotes.entries) {
       final dateKey = DateTime(entry.key.year, entry.key.month, entry.key.day);
@@ -324,6 +376,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               fit: StackFit.expand,
               children: [
                 _buildBackgroundWithBlur(),
+<<<<<<< HEAD
+=======
+
+                // Основной контент - ДОБАВЛЯЕМ СКРОЛЛ
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
                 _buildScrollableContent(),
               ],
             ),
@@ -355,6 +412,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildBackgroundWithBlur() {
+<<<<<<< HEAD
     return AnimatedBuilder(
       animation: _backgroundAnimation,
       child: _backgroundImageUrl != null
@@ -363,6 +421,55 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               cacheManager: CustomCache.instance,
               fit: BoxFit.cover,
               placeholder: (_, __) => Container(
+=======
+  return AnimatedBuilder(
+    animation: _backgroundAnimation,
+    child: _backgroundImageUrl != null
+        ? CachedNetworkImage(
+            imageUrl: _backgroundImageUrl!,
+            cacheManager: CustomCache.instance,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.grey[900]!, Colors.black],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            errorWidget: (_, __, ___) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.grey[900]!, Colors.black],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          )
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.grey[900]!, Colors.black],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+    builder: (context, child) {
+      return Opacity(
+        opacity: _backgroundAnimation.value,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox(),
+
+            // Более темный блюр для колеса
+            BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+              child: Container(
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.grey[900]!, Colors.black],
@@ -420,6 +527,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   Widget _buildScrollableContent() {
+<<<<<<< HEAD
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SingleChildScrollView(
@@ -509,6 +617,59 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 });
               },
             ),
+=======
+  return FadeTransition(
+    opacity: _fadeAnimation,
+    child: SingleChildScrollView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      child: Column(
+        children: [
+          // Отступ для AppBar
+          const SizedBox(height: 100),
+
+          // ===== ИНТЕРАКТИВНОЕ ЯЗЫЧЕСКОЕ КОЛЕСО =====
+          InteractivePaganWheel(
+            onMonthChanged: (month, holidays) {
+              setState(() {
+                _focusedDay = DateTime(_focusedDay.year, month);
+                _showCalendar = true; // Показываем календарь после первого взаимодействия
+                _prepareEvents();
+              });
+            },
+          ),
+
+          // Календарь появляется только после взаимодействия с колесом
+          if (_showCalendar) ...[
+            const SizedBox(height: 20),
+
+            // Анимированное появление календаря
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 800),
+              tween: Tween(begin: 0.0, end: 1.0),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.8 + (0.2 * value),
+                  child: Opacity(
+                    opacity: value,
+                    child: _buildEnhancedCalendar(),
+                  ),
+                );
+              },
+            ),
+
+            // Ближайший праздник
+            _buildSimpleHolidayCountdown(),
+
+            // Информация о выбранном дне
+            if (_selectedDay != null) _buildSelectedDayInfo(),
+          ],
+
+          const SizedBox(height: 20),
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
         ],
       ),
     );
@@ -570,6 +731,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
+<<<<<<< HEAD
         child: Container(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -633,6 +795,107 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         spreadRadius: 2,
                       ),
                     ],
+=======
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Заголовок календаря
+                _buildCalendarHeader(),
+
+                const SizedBox(height: 16),
+
+                // Сам календарь
+                TableCalendar<dynamic>(
+                  firstDay: DateTime(2020),
+                  lastDay: DateTime(2030),
+                  focusedDay: _focusedDay,
+                  calendarFormat: _calendarFormat,
+                  eventLoader: _getEventsForDay,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  // Отключаем проблемные анимации
+                  pageJumpingEnabled: false,
+                  pageAnimationEnabled: false,
+                  pageAnimationDuration: Duration.zero,
+                  selectedDayPredicate: (day) {
+                    return isSameDay(_selectedDay, day);
+                  },
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  onFormatChanged: (format) {
+                    setState(() {
+                      _calendarFormat = format;
+                    });
+                  },
+                  onPageChanged: (focusedDay) {
+                    setState(() {
+                      _focusedDay = focusedDay;
+                      _prepareEvents();
+                    });
+                  },
+                  calendarStyle: CalendarStyle(
+                    // Основные дни
+                    defaultTextStyle: GoogleFonts.merriweather(
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w400,
+                    ),
+                    weekendTextStyle: GoogleFonts.merriweather(
+                      color: Colors.white.withOpacity(0.7),
+                      fontWeight: FontWeight.w300,
+                    ),
+                    outsideDaysVisible: false,
+
+                    // Выбранный день
+                    selectedDecoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.8),
+                          Colors.white.withOpacity(0.6),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    selectedTextStyle: GoogleFonts.merriweather(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+                    // Сегодня
+                    todayDecoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.5),
+                        width: 2,
+                      ),
+                    ),
+                    todayTextStyle: GoogleFonts.merriweather(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+                    // События (маркеры)
+                    markerDecoration: const BoxDecoration(
+                      color: Color(0xFFE2A94A),
+                      shape: BoxShape.circle,
+                    ),
+                    markersMaxCount: 3,
+                    markerSize: 7,
+                    markerMargin: const EdgeInsets.symmetric(horizontal: 0.5),
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
                   ),
                   selectedTextStyle: GoogleFonts.merriweather(
                     color: Colors.black,
@@ -647,6 +910,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                       width: 2,
                     ),
                   ),
+<<<<<<< HEAD
                   todayTextStyle: GoogleFonts.merriweather(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -681,6 +945,46 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     color: Colors.white.withOpacity(0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.w300,
+=======
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, day, events) {
+                      if (events.isEmpty) return const SizedBox.shrink();
+
+                      return Positioned(
+                        bottom: 1,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: events.take(3).map((event) {
+                            Color markerColor;
+                            if (event is PaganHoliday) {
+                              markerColor = Color(int.parse(event.traditionColor.replaceFirst('#', '0xFF')));
+                            } else if (event is DailyQuote) {
+                              markerColor = Colors.white;
+                            } else {
+                              markerColor = Colors.grey;
+                            }
+
+                            return Container(
+                              width: 6,
+                              height: 6,
+                              margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                              decoration: BoxDecoration(
+                                color: markerColor,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: markerColor.withOpacity(0.5),
+                                    blurRadius: 3,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    },
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
                   ),
                 ),
                 calendarBuilders: CalendarBuilders(
@@ -746,7 +1050,12 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
           ),
         ),
+<<<<<<< HEAD
         
+=======
+
+        // Кнопки навигации
+>>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
         Row(
           children: [
             _buildNavButton(
@@ -818,7 +1127,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     }
 
     final traditionColor = Color(int.parse(_nextHoliday!.traditionColor.replaceFirst('#', '0xFF')));
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Material(
@@ -1006,7 +1315,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 ...events.map((event) {
                   if (event is PaganHoliday) {
                     return _buildHolidayCard(event);
@@ -1025,7 +1334,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
   Widget _buildHolidayCard(PaganHoliday holiday) {
     final traditionColor = Color(int.parse(holiday.traditionColor.replaceFirst('#', '0xFF')));
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -1242,7 +1551,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       case 'scandinavian':
         return 'Северная традиция';
       case 'slavic':
-        return 'Славянская традиция';
+        return 'Славянская традииция';
       case 'celtic':
         return 'Кельтская традиция';
       case 'germanic':

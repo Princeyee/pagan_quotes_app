@@ -19,14 +19,21 @@ dependencies:
   lottie: ^3.3.1
   scrollable_positioned_list: ^0.3.8
   table_calendar: ^3.0.9
-  
+  audioplayers: ^6.0.0
+  path_provider: ^2.1.1
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.4.1
+  dio: ^5.4.0
+  connectivity_plus: ^5.0.2
+  cached_network_image: ^3.3.1
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
- 
+
 
 flutter:
   uses-material-design: true
@@ -65,7 +72,7 @@ flutter:
     - assets/animations/pagan.json
     - assets/animations/philosophy.json
 #Текста
-    
+
     - assets/full_texts/nordic/
     - assets/full_texts/pagan/
     - assets/full_texts/philosophy/
@@ -143,7 +150,7 @@ flutter:
     - assets/full_texts/pagan/askr_svarte/polemos_raw.txt
     - assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt
 
-    
+
 
 flutter_launcher_icons:
   android: true

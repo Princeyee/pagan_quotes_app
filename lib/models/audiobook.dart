@@ -55,12 +55,16 @@ class AudiobookChapter {
   final String filePath;
   final Duration duration;
   final int chapterNumber;
+  final String? driveFileId;
+  final bool isStreamable;
 
   AudiobookChapter({
     required this.title,
     required this.filePath,
     required this.duration,
     required this.chapterNumber,
+    this.driveFileId,
+    this.isStreamable = false,
   });
 
   factory AudiobookChapter.fromJson(Map<String, dynamic> json) {
@@ -71,6 +75,8 @@ class AudiobookChapter {
       filePath: json['filePath'] as String,
       duration: Duration(milliseconds: durationMs),
       chapterNumber: json['chapterNumber'] as int,
+      driveFileId: json['driveFileId'] as String?,
+      isStreamable: json['isStreamable'] as bool? ?? false,
     );
   }
 
@@ -80,6 +86,8 @@ class AudiobookChapter {
       'filePath': filePath,
       'durationMs': duration.inMilliseconds,
       'chapterNumber': chapterNumber,
+      'driveFileId': driveFileId,
+      'isStreamable': isStreamable,
     };
   }
 }
