@@ -5,6 +5,7 @@ import '../models/daily_quote.dart';
 import '../models/quote.dart';
 import '../utils/custom_cache.dart';
 import 'quote_extraction_service.dart';
+import 'theme_service.dart';
 
 class CalendarQuoteService {
   static final CalendarQuoteService _instance = CalendarQuoteService._internal();
@@ -62,14 +63,39 @@ class CalendarQuoteService {
         return null;
       }
 
-      final categories = curated.keys.toList();
+      // ПОЛУЧАЕМ АКТИВНЫЕ ТЕМЫ
+      final enabledThemes = await ThemeService.getEnabledThemes();
+      print('🎯 Активные темы: $enabledThemes');
+      
+      // ФИЛЬТРУЕМ КАТЕГОРИИ ПО АКТИВНЫМ ТЕМАМ
+      final allCategories = curated.keys.toList();
+      final enabledCategories = allCategories.where((category) => 
+        enabledThemes.contains(category)
+      ).toList();
+      
+      if (enabledCategories.isEmpty) {
+        print('❌ Нет активных категорий, используем все');
+        // Fallback - используем все категории если нет активных
+        final categories = allCategories;
+        final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
+        final categoryIndex = daysSinceEpoch % categories.length;
+        final selectedCategory = categories[categoryIndex];
+        final categoryQuotes = curated[selectedCategory]!;
+        final random = Random(daysSinceEpoch + selectedCategory.hashCode);
+        final selectedQuote = categoryQuotes[random.nextInt(categoryQuotes.length)];
+        return selectedQuote.toQuote();
+      }
+      
+      print('✅ Доступные категории: $enabledCategories');
       
       // Используем дату как сид для воспроизводимости
       final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
       
-      // Выбираем категорию детерминированно
-      final categoryIndex = daysSinceEpoch % categories.length;
-      final selectedCategory = categories[categoryIndex];
+      // Выбираем категорию детерминированно ИЗ АКТИВНЫХ
+      final categoryIndex = daysSinceEpoch % enabledCategories.length;
+      final selectedCategory = enabledCategories[categoryIndex];
+      
+      print('🎲 Выбрана категория: $selectedCategory для даты ${date.day}.${date.month}.${date.year}');
       
       // Получаем цитаты для выбранной категории
       final categoryQuotes = curated[selectedCategory]!;
