@@ -785,12 +785,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
           ),
         ),
-<<<<<<< HEAD
-        
-=======
 
         // Кнопки навигации
->>>>>>> 438e4cc (Assistant checkpoint: Добавлена поддержка Google Drive, фильтры праздников и улучшен календарь)
         Row(
           children: [
             _buildNavButton(
