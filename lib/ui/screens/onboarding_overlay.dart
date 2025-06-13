@@ -42,6 +42,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   int _currentStep = 0;
   bool _isAnimating = true;
   bool _contentLoaded = false; // Флаг загрузки контента
+  bool _isInitialized = false; // Флаг инициализации
   final int _totalSteps = 7;
   
   // Шаги онбординга
@@ -96,7 +97,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   void initState() {
     super.initState();
     _initializeAnimations();
-    _startOnboarding();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      _startOnboarding();
+    }
   }
 
   void _initializeAnimations() {
@@ -116,7 +120,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     )..repeat(reverse: true);
     
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 400), // Еще быстрее для более плавных переходов
+      duration: const Duration(milliseconds: 300), // Быстрее для предотвращения дергания
       vsync: this,
     );
     
@@ -161,22 +165,32 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     // Ждем загрузки контента (дерева, шрифтов и т.д.)
     await Future.delayed(const Duration(milliseconds: 1200));
     
+    if (!mounted) return; // Проверяем, что виджет еще активен
+    
     // Показываем контент с блюром плавно
     setState(() => _contentLoaded = true);
     _blurController.forward();
     
     await Future.delayed(const Duration(milliseconds: 200));
+    
+    if (!mounted) return; // Проверяем снова
+    
     _introController.forward();
     _contentController.forward(); // Запускаем анимацию контента сразу
     
     await Future.delayed(Duration(milliseconds: _steps[0].duration));
+    
+    if (!mounted) return; // Проверяем перед звуком
+    
     await _playBreathSound();
     
-    _nextStep();
+    if (mounted) { // Проверяем перед переходом к следующему шагу
+      _nextStep();
+    }
   }
 
   void _nextStep() {
-    if (_currentStep < _totalSteps - 1) {
+    if (_currentStep < _totalSteps - 1 && !_contentController.isAnimating) {
       // Сначала плавно скрываем текущий контент
       _contentController.reverse().then((_) {
         if (mounted) {
@@ -187,7 +201,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           _contentController.forward();
         }
       });
-    } else {
+    } else if (_currentStep >= _totalSteps - 1) {
       _completeOnboarding();
     }
   }
@@ -284,19 +298,18 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   Widget _buildCurrentStep() {
     final stepData = _steps[_currentStep];
     
-    // Оборачиваем контент в AnimatedSwitcher для плавного перехода между шагами
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
+    // Используем AnimatedBuilder вместо AnimatedSwitcher для более стабильной анимации
+    return AnimatedBuilder(
+      animation: _contentController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _contentController.value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - _contentController.value) * 20),
+            child: _buildStepContent(stepData),
+          ),
         );
       },
-      child: Container(
-        key: ValueKey<int>(_currentStep), // Уникальный ключ для каждого шага
-        child: _buildStepContent(stepData),
-      ),
     );
   }
   
@@ -491,6 +504,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           children: [
             Text(
               step.title,
+              key: ValueKey('step_title_${step.type.name}'), // Стабильный ключ
               style: GoogleFonts.merriweather(
                 fontSize: 26,
                 fontWeight: FontWeight.w400,
@@ -505,6 +519,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             
             Text(
               step.description,
+              key: ValueKey('step_desc_${step.type.name}'), // Стабильный ключ
               style: GoogleFonts.merriweather(
                 fontSize: 16,
                 color: Colors.white.withAlpha((0.85 * 255).round()),
@@ -516,9 +531,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             
             const SizedBox(height: 50),
             
-            // Демо цитаты только для шага с цитатами
+            // Демо цитаты только для шага с цитатами - СТАБИЛЬНАЯ ВЕРСИЯ
             if (step.type == StepType.dailyQuote)
               Container(
+                key: const ValueKey('demo_quote_container'), // Стабильный ключ
                 padding: const EdgeInsets.all(24),
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
@@ -530,12 +546,13 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                   ),
                 ),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: 120),
+                  constraints: const BoxConstraints(minHeight: 120),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '"Танцующий — тот, кто может ходить по воде"',
+                        key: const ValueKey('demo_quote_text'), // Стабильный ключ
                         style: GoogleFonts.merriweather(
                           fontSize: 16,
                           fontStyle: FontStyle.italic,
@@ -548,6 +565,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                       const SizedBox(height: 12),
                       Text(
                         '— Фридрих Ницше',
+                        key: const ValueKey('demo_quote_author'), // Стабиль��ый ключ
                         style: GoogleFonts.merriweather(
                           fontSize: 14,
                           color: Colors.white.withAlpha((0.6 * 255).round()),
