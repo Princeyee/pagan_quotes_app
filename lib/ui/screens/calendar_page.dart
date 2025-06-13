@@ -7,7 +7,6 @@ import 'dart:ui' as ui;
 
 import '../../models/daily_quote.dart';
 import '../../models/pagan_holiday.dart';
-import '../../services/quote_extraction_service.dart';
 import '../../services/image_picker_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/calendar_quote_modal.dart';
@@ -31,7 +30,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
 
   Map<DateTime, List<dynamic>> _events = {};
   Map<DateTime, DailyQuote> _cachedQuotes = {};
@@ -46,7 +44,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   // Данные для ближайшего праздника
   PaganHoliday? _nextHoliday;
   int _daysUntilHoliday = 0;
-  DateTime? _nextHolidayDate;
 
   @override
   void initState() {
@@ -75,8 +72,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       parent: _fadeController,
       curve: Curves.easeInOut,
     ));
-
-
   }
 
   void _findNextHoliday() {
@@ -85,7 +80,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     
     PaganHoliday? closest;
     int minDays = 366;
-    DateTime? closestDate;
     
     for (final holiday in filteredHolidays) {
       final thisYear = DateTime(now.year, holiday.date.month, holiday.date.day);
@@ -97,18 +91,15 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       if (daysUntilThisYear >= 0 && daysUntilThisYear < minDays) {
         minDays = daysUntilThisYear;
         closest = holiday;
-        closestDate = thisYear;
       } else if (daysUntilNextYear < minDays) {
         minDays = daysUntilNextYear;
         closest = holiday;
-        closestDate = nextYear;
       }
     }
     
     setState(() {
       _nextHoliday = closest;
       _daysUntilHoliday = minDays;
-      _nextHolidayDate = closestDate;
     });
   }
 
@@ -357,21 +348,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     }
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-    ];
-    return months[month - 1];
-  }
 
-  String _getMonthNameGenitive(int month) {
-    const months = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ];
-    return months[month - 1];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -385,18 +362,27 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             if (notification is ScrollUpdateNotification) {
               if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
                 // Скролл вниз - скрываем AppBar
-                if (_scrollController.offset > 50) {
-                  _fadeController.reverse();
+                if (_scrollController.offset > 20) {
+                  _fadeController.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                 }
               } else if (notification.scrollDelta != null && notification.scrollDelta! < 0) {
                 // Скролл вверх - показываем AppBar
-                _fadeController.forward();
+                _fadeController.animateTo(1.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
               }
             }
             return false;
           },
-          child: FadeTransition(
-            opacity: _fadeAnimation,
+          child: AnimatedBuilder(
+            animation: _fadeController,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, -kToolbarHeight * (1 - _fadeController.value)),
+                child: Opacity(
+                  opacity: _fadeController.value,
+                  child: child,
+                ),
+              );
+            },
             child: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
@@ -938,6 +924,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 ),
                 markersMaxCount: 3,
                 canMarkersOverflow: true,
+                cellMargin: const EdgeInsets.all(4), // Добавляем отступы между ячейками
+                cellPadding: EdgeInsets.zero, // Убираем внутренние отступы ячеек
               ),
               
               headerStyle: HeaderStyle(
@@ -950,6 +938,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   fontSize: 18.0,
                   fontWeight: FontWeight.w600,
                 ),
+                headerPadding: const EdgeInsets.symmetric(vertical: 8.0), // Уменьшаем отступы заголовка
               ),
               
               daysOfWeekStyle: DaysOfWeekStyle(
@@ -960,6 +949,14 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 weekendStyle: TextStyle(
                   color: Colors.red.withAlpha((0.7 * 255).round()),
                   fontWeight: FontWeight.w500,
+                ),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
+                      width: 1,
+                    ),
+                  ),
                 ),
               ),
               
@@ -1101,6 +1098,150 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
           ),
           ...holidays.map((holiday) => _buildHolidayCard(holiday)).toList(),
+          
+          // Отображение всех праздников месяца
+          if (_selectedDay != null) _buildMonthHolidaysSection(),
+        ],
+      ),
+    );
+  }
+  
+  // Новый метод для отображения всех праздников месяца
+  Widget _buildMonthHolidaysSection() {
+    // Получаем все праздники для текущего месяца
+    final currentMonth = _selectedDay?.month ?? DateTime.now().month;
+    final currentYear = _selectedDay?.year ?? DateTime.now().year;
+    
+    // Фильтруем праздники по выбранным фильтрам
+    final monthHolidays = _getFilteredHolidays().where((holiday) {
+      final holidayDate = DateTime(currentYear, holiday.date.month, holiday.date.day);
+      return holidayDate.month == currentMonth;
+    }).toList();
+    
+    // Сортируем по дате
+    monthHolidays.sort((a, b) => a.date.day.compareTo(b.date.day));
+    
+    if (monthHolidays.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha((0.03 * 255).round()),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withAlpha((0.1 * 255).round()),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_month,
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Все праздники месяца',
+                  style: GoogleFonts.merriweather(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withAlpha((0.9 * 255).round()),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...monthHolidays.map((holiday) {
+            final traditionColor = Color(int.parse(holiday.traditionColor.replaceFirst('#', '0xFF')));
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showHolidayDetails(holiday),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.white.withAlpha((0.05 * 255).round()),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: traditionColor.withAlpha((0.1 * 255).round()),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: traditionColor.withAlpha((0.3 * 255).round()),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: traditionColor.withAlpha((0.2 * 255).round()),
+                              blurRadius: 4,
+                              spreadRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '${holiday.date.day}',
+                          style: TextStyle(
+                            color: traditionColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              holiday.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _getTraditionDisplayName(holiday.tradition),
+                              style: TextStyle(
+                                color: Colors.white.withAlpha((0.6 * 255).round()),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white.withAlpha((0.3 * 255).round()),
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ],
       ),
     );
@@ -1111,7 +1252,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     final traditionColor = Color(int.parse(holiday.traditionColor.replaceFirst('#', '0xFF')));
     
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1126,116 +1267,67 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           width: 1,
         ),
       ),
-      child: InkWell(
-        onTap: () => _showHolidayDetails(holiday),
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    holiday.name,
-                    style: GoogleFonts.merriweather(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showHolidayDetails(holiday),
+          borderRadius: BorderRadius.circular(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      holiday.name,
+                      style: GoogleFonts.merriweather(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: traditionColor.withAlpha((0.2 * 255).round()),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _getAuthenticityDisplayName(holiday.authenticity),
-                    style: TextStyle(
-                      color: traditionColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: traditionColor.withAlpha((0.2 * 255).round()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _getAuthenticityDisplayName(holiday.authenticity),
+                      style: TextStyle(
+                        color: traditionColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                holiday.description,
+                style: TextStyle(
+                  color: Colors.white.withAlpha((0.8 * 255).round()),
+                  fontSize: 14,
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              holiday.description,
-              style: TextStyle(
-                color: Colors.white.withAlpha((0.8 * 255).round()),
-                fontSize: 14,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _getTraditionDisplayName(holiday.tradition),
-              style: TextStyle(
-                color: traditionColor.withAlpha((0.7 * 255).round()),
-                fontSize: 12,
+              const SizedBox(height: 8),
+              Text(
+                _getTraditionDisplayName(holiday.tradition),
+                style: TextStyle(
+                  color: traditionColor.withAlpha((0.7 * 255).round()),
+                  fontSize: 12,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildQuoteCard(DailyQuote dailyQuote) {
-    return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withAlpha((0.08 * 255).round()),
-            Colors.white.withAlpha((0.04 * 255).round()),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withAlpha((0.2 * 255).round()),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: () => _showQuoteDetails(dailyQuote),
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Цитата дня',
-              style: GoogleFonts.merriweather(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '"${dailyQuote.quote.text}"',
-              style: TextStyle(
-                color: Colors.white.withAlpha((0.8 * 255).round()),
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '— ${dailyQuote.quote.author}',
-              style: TextStyle(
-                color: Colors.white.withAlpha((0.7 * 255).round()),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   // Дополнительный метод для получения иконки достоверности (как в calendar_page_2)
   

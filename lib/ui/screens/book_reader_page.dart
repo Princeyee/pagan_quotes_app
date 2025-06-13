@@ -127,10 +127,10 @@ class _BookReaderPageState extends State<BookReaderPage>
     await _cache.setSetting('use_custom_colors_book', _useCustomColors);
     
     if (_customTextColor != null) {
-      await _cache.setSetting('custom_text_color_book', _customTextColor!.value);
+      await _cache.setSetting('custom_text_color_book', _customTextColor!.toARGB32());
     }
     if (_customBackgroundColor != null) {
-      await _cache.setSetting('custom_background_color_book', _customBackgroundColor!.value);
+      await _cache.setSetting('custom_background_color_book', _customBackgroundColor!.toARGB32());
     }
   }
 

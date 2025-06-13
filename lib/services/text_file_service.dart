@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/book_source.dart';
-import 'logger_service.dart';
 import 'audiobook_service.dart';
 
 class TextFileService {
@@ -15,7 +14,6 @@ class TextFileService {
 
   final Map<String, String> _cachedTexts = {};
   final Map<String, List<BookSource>> _cachedSources = {};
-  final _logger = LoggerService();
 
   /// Загружает все доступные источники книг (ХАРДКОД из curator)
   Future<List<BookSource>> loadBookSources() async {

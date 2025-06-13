@@ -30,6 +30,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
   
   bool _isSaving = false;
   String? _existingNote;
+  String _lastTypedText = '';
 
   @override
   void initState() {
@@ -38,6 +39,8 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
       duration: const Duration(milliseconds: 350),
       vsync: this,
     );
+    
+
     
     _fadeAnimation = Tween<double>(
       begin: 0.0,
@@ -50,12 +53,8 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
     _animController.forward();
     _loadExistingNote();
     
-    // Автоматически показываем клавиатуру
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) {
-        _focusNode.requestFocus();
-      }
-    });
+    // Не показываем клавиатуру автоматически
+    // Пользователь сам нажмет на поле ввода
   }
 
   Future<void> _loadExistingNote() async {
@@ -163,9 +162,14 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                         ),
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Column(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Индикатор для свайпа вниз
@@ -303,11 +307,16 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                       focusNode: _focusNode,
                                       maxLines: null,
                                       minLines: 6,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
                                         height: 1.5,
+                                        fontWeight: FontWeight.w400,
                                       ),
+                                      // Отключаем анимацию курсора, которая вызывает дергание
+                                      cursorColor: Colors.white,
+                                      cursorWidth: 2,
+                                      showCursor: true,
                                       decoration: InputDecoration(
                                         hintText: 'Запишите свои размышления о этой цитате...',
                                         hintStyle: TextStyle(
@@ -317,6 +326,16 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                         contentPadding: const EdgeInsets.all(16),
                                       ),
                                       onChanged: (text) {
+                                        // Определяем новый текст для анимации
+                                        if (text.length > _lastTypedText.length) {
+                                          // Добавляем эффект плавного появления текста через setState
+                                          setState(() {
+                                            _lastTypedText = text;
+                                          });
+                                        } else {
+                                          _lastTypedText = text;
+                                        }
+                                        
                                         // Автоматически скроллим вниз при добавлении текста
                                         Future.delayed(const Duration(milliseconds: 100), () {
                                           if (_scrollController.hasClients) {
@@ -411,6 +430,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
           ),
         ),
       ),
+      )
       )
     );
   }

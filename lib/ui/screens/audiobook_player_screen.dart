@@ -144,15 +144,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     }
   }
   
-  // Метод для управления звуком аудиоплеера
-  Future<void> _setupAudioVolume() async {
-    try {
-      // Устанавливаем громкость только для текущего плеера
-      await _audioPlayer.setVolume(1.0);
-    } catch (e) {
-      print('Ошибка при настройке громкости: $e');
-    }
-  }
+
 
   void _saveProgress() async {
     await _audiobookService.saveProgress(

@@ -159,7 +159,7 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withAlpha((0.3 * 255).round()),
                               blurRadius: 8,
                               spreadRadius: 2,
                             )
@@ -184,7 +184,7 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
+                              color: Colors.black.withAlpha((0.5 * 255).round()),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -528,7 +528,7 @@ class _QuotePageState extends State<QuotePage>
   bool _isFavorite = false;
   bool _isSoundMuted = false;
   bool _showOnboarding = false;
-
+  bool _isActive = true; // Флаг активности страницы
 
   String? _error;
   Color _textColor = Colors.white;
@@ -580,7 +580,7 @@ class _QuotePageState extends State<QuotePage>
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       _stopAmbientSound();
     } else if (state == AppLifecycleState.resumed) {
-      if (mounted && !_isSoundMuted) {
+      if (mounted && !_isSoundMuted && _isActive) {
         _resumeAmbientIfNeeded();
       }
     }
@@ -674,6 +674,7 @@ class _QuotePageState extends State<QuotePage>
   Future<void> _resumeAmbientIfNeeded() async {
     if (_currentDailyQuote != null && 
         !_isSoundMuted && 
+        _isActive &&
         (_ambientPlayer == null || !(_ambientPlayer?.playing ?? false))) {
       await _playAmbientSound(_currentDailyQuote!.quote.category);
     }
@@ -710,7 +711,7 @@ class _QuotePageState extends State<QuotePage>
   }
 
   Future<void> _playAmbientSound(String themeId) async {
-    if (_currentTheme == themeId || _isSoundMuted) return;
+    if (_currentTheme == themeId || _isSoundMuted || !_isActive) return;
     
     await _stopAmbientSound();
     
@@ -812,11 +813,11 @@ class _QuotePageState extends State<QuotePage>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withAlpha((0.7 * 255).round()),
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withAlpha((0.2 * 255).round()),
                           blurRadius: 15,
                           spreadRadius: 2,
                         )
@@ -910,6 +911,7 @@ class _QuotePageState extends State<QuotePage>
   void _navigateToContext() async {
     if (_currentDailyQuote == null) return;
     
+    setState(() => _isActive = false);
     await _stopAmbientSound();
 
     await _cache.markQuoteAsViewed(_currentDailyQuote!.quote.id);
@@ -937,60 +939,39 @@ class _QuotePageState extends State<QuotePage>
           transitionDuration: const Duration(milliseconds: 400),
         ),
       ).then((_) {
-        if (!_isSoundMuted && mounted) {
-          _resumeAmbientIfNeeded();
+        if (mounted) {
+          setState(() => _isActive = true);
+          if (!_isSoundMuted) {
+            _resumeAmbientIfNeeded();
+          }
         }
       });
     }
   }
 
   void _navigateToPage(Widget page) async {
+    setState(() => _isActive = false);
     await _stopAmbientSound();
     
     if (mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => page),
       ).then((_) {
-        if (!_isSoundMuted && mounted) {
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted && !_isSoundMuted) {
-              _resumeAmbientIfNeeded();
-            }
-          });
+        if (mounted) {
+          setState(() => _isActive = true);
+          if (!_isSoundMuted) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted && !_isSoundMuted && _isActive) {
+                _resumeAmbientIfNeeded();
+              }
+            });
+          }
         }
       });
     }
   }
 
-  @override
-Widget build(BuildContext context) {
-  final mainScaffold = Scaffold(
-    backgroundColor: Colors.black,
-    drawerScrimColor: Colors.black.withAlpha((0.3 * 255).round()),
-    drawer: Theme(
-      data: Theme.of(context).copyWith(
-        canvasColor: Colors.transparent,
-      ),
-      child: NavDrawer(onNavigate: _navigateToPage),
-    ),
-    body: SafeArea(
-      child: _isLoading
-          ? _buildLoadingState()
-          : _error != null
-              ? _buildErrorState()
-              : _buildQuoteContent(),
-    ),
-  );
 
-  if (_showOnboarding) {
-    return OnboardingOverlay(
-      onComplete: _onOnboardingComplete,
-      child: mainScaffold,
-    );
-  }
-
-  return mainScaffold;
-}
 
   Widget _buildLoadingState() {
     return Container(color: Colors.black);
@@ -1419,7 +1400,7 @@ else
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).round()),
                     blurRadius: 8,
                     spreadRadius: 2,
                   )
@@ -1519,4 +1500,34 @@ else
     _stopAmbientSound();
     super.dispose();
   }
-}
+  
+  @override
+  Widget build(BuildContext context) {
+    final mainScaffold = Scaffold(
+      backgroundColor: Colors.black,
+      drawerScrimColor: Colors.black.withAlpha((0.3 * 255).round()),
+      drawer: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.transparent,
+        ),
+        child: NavDrawer(onNavigate: _navigateToPage),
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? _buildLoadingState()
+            : _error != null
+                ? _buildErrorState()
+                : _buildQuoteContent(),
+      ),
+    );
+
+    final content = _showOnboarding
+        ? OnboardingOverlay(
+            onComplete: _onOnboardingComplete,
+            child: mainScaffold,
+          )
+        : mainScaffold;
+
+    return content;
+  }
+    }

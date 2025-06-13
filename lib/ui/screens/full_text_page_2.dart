@@ -985,10 +985,10 @@ class _FullTextPage2State extends State<FullTextPage2>
     await _cache.setSetting('use_custom_colors', _useCustomColors);
     
     if (_customTextColor != null) {
-      await _cache.setSetting('custom_text_color', _customTextColor!.value);
+      await _cache.setSetting('custom_text_color', _customTextColor!.toARGB32());
     }
     if (_customBackgroundColor != null) {
-      await _cache.setSetting('custom_background_color', _customBackgroundColor!.value);
+      await _cache.setSetting('custom_background_color', _customBackgroundColor!.toARGB32());
     }
   }
 

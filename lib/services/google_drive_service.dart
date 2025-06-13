@@ -47,7 +47,7 @@ class GoogleDriveService {
           
           // Проверяем доступ к API
           try {
-            final about = await _driveApi!.about.get();
+            await _driveApi!.about.get();
             print('Доступ к API подтвержден');
             _isInitialized = true;
             return true;
@@ -78,7 +78,7 @@ class GoogleDriveService {
         
         // Проверяем доступ к API
         try {
-          final about = await _driveApi!.about.get();
+          await _driveApi!.about.get();
           print('Доступ к API подтвержден');
         } catch (apiError) {
           _lastError = 'Ошибка проверки API: $apiError';
@@ -119,7 +119,7 @@ class GoogleDriveService {
     try {
       // Проверяем существование указанной папки
       try {
-        final folder = await _driveApi!.files.get(_folderId);
+        await _driveApi!.files.get(_folderId);
         print('Папка найдена: $_folderId');
       } catch (folderError) {
         print('Ошибка доступа к папке $_folderId: $folderError');
@@ -136,9 +136,7 @@ class GoogleDriveService {
         final files = fileList.files ?? [];
         if (files.isNotEmpty) {
           print('Найдено ${files.length} файлов в указанной папке:');
-          for (var file in files) {
-            print('- Найден файл в папке');
-          }
+          print('- Найдено ${files.length} файлов в папке');
           return files;
         } else {
           print('В указанной папке нет файлов');
@@ -160,9 +158,7 @@ class GoogleDriveService {
       
       if (allFiles.isNotEmpty) {
         print('Список найденных файлов:');
-        for (var file in allFiles.take(10)) { // Показываем только первые 10 файлов
-          print('- Найден файл');
-        }
+        print('- Показаны первые 10 из ${allFiles.length} файлов');
         if (allFiles.length > 10) {
           print('... и еще ${allFiles.length - 10} файлов');
         }
@@ -186,7 +182,7 @@ class GoogleDriveService {
       // Проверяем доступ к файлу
       if (_debugMode) {
         try {
-          final file = await _driveApi!.files.get(fileId);
+          await _driveApi!.files.get(fileId);
           print('Файл доступен: $fileId');
         } catch (fileError) {
           _lastError = 'Ошибка доступа к файлу $fileId: $fileError';
@@ -273,7 +269,7 @@ class GoogleDriveService {
     
     if (_driveApi != null) {
       try {
-        final about = await _driveApi!.about.get();
+        await _driveApi!.about.get();
         info['apiStatus'] = 'OK';
       } catch (e) {
         info['apiError'] = e.toString();

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/audiobook.dart';
 import '../../services/audiobook_service.dart';
 import '../../services/google_drive_service.dart';
@@ -129,6 +130,19 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
       });
       
       if (mounted) {
+        // Подготовка полного текста диагностики для копирования
+        final String fullDiagnosticText = '''
+ДИАГНОСТИКА GOOGLE DRIVE:
+Статус инициализации: ${diagnosticInfo['isInitialized'] ? 'Да' : 'Нет'}
+Пользователь: ${diagnosticInfo['userEmail'] ?? 'Нет'}
+Онлайн: ${diagnosticInfo['isOnline'] ? 'Да' : 'Нет'}
+ID папки: ${diagnosticInfo['targetFolderId']}
+Последняя ошибка: ${diagnosticInfo['lastError'] ?? 'Нет'}
+
+ПОЛНАЯ ИНФОРМАЦИЯ:
+${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
+''';
+
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -160,6 +174,26 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
                       const JsonEncoder.withIndent('  ').convert(diagnosticInfo),
                       style: TextStyle(fontFamily: 'monospace', fontSize: 12),
                     ),
+                  ),
+                  SizedBox(height: 16),
+                  // Кнопка для копирования всей информации
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.copy),
+                    label: Text('Копировать всю информацию'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.black,
+                      minimumSize: Size(double.infinity, 48),
+                    ),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: fullDiagnosticText));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Диагностическая информация скопирована в буфер обмена'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

@@ -34,7 +34,6 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  late Animation<double> _contentFadeAnimation;
   late Animation<double> _blurAnimation;
 
   final SoundManager _soundManager = SoundManager();
@@ -91,8 +90,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     ),
   ];
 
-  // Флаг для предотвращения множественных анимаций
-  bool _isTransitioning = false;
+
   
   @override
   void initState() {
@@ -148,10 +146,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       curve: Curves.easeInOut,
     );
 
-    _contentFadeAnimation = CurvedAnimation(
-      parent: _contentController,
-      curve: Curves.easeInOut, // Более плавная кривая анимации
-    );
+
 
     _blurAnimation = Tween<double>(
       begin: 0.0,
