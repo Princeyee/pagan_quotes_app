@@ -8,7 +8,6 @@ import '../../models/reading_theme.dart';
 import '../../services/text_file_service.dart';
 import '../../services/logger_service.dart';
 import '../../utils/custom_cache.dart';
-import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/sound_manager.dart';
