@@ -1,5 +1,4 @@
 // lib/ui/screens/favorites_page.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
 import '../../utils/custom_cache.dart';
+import '../widgets/glass_background.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -136,37 +136,19 @@ class _FavoritesPageState extends State<FavoritesPage> {
             height: double.infinity,
           ),
           
-          // Стеклянный контейнер
+          // Стеклянный контейнер с использованием GlassBackground
           SafeArea(
-            child: ClipRRect(
+            child: GlassBackground(
               borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  margin: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha((0.3 * 255).round()),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withAlpha((0.1 * 255).round()),
-                      width: 0.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((0.2 * 255).round()),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: _loading
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white)
-                      )
-                    : _favorites.isEmpty
-                        ? _buildEmptyState()
-                        : _buildFavoritesList(),
-                ),
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white)
+                    )
+                  : _favorites.isEmpty
+                      ? _buildEmptyState()
+                      : _buildFavoritesList(),
               ),
             ),
           ),

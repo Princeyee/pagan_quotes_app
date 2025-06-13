@@ -8,7 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-import 'dart:math' show sin, cos, pi;
+import 'dart:math' show sin, cos;
 import 'package:just_audio/just_audio.dart';
 import 'onboarding_overlay.dart';
 
@@ -1062,7 +1062,6 @@ Widget build(BuildContext context) {
 
   /// Адаптивная компоновка цитаты
   Widget _buildAdaptiveQuoteLayout(Quote quote, BoxConstraints constraints) {
-    final availableHeight = constraints.maxHeight - 120; // Вычитаем место для header'а
     final isSmallScreen = constraints.maxHeight < 700;
     final isVerySmallScreen = constraints.maxHeight < 600;
     

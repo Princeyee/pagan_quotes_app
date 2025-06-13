@@ -2,7 +2,6 @@
 // tools/formatter2.dart - ФОРМАТЕР ДЛЯ КОРОТКИХ ЦИТАТ
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math';
 
 class BookFormatter2 {
   static const int TARGET_LENGTH = 200; // Целевая длина цитаты (символов)

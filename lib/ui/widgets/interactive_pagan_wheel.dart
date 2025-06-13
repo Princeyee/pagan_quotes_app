@@ -1003,10 +1003,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   // УПРОЩЕННЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДОСТОВЕРНОСТЬЮ
-  IconData _getAuthenticityIcon(HistoricalAuthenticity authenticity) {
-    // ВСЕ ИКОНКИ ОДИНАКОВЫЕ
-    return Icons.info_outline;
-  }
 
   Color _getAuthenticityColor(HistoricalAuthenticity authenticity) {
     // ВСЕ ЦВЕТА СЕРЫЕ
@@ -1370,11 +1366,9 @@ class EnhancedWheelPainter extends CustomPainter {
     final lastIndex = (lastMonth - 1) % 12;
     
     var startAngle = firstIndex * (2 * math.pi / 12) - math.pi / 2;
-    var endAngle = lastIndex * (2 * math.pi / 12) - math.pi / 2 + (2 * math.pi / 12);
     
     if (firstMonth == 12 && lastMonth == 2) {
       startAngle = 11 * (2 * math.pi / 12) - math.pi / 2;
-      endAngle = 2 * (2 * math.pi / 12) - math.pi / 2;
     }
     
     final totalAngle = math.pi / 2;
