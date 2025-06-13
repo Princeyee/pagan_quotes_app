@@ -16,7 +16,8 @@ class GoogleDriveService {
   static const bool _debugMode = true; // Включаем режим отладки
   static const List<String> _scopes = [drive.DriveApi.driveReadonlyScope];
   // Client ID из JSON-файла
-  static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com';
+  // Убираем явное указание clientId, будем использовать значение из ресурсов Android
+  // static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com';
   
   drive.DriveApi? _driveApi;
   final Dio _dio = Dio();
@@ -27,42 +28,27 @@ class GoogleDriveService {
       _isInitialized = false;
       _currentUserEmail = '';
       
+      // Используем более простую конфигурацию без serverClientId
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: _scopes,
-        serverClientId: _clientId,
-        signInOption: SignInOption.standard,
+        // Убираем serverClientId, так как он может вызывать проблемы на Android
+        // serverClientId: _clientId,
       );
       
-      // Проверяем, есть ли уже вход
-      final isSignedIn = await googleSignIn.isSignedIn();
-      if (isSignedIn) {
-        // Если уже вошли, используем текущий аккаунт
-        final account = await googleSignIn.signInSilently();
-        if (account != null) {
-          _currentUserEmail = account.email;
-          print('Вход выполнен как: ${account.email}');
-          final authHeaders = await account.authHeaders;
-          final client = GoogleAuthClient(authHeaders);
-          _driveApi = drive.DriveApi(client);
-          print('Google Drive API инициализирован с существующим аккаунтом');
-          
-          // Проверяем доступ к API
-          try {
-            await _driveApi!.about.get();
-            print('Доступ к API подтвержден');
-            _isInitialized = true;
-            return true;
-          } catch (apiError) {
-            _lastError = 'Ошибка проверки API: $apiError';
-            print(_lastError);
-            // Пробуем выйти и войти заново
-            await googleSignIn.signOut();
-          }
-        }
+      print('Инициализация Google Sign-In...');
+      
+      // Сначала выходим из всех аккаунтов для чистого старта
+      try {
+        await googleSignIn.signOut();
+        print('Выполнен выход из предыдущих сессий');
+      } catch (signOutError) {
+        print('Ошибка при выходе из аккаунта: $signOutError');
+        // Продолжаем работу, это не критическая ошибка
       }
       
-      // Если нет входа или не удалось использовать существующий аккаунт
+      // Пробуем выполнить вход
       try {
+        print('Запрашиваем вход в Google...');
         final account = await googleSignIn.signIn();
         if (account == null) {
           _lastError = 'Пользователь отменил вход';
@@ -71,30 +57,31 @@ class GoogleDriveService {
         }
         
         _currentUserEmail = account.email;
-        print('Новый вход выполнен как: ${account.email}');
+        print('Вход выполнен как: ${account.email}');
         
         try {
+          print('Получаем заголовки авторизации...');
           final authHeaders = await account.authHeaders;
           final client = GoogleAuthClient(authHeaders);
           _driveApi = drive.DriveApi(client);
         
-        // Проверяем доступ к API
-        try {
-          await _driveApi!.about.get();
-          print('Доступ к API подтвержден');
-        } catch (apiError) {
-          _lastError = 'Ошибка проверки API: $apiError';
+          // Проверяем доступ к API
+          try {
+            print('Проверяем доступ к API...');
+            await _driveApi!.about.get();
+            print('Доступ к API подтвержден');
+            _isInitialized = true;
+            return true;
+          } catch (apiError) {
+            _lastError = 'Ошибка проверки API: $apiError';
+            print(_lastError);
+            return false;
+          }
+        } catch (authError) {
+          _lastError = 'Ошибка получения токена авторизации: $authError';
           print(_lastError);
+          return false;
         }
-        
-        print('Google Drive API инициализирован успешно');
-        _isInitialized = true;
-        return true;
-      } catch (authError) {
-        _lastError = 'Ошибка получения токена авторизации: $authError';
-        print(_lastError);
-        return false;
-      }
       } catch (signInError) {
         _lastError = 'Ошибка входа в Google: $signInError';
         print('Детальная ошибка входа: $signInError');

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "358123091745",
+    "project_id": "sinuous-transit-460717-j9",
+    "storage_bucket": "sinuous-transit-460717-j9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358123091745:android:1234567890abcdef",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDummyKeyForPlaceholder"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1",
+  "oauth_client": [
+    {
+      "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+      "client_type": 3,
+      "certificate_hash": "79:CB:2F:F8:A5:27:98:11:D9:8B:69:E8:22:F0:DD:4C:79:B5:FE:9E"
+    }
+  ]
+}

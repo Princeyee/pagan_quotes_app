@@ -529,29 +529,33 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                     width: 1,
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      '"Танцующий — тот, кто может ходить по воде"',
-                      style: GoogleFonts.merriweather(
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.white.withAlpha((0.9 * 255).round()),
-                        decoration: TextDecoration.none,
-                        height: 1.4,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: 120),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '"Танцующий — тот, кто может ходить по воде"',
+                        style: GoogleFonts.merriweather(
+                          fontSize: 16,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.white.withAlpha((0.9 * 255).round()),
+                          decoration: TextDecoration.none,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '— Фридрих Ницше',
-                      style: GoogleFonts.merriweather(
-                        fontSize: 14,
-                        color: Colors.white.withAlpha((0.6 * 255).round()),
-                        decoration: TextDecoration.none,
+                      const SizedBox(height: 12),
+                      Text(
+                        '— Фридрих Ницше',
+                        style: GoogleFonts.merriweather(
+                          fontSize: 14,
+                          color: Colors.white.withAlpha((0.6 * 255).round()),
+                          decoration: TextDecoration.none,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             
