@@ -390,9 +390,28 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.8),
+                    Colors.black.withOpacity(0.5),
+                    Colors.black.withOpacity(0.2),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -534,30 +553,36 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ? _buildLoadingIndicator()
             : Stack(
                 children: [
-                  // Колесо в верхней части экрана
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildPaganWheel(),
-                  ),
                   // Прокручиваемый контент под колесом
-                  Padding(
-                    padding: const EdgeInsets.only(top: 240), // Отступ для колеса
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          if (_nextHoliday != null) _buildNextHolidayCard(),
-                          if (_showCalendar) ...[
-                            const SizedBox(height: 20),
-                            _buildCalendar(),
-                            const SizedBox(height: 20),
-                            _buildSelectedDayEvents(),
-                          ],
-                        ],
-                      ),
+                  SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // Колесо в верхней части экрана
+                        _buildPaganWheel(),
+                        // Отступ после колеса
+                        const SizedBox(height: 40),
+                        // Контент
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            children: [
+                              if (_nextHoliday != null) _buildNextHolidayCard(),
+                              const SizedBox(height: 20),
+                              _buildDailyQuoteCard(),
+                              if (_showCalendar) ...[
+                                const SizedBox(height: 20),
+                                _buildCalendar(),
+                                const SizedBox(height: 20),
+                                _buildSelectedDayEvents(),
+                              ],
+                              // Дополнительный отступ внизу для удобства прокрутки
+                              const SizedBox(height: 40),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -665,6 +690,111 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       ),
     );
   }
+  
+  // Новый виджет для цитаты дня
+  Widget _buildDailyQuoteCard() {
+    // Получаем цитату дня для текущей даты
+    final today = DateTime.now();
+    final dateKey = DateTime(today.year, today.month, today.day);
+    final events = _getEventsForDay(dateKey);
+    
+    // Ищем цитату среди событий
+    DailyQuote? dailyQuote;
+    for (final event in events) {
+      if (event is DailyQuote) {
+        dailyQuote = event;
+        break;
+      }
+    }
+    
+    if (dailyQuote == null) return const SizedBox.shrink();
+    
+    return GestureDetector(
+      onTap: () => _showQuoteDetails(dailyQuote!),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.08),
+              Colors.white.withOpacity(0.04),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.format_quote,
+                  color: Colors.white.withOpacity(0.7),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Цитата дня',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.more_horiz,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              // Показываем только часть цитаты
+              '\"${_truncateQuote(dailyQuote.quote.text)}\"',
+              style: GoogleFonts.merriweather(
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+                color: Colors.white.withOpacity(0.9),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  '— ${dailyQuote.quote.author}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 14,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // Вспомогательный метод для сокращения цитаты
+  String _truncateQuote(String text) {
+    if (text.length <= 100) return text;
+    return '${text.substring(0, 100)}...';
+  }
 
   Widget _buildPaganWheel() {
     return Container(
@@ -674,23 +804,19 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.9),
-            Colors.black.withOpacity(0.7),
-            Colors.black.withOpacity(0.4),
+            Colors.black.withOpacity(0.95),
+            Colors.black.withOpacity(0.8),
+            Colors.black.withOpacity(0.5),
             Colors.transparent,
           ],
           stops: const [0.0, 0.3, 0.7, 1.0],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
         ),
       ),
       child: Column(
         children: [
           // Полукруг колеса, выходящий из темноты и затемняющийся
           Container(
-            height: 450, // Увеличиваем высоту колеса
+            height: 520, // Увеличиваем высоту колеса еще больше
             width: double.infinity,
             child: Stack(
               children: [
@@ -702,11 +828,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         begin: Alignment.topCenter,
                         end: Alignment.center,
                         colors: [
-                          Colors.black.withOpacity(0.9),
-                          Colors.black.withOpacity(0.5),
+                          Colors.black.withOpacity(0.95),
+                          Colors.black.withOpacity(0.7),
                           Colors.transparent,
                         ],
-                        stops: const [0.0, 0.3, 0.7],
+                        stops: const [0.0, 0.4, 0.9],
                       ),
                     ),
                   ),
@@ -714,7 +840,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 ClipRect(
                   child: Align(
                     alignment: Alignment.topCenter,
-                    heightFactor: 0.7, // Показываем больше колеса
+                    heightFactor: 0.8, // Показываем еще больше колеса
                     child: InteractivePaganWheel(
                       selectedTradition: _selectedTradition,
                       selectedAuthenticity: _selectedAuthenticity,
@@ -882,7 +1008,10 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   Widget _buildSelectedDayEvents() {
     final events = _getEventsForDay(_selectedDay ?? DateTime.now());
     
-    if (events.isEmpty) {
+    // Фильтруем события, чтобы показывать только праздники (без цитат)
+    final holidays = events.whereType<PaganHoliday>().toList();
+    
+    if (holidays.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -960,14 +1089,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               ],
             ),
           ),
-          ...events.map((event) {
-            if (event is PaganHoliday) {
-              return _buildHolidayCard(event);
-            } else if (event is DailyQuote) {
-              return _buildQuoteCard(event);
-            }
-            return const SizedBox.shrink();
-          }).toList(),
+          ...holidays.map((holiday) => _buildHolidayCard(holiday)).toList(),
         ],
       ),
     );
@@ -1353,12 +1475,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   void _showQuoteDetails(DailyQuote dailyQuote) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => CalendarQuoteModal(dailyQuote: dailyQuote),
-    );
+    showCalendarQuoteModal(context, dailyQuote);
   }
 
   @override

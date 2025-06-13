@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
 import 'google_drive_service.dart';
@@ -20,22 +21,41 @@ class AudiobookService {
     final isOnline = connectivityResult != ConnectivityResult.none;
 
     try {
+      // Всегда загружаем локальные аудиокниги
+      final localAudiobooks = await _getLocalAudiobooks();
+      
       if (isOnline) {
-        // Онлайн режим - загружаем из Google Drive и локального конфига
-        await _driveService.initialize();
-        final onlineAudiobooks = await _getOnlineAudiobooks();
-        final localAudiobooks = await _getLocalAudiobooks();
+        // Онлайн режим - пытаемся загрузить из Google Drive
+        print('Устройство онлайн, пытаемся загрузить книги из Google Drive');
         
-        // Объединяем и сохраняем для оффлайн режима
-        final allAudiobooks = [...localAudiobooks, ...onlineAudiobooks];
-        await _saveOfflineAudiobooks(allAudiobooks);
-        
-        return allAudiobooks;
+        try {
+          final onlineAudiobooks = await _getOnlineAudiobooks();
+          
+          if (onlineAudiobooks.isNotEmpty) {
+            print('Загружено ${onlineAudiobooks.length} книг из Google Drive');
+            
+            // Объединяем и сохраняем для оффлайн режима
+            final allAudiobooks = [...localAudiobooks, ...onlineAudiobooks];
+            await _saveOfflineAudiobooks(allAudiobooks);
+            
+            return allAudiobooks;
+          } else {
+            print('Не удалось загрузить книги из Google Drive');
+          }
+        } catch (driveError) {
+          print('Ошибка при загрузке книг из Google Drive: $driveError');
+        }
+      }
+      
+      // Если мы оффлайн или не удалось загрузить из Google Drive
+      if (localAudiobooks.isNotEmpty) {
+        return localAudiobooks;
       } else {
-        // Оффлайн режим - загружаем из кэша
+        // Пробуем загрузить из кэша
         return await _getOfflineAudiobooks();
       }
     } catch (e) {
+      print('Общая ошибка при загрузке аудиокниг: $e');
       // Fallback на оффлайн данные
       return await _getOfflineAudiobooks();
     }
@@ -93,7 +113,19 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
 
   Future<List<Audiobook>> _getOnlineAudiobooks() async {
     try {
+      // Инициализируем Google Drive API и проверяем успешность авторизации
+      final isInitialized = await _driveService.initialize();
+      if (!isInitialized) {
+        print('Не удалось авторизоваться в Google Drive');
+        return [];
+      }
+      
       final driveFiles = await _driveService.getAudiobookFiles();
+      if (driveFiles.isEmpty) {
+        print('Не найдены файлы в Google Drive');
+        return [];
+      }
+      
       final List<Audiobook> audiobooks = [];
       
       // Группируем файлы по папкам (аудиокнигам)
@@ -101,26 +133,30 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       
       for (final file in driveFiles) {
         if (file.mimeType == 'application/vnd.google-apps.folder') {
-          bookFolders[file.name!] = [];
+          bookFolders[file.id!] = []; // Используем ID папки вместо имени
+          print('Найдена папка: ${file.name} (${file.id})');
         }
       }
       
       for (final file in driveFiles) {
-        if (file.mimeType?.contains('audio') == true) {
-          // Ищем родительскую папку
-          for (final folderName in bookFolders.keys) {
-            if (file.parents?.any((parent) => parent == folderName) == true) {
-              bookFolders[folderName]!.add(file);
-              break;
-            }
+        if (file.mimeType?.contains('audio') == true && file.parents != null && file.parents!.isNotEmpty) {
+          final parentId = file.parents!.first;
+          if (bookFolders.containsKey(parentId)) {
+            bookFolders[parentId]!.add(file);
+            print('Добавлен аудиофайл ${file.name} в папку $parentId');
           }
         }
       }
       
       // Создаем аудиокниги из найденных папок
       for (final entry in bookFolders.entries) {
-        final bookName = entry.key;
+        final folderId = entry.key;
         final files = entry.value;
+        
+        // Находим имя папки по ID
+        final folderName = driveFiles
+            .firstWhere((file) => file.id == folderId, orElse: () => drive.File()..name = 'Неизвестная книга')
+            .name ?? 'Неизвестная книга';
         
         if (files.isNotEmpty) {
           final chapters = <AudiobookChapter>[];
@@ -144,17 +180,19 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
             milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
           );
           
-          final coverPath = await BookImageService.getStableBookImage(bookName, 'pagan');
+          final coverPath = await BookImageService.getStableBookImage(folderName, 'pagan');
           
           audiobooks.add(Audiobook(
-            id: 'drive_$bookName',
-            title: _formatBookTitle(bookName),
+            id: 'drive_$folderId',
+            title: _formatBookTitle(folderName),
             author: 'Google Drive',
             coverPath: coverPath,
             chapters: chapters,
             totalDuration: totalDuration,
             description: 'Аудиокнига из Google Drive',
           ));
+          
+          print('Добавлена аудиокнига: ${folderName} с ${chapters.length} главами');
         }
       }
       

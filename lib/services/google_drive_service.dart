@@ -16,26 +16,51 @@ class GoogleDriveService {
   drive.DriveApi? _driveApi;
   final Dio _dio = Dio();
 
-  Future<void> initialize() async {
+  Future<bool> initialize() async {
     try {
       final googleSignIn = GoogleSignIn(
         scopes: _scopes,
         clientId: _clientId,
+        signInOption: SignInOption.standard,
       );
       
+      // Проверяем, есть ли уже вход
+      final isSignedIn = await googleSignIn.isSignedIn();
+      if (isSignedIn) {
+        // Если уже вошли, используем текущий аккаунт
+        final account = await googleSignIn.signInSilently();
+        if (account != null) {
+          final authHeaders = await account.authHeaders;
+          final client = GoogleAuthClient(authHeaders);
+          _driveApi = drive.DriveApi(client);
+          print('Google Drive API инициализирован с существующим аккаунтом');
+          return true;
+        }
+      }
+      
+      // Если нет входа или не удалось использовать существующий аккаунт
       final account = await googleSignIn.signIn();
       if (account == null) {
         print('Пользователь отменил вход');
-        return;
+        return false;
       }
       
-      final authHeaders = await account.authHeaders;
-      final client = GoogleAuthClient(authHeaders);
-      _driveApi = drive.DriveApi(client);
-      
-      print('Google Drive API инициализирован успешно');
+      try {
+        final authHeaders = await account.authHeaders;
+        final client = GoogleAuthClient(authHeaders);
+        _driveApi = drive.DriveApi(client);
+        
+        print('Google Drive API инициализирован успешно');
+        return true;
+      } catch (authError) {
+        print('Ошибка получения токена авторизации: $authError');
+        // Попробуем выйти и войти снова
+        await googleSignIn.signOut();
+        return false;
+      }
     } catch (e) {
       print('Ошибка инициализации Google Drive: $e');
+      return false;
     }
   }
 

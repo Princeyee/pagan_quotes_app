@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
+import 'dart:ui' as ui;
 import '../../models/daily_quote.dart';
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
@@ -26,7 +27,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
     with TickerProviderStateMixin {
   late AnimationController _animController;
   late AnimationController _imageController;
-  late Animation<double> _scaleAnimation;
+  late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _imageAnimation;
 
@@ -52,12 +53,12 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _animController,
-      curve: Curves.easeOutBack,
+      curve: Curves.easeOutCubic,
     ));
 
     _fadeAnimation = Tween<double>(
@@ -117,42 +118,65 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
         color: Colors.transparent,
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Container(
-            color: Colors.black.withOpacity(0.8),
-            child: SafeArea(
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {}, // Предотвращаем закрытие при тапе на контент
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      margin: const EdgeInsets.all(20),
-                      constraints: BoxConstraints(
-                        maxWidth: 400,
-                        maxHeight: MediaQuery.of(context).size.height * 0.85,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[900],
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              child: SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SlideTransition(
+                      position: _slideAnimation,
+                      child: GestureDetector(
+                        onTap: () {}, // Предотвращаем закрытие при тапе на контент
+                        child: Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 20),
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height * 0.85,
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildHeader(),
-                          _buildImageSection(),
-                          _buildQuoteSection(),
-                          _buildActionsSection(),
-                        ],
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withOpacity(0.8),
+                                Colors.black.withOpacity(0.9),
+                              ],
+                            ),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(30),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(30),
+                            ),
+                            child: BackdropFilter(
+                              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildHeader(),
+                                  _buildImageSection(),
+                                  _buildQuoteSection(),
+                                  _buildActionsSection(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -535,10 +559,11 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
 
 // Вспомогательная функция для показа модалки
 Future<void> showCalendarQuoteModal(BuildContext context, DailyQuote dailyQuote) {
-  return showDialog(
+  return showModalBottomSheet(
     context: context,
-    barrierDismissible: true,
-    barrierColor: Colors.transparent,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withOpacity(0.5),
     builder: (context) => CalendarQuoteModal(dailyQuote: dailyQuote),
   );
 }

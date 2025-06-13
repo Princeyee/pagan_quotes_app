@@ -1,4 +1,5 @@
 // lib/ui/screens/favorites_page.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -112,8 +113,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           'Избранное', 
           style: GoogleFonts.merriweather(color: Colors.white)
@@ -123,13 +126,52 @@ class _FavoritesPageState extends State<FavoritesPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.white)
-            )
-          : _favorites.isEmpty
-              ? _buildEmptyState()
-              : _buildFavoritesList(),
+      body: Stack(
+        children: [
+          // Размытый фон с изображением из главного экрана
+          Image.asset(
+            'assets/images/backgrounds/main_bg.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          
+          // Стеклянный контейнер
+          SafeArea(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  margin: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 0.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: _loading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white)
+                      )
+                    : _favorites.isEmpty
+                        ? _buildEmptyState()
+                        : _buildFavoritesList(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

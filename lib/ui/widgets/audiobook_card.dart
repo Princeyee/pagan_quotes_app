@@ -36,8 +36,9 @@ class AudiobookCard extends StatelessWidget {
                     tag: 'audiobook_cover_${audiobook.id}',
                     child: Container(
                       width: 100,
-                      height: 140, // Увеличиваем высоту для прямоугольной обложки
+                      height: 100, // Делаем контейнер квадратным
                       decoration: BoxDecoration(
+                        color: Colors.black, // Черный фон для контейнера
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -52,7 +53,7 @@ class AudiobookCard extends StatelessWidget {
                         child: audiobook.coverPath.startsWith('http')
                         ? Image.network(
                             audiobook.coverPath,
-                            fit: BoxFit.fill, // Меняем на fill чтобы заполнить весь контейнер
+                            fit: BoxFit.cover, // Используем cover вместо fill
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[800],
@@ -66,7 +67,7 @@ class AudiobookCard extends StatelessWidget {
                           )
                         : Image.asset(
                             audiobook.coverPath,
-                            fit: BoxFit.fill, // Меняем на fill чтобы заполнить весь контейнер
+                            fit: BoxFit.cover, // Используем cover вместо fill
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[800],
@@ -149,27 +150,7 @@ class AudiobookCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Play Button
-                  Container(
-                    width: 36, // Уменьшаем размер кнопки
-                    height: 36, // Уменьшаем размер кнопки
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.8), // Делаем немного прозрачным
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context).primaryColor.withOpacity(0.2),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 20, // Уменьшаем размер иконки
-                    ),
-                  ),
+                  // Убираем кнопку Play
                 ],
               ),
             ),

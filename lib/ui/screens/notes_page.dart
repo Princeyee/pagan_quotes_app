@@ -1,5 +1,5 @@
-
 // lib/ui/screens/notes_page.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/custom_cache.dart';
@@ -136,9 +136,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
         _loadNotes();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-
-
-content: Text('Заметка обновлена'),
+            content: Text('Заметка обновлена'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -156,8 +154,10 @@ content: Text('Заметка обновлена'),
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           'Мои заметки',
           style: GoogleFonts.merriweather(color: Colors.white),
@@ -188,55 +188,94 @@ content: Text('Заметка обновлена'),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : Column(
-              children: [
-                // Поиск
-                if (_notes.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white12),
+      body: Stack(
+        children: [
+          // Размытый фон с изображением из главного экрана
+          Image.asset(
+            'assets/images/backgrounds/main_bg.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          
+          // Стеклянный контейнер
+          SafeArea(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  margin: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 0.5,
                     ),
-                    child: TextField(
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Поиск по заметкам...',
-                        hintStyle: TextStyle(color: Colors.white38),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white38),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                          _filterAndSortNotes();
-                        });
-                      },
-                    ),
+                    ],
                   ),
-                
-                // Список заметок
-                Expanded(
-                  child: _notes.isEmpty
-                      ? _buildEmptyState()
-                      : _filteredNotes.isEmpty
-                          ? _buildNoResultsState()
-                          : FadeTransition(
-                              opacity: _fadeAnimation,
-                              child: ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                itemCount: _filteredNotes.length,
-                                itemBuilder: (context, index) => 
-                                  _buildNoteCard(_filteredNotes[index]),
+                  child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    : Column(
+                        children: [
+                          // Поиск
+                          if (_notes.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[900],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: TextField(
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText: 'Поиск по заметкам...',
+                                  hintStyle: TextStyle(color: Colors.white38),
+                                  prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _searchQuery = value;
+                                    _filterAndSortNotes();
+                                  });
+                                },
                               ),
                             ),
+                          
+                          // Список заметок
+                          Expanded(
+                            child: _notes.isEmpty
+                                ? _buildEmptyState()
+                                : _filteredNotes.isEmpty
+                                    ? _buildNoResultsState()
+                                    : FadeTransition(
+                                        opacity: _fadeAnimation,
+                                        child: ListView.builder(
+                                          padding: const EdgeInsets.only(bottom: 16),
+                                          itemCount: _filteredNotes.length,
+                                          itemBuilder: (context, index) => 
+                                            _buildNoteCard(_filteredNotes[index]),
+                                        ),
+                                      ),
+                          ),
+                        ],
+                      ),
                 ),
-              ],
+              ),
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -261,9 +300,7 @@ content: Text('Заметка обновлена'),
           const SizedBox(height: 8),
           Text(
             'Долгое нажатие на цитату создаст заметку',
-
-
-style: TextStyle(
+            style: TextStyle(
               fontSize: 16,
               color: Colors.white.withOpacity(0.3),
             ),
@@ -396,9 +433,7 @@ style: TextStyle(
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-
-
-),
+                ),
                 
                 const SizedBox(height: 16),
                 

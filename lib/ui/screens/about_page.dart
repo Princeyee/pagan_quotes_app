@@ -1,4 +1,4 @@
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -46,93 +46,113 @@ class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('О приложении'),
       ),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 📜 Лёгкий фон "пергамент"
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.brown.withOpacity(0.3),
-                  Colors.transparent,
-                  Colors.brown.withOpacity(0.3),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+          // Размытый фон с изображением из главного экрана
+          Image.asset(
+            'assets/images/backgrounds/main_bg.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           ),
 
-          FadeTransition(
-            opacity: _fadeAnim,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    ' Sacral',
-                    style: GoogleFonts.merriweather(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          // Стеклянный контейнер
+          SafeArea(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  margin: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 0.5,
                     ),
-                    textAlign: TextAlign.center,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Цитаты, вдохновлённые духом, природой и мудростью времени.',
-                    style: GoogleFonts.merriweather(
-                      fontSize: 16,
-                      height: 1.6,
-                      color: Colors.white70,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Этот проект создан со стремлением вернуть ощущение священного в повседневность.'
-                    'Для тех кто в силу обстоятель пока не может, или не хочет уезжать из городов, и отвергать технологии. Это приложение поможет если не начать с нуля, то постараться оседлать тигра',
-                    style: GoogleFonts.merriweather(
-                      fontSize: 15,
-                      height: 1.6,
-                      color: Colors.white60,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 36),
-                  ElevatedButton.icon(
-                    onPressed: _launchSupport,
-                    icon: const Icon(Icons.favorite_border),
-                    label: const Text('Поддержать проект'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.deepOrangeAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-
-
-                       textStyle: const TextStyle(fontSize: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                  child: FadeTransition(
+                    opacity: _fadeAnim,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            ' Sacral',
+                            style: GoogleFonts.merriweather(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Цитаты, вдохновлённые духом, природой и мудростью времени.',
+                            style: GoogleFonts.merriweather(
+                              fontSize: 16,
+                              height: 1.6,
+                              color: Colors.white70,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 28),
+                          Text(
+                            'Этот проект создан со стремлением вернуть ощущение священного в повседневность.'
+                            'Для тех кто в силу обстоятель пока не может, или не хочет уезжать из городов, и отвергать технологии. Это приложение поможет если не начать с нуля, то постараться оседлать тигра',
+                            style: GoogleFonts.merriweather(
+                              fontSize: 15,
+                              height: 1.6,
+                              color: Colors.white60,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 36),
+                          ElevatedButton.icon(
+                            onPressed: _launchSupport,
+                            icon: const Icon(Icons.favorite_border),
+                            label: const Text('Поддержать проект'),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.deepOrangeAccent,
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                              textStyle: const TextStyle(fontSize: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Спасибо за интерес к Sacral ✨',
+                            style: GoogleFonts.merriweather(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.white38,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Спасибо за интерес к Sacral ✨',
-                    style: GoogleFonts.merriweather(
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.white38,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             ),
           ),

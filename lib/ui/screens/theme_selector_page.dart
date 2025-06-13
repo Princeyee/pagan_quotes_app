@@ -1,4 +1,4 @@
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/theme_info.dart';
 import '../../services/theme_service.dart';
@@ -68,56 +68,97 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Темы'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: allThemes.length,
-        itemBuilder: (context, index) {
-          final theme = allThemes[index];
-          final isSelected = _enabledThemes.contains(theme.id);
-          final isExpanded = _expandedTheme?.id == theme.id;
-
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
+      body: Stack(
+        children: [
+          // Размытый фон с изображением из главного экрана
+          Image.asset(
+            'assets/images/backgrounds/main_bg.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          
+          // Стеклянный контейнер
+          SafeArea(
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              color: isSelected ? Colors.white10 : Colors.white12,
-            ),
-            child: InkWell(
-              onTap: () async {
-                if (isExpanded) {
-                  // Закрываем контейнер и плавно затухаем звук
-                  await _stopThemeSound();
-                  setState(() {
-                    _expandedTheme = null;
-                  });
-                } else {
-                  // Закрываем предыдущий контейнер если открыт
-                  if (_expandedTheme != null) {
-                    setState(() {
-                      _expandedTheme = null;
-                    });
-                  }
-                  // Открываем новый контейнер и плавно играем звук
-                  setState(() {
-                    _expandedTheme = theme;
-                  });
-                  await _playThemeSound(theme.id);
-                }
-              },
-              child: AnimatedCrossFade(
-                firstChild: _buildCollapsedCard(theme, isSelected),
-                secondChild: _buildExpandedCard(theme, isSelected),
-                crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 300),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  margin: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 0.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: allThemes.length,
+                    itemBuilder: (context, index) {
+                      final theme = allThemes[index];
+                      final isSelected = _enabledThemes.contains(theme.id);
+                      final isExpanded = _expandedTheme?.id == theme.id;
+
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: isSelected ? Colors.white10 : Colors.white12,
+                        ),
+                        child: InkWell(
+                          onTap: () async {
+                            if (isExpanded) {
+                              // Закрываем контейнер и плавно затухаем звук
+                              await _stopThemeSound();
+                              setState(() {
+                                _expandedTheme = null;
+                              });
+                            } else {
+                              // Закрываем предыдущий контейнер если открыт
+                              if (_expandedTheme != null) {
+                                setState(() {
+                                  _expandedTheme = null;
+                                });
+                              }
+                              // Открываем новый контейнер и плавно играем звук
+                              setState(() {
+                                _expandedTheme = theme;
+                              });
+                              await _playThemeSound(theme.id);
+                            }
+                          },
+                          child: AnimatedCrossFade(
+                            firstChild: _buildCollapsedCard(theme, isSelected),
+                            secondChild: _buildExpandedCard(theme, isSelected),
+                            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                            duration: const Duration(milliseconds: 300),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
