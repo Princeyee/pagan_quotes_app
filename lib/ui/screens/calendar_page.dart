@@ -23,13 +23,11 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
   final CustomCachePrefs _cache = CustomCache.prefs;
-  final QuoteExtractionService _quoteService = QuoteExtractionService();
   final ScrollController _scrollController = ScrollController();
 
   late AnimationController _fadeController;
   late AnimationController _backgroundController;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _backgroundAnimation;
 
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -78,13 +76,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       curve: Curves.easeInOut,
     ));
 
-    _backgroundAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _backgroundController,
-      curve: Curves.linear,
-    ));
+
   }
 
   void _findNextHoliday() {
@@ -232,13 +224,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     }
   }
   
-  void _onFormatChanged(CalendarFormat format) {
-    if (_calendarFormat != format) {
-      setState(() {
-        _calendarFormat = format;
-      });
-    }
-  }
+
   
   // Удаляем метод _buildFullCalendarModal, так как он больше не нужен
   

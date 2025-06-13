@@ -5,6 +5,7 @@ import '../../services/audiobook_service.dart';
 import '../../services/google_drive_service.dart';
 import '../../ui/widgets/audiobook_card.dart';
 import 'audiobook_player_screen.dart';
+import 'dart:convert';
 
 class AudiobookLibraryScreen extends StatefulWidget {
   @override
@@ -88,8 +89,12 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
             SnackBar(content: Text('Успешное подключение к Google Drive')),
           );
         } else {
+          final lastError = _googleDriveService.getLastError();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Не удалось подключиться к Google Drive')),
+            SnackBar(
+              content: Text('Не удалось подключиться к Google Drive: $lastError'),
+              duration: Duration(seconds: 5),
+            ),
           );
         }
       }
@@ -101,9 +106,88 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка подключения к Google Drive: $e')),
+          SnackBar(
+            content: Text('Ошибка подключения к Google Drive: $e'),
+            duration: Duration(seconds: 5),
+          ),
         );
       }
+    }
+  }
+  
+  // Метод для отображения диагностической информации
+  Future<void> _showDiagnosticInfo() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final diagnosticInfo = await _googleDriveService.getDiagnosticInfo();
+      
+      setState(() {
+        _isLoading = false;
+      });
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Диагностика Google Drive'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Статус инициализации: ${diagnosticInfo['isInitialized'] ? 'Да' : 'Нет'}'),
+                  SizedBox(height: 8),
+                  Text('Пользователь: ${diagnosticInfo['userEmail'] ?? 'Нет'}'),
+                  SizedBox(height: 8),
+                  Text('Онлайн: ${diagnosticInfo['isOnline'] ? 'Да' : 'Нет'}'),
+                  SizedBox(height: 8),
+                  Text('ID папки: ${diagnosticInfo['targetFolderId']}'),
+                  SizedBox(height: 8),
+                  Text('Последняя ошибка: ${diagnosticInfo['lastError'] ?? 'Нет'}'),
+                  SizedBox(height: 16),
+                  Text('Полная информация:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      const JsonEncoder.withIndent('  ').convert(diagnosticInfo),
+                      style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Закрыть'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _connectToGoogleDrive();
+                },
+                child: Text('Переподключиться'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка получения диагностической информации: $e')),
+      );
     }
   }
 
@@ -135,6 +219,12 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
             tooltip: _isGoogleDriveConnected 
                 ? 'Подключено к Google Drive' 
                 : 'Подключиться к Google Drive',
+          ),
+          // Кнопка для диагностики
+          IconButton(
+            icon: Icon(Icons.info_outline),
+            onPressed: _isLoading ? null : _showDiagnosticInfo,
+            tooltip: 'Диагностика Google Drive',
           ),
           IconButton(
             icon: Icon(Icons.refresh),

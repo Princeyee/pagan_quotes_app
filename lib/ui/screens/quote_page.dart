@@ -138,7 +138,7 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
                 boxShadow: widget.isLiked
                     ? [
                         BoxShadow(
-                          color: Colors.red.withAlpha((0.3 * 255).round()),
+                          color: Colors.black.withAlpha((0.3 * 255).round()),
                           blurRadius: 8,
                           spreadRadius: 2,
                         )
@@ -148,11 +148,29 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(
-                    widget.isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: widget.isLiked ? Colors.red : widget.color,
-                    size: 28,
-                  ),
+                  widget.isLiked 
+                    ? Container(
+                        child: Icon(
+                          Icons.favorite,
+                          color: widget.color,
+                          size: 28,
+                        ),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            )
+                          ],
+                        ),
+                      )
+                    : Icon(
+                        Icons.favorite_border,
+                        color: widget.color,
+                        size: 28,
+                      ),
                   if (widget.isLiked && _sparkleAnimation.value > 0)
                     ...List.generate(6, (index) {
                       final angle = (index * 60) * (3.14159 / 180);
@@ -165,8 +183,8 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
                           child: Container(
                             width: 4,
                             height: 4,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -753,13 +771,7 @@ class _QuotePageState extends State<QuotePage>
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isFavorite ? 'Добавлено в избранное' : 'Удалено из избранного'),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        _showFavoriteAnimation(_isFavorite);
       }
     } catch (e) {
       print('Error toggling favorite: $e');
@@ -772,6 +784,74 @@ class _QuotePageState extends State<QuotePage>
         );
       }
     }
+  }
+  
+  void _showFavoriteAnimation(bool added) {
+    final overlay = Overlay.of(context);
+    late final OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 100,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 800),
+            onEnd: () {
+              Future.delayed(const Duration(milliseconds: 1200), () {
+                overlayEntry.remove();
+              });
+            },
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value > 0.8 ? 1.0 : value * 1.25,
+                child: Opacity(
+                  opacity: value > 0.8 ? 1.0 - ((value - 0.8) * 5) : value * 1.25,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          added ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          added ? 'Добавлено в избранное' : 'Удалено из избранного',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    
+    overlay.insert(overlayEntry);
   }
 
   Future<void> _shareQuoteImage() async {
@@ -1328,11 +1408,29 @@ else
           shape: BoxShape.circle,
           color: Colors.black.withAlpha((0.3 * 255).round()),
         ),
-        child: Icon(
-          _isFavorite ? Icons.favorite : Icons.favorite_border,
-          color: _isFavorite ? Colors.red : _textColor,
-          size: size * 0.5,
-        ),
+        child: _isFavorite 
+          ? Container(
+              child: Icon(
+                Icons.favorite,
+                color: _textColor,
+                size: size * 0.5,
+              ),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  )
+                ],
+              ),
+            )
+          : Icon(
+              Icons.favorite_border,
+              color: _textColor,
+              size: size * 0.5,
+            ),
       ),
     );
   }

@@ -91,6 +91,9 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     ),
   ];
 
+  // Флаг для предотвращения множественных анимаций
+  bool _isTransitioning = false;
+  
   @override
   void initState() {
     super.initState();
@@ -115,7 +118,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     )..repeat(reverse: true);
     
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 600), // Быстрее
+      duration: const Duration(milliseconds: 400), // Еще быстрее для более плавных переходов
       vsync: this,
     );
     
@@ -147,7 +150,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
 
     _contentFadeAnimation = CurvedAnimation(
       parent: _contentController,
-      curve: Curves.easeIn,
+      curve: Curves.easeInOut, // Более плавная кривая анимации
     );
 
     _blurAnimation = Tween<double>(
@@ -169,6 +172,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     
     await Future.delayed(const Duration(milliseconds: 200));
     _introController.forward();
+    _contentController.forward(); // Запускаем анимацию контента сразу
     
     await Future.delayed(Duration(milliseconds: _steps[0].duration));
     await _playBreathSound();
@@ -178,12 +182,16 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
 
   void _nextStep() {
     if (_currentStep < _totalSteps - 1) {
-      setState(() {
-        _currentStep++;
+      // Сначала плавно скрываем текущий контент
+      _contentController.reverse().then((_) {
+        if (mounted) {
+          setState(() {
+            _currentStep++;
+          });
+          // Затем плавно показываем новый контент
+          _contentController.forward();
+        }
       });
-      
-      _contentController.reset();
-      _contentController.forward();
     } else {
       _completeOnboarding();
     }
@@ -212,7 +220,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       return;
     }
     
-    _nextStep();
+    // Предотвращаем множественные нажатия во время анимации
+    if (!_contentController.isAnimating) {
+      _nextStep();
+    }
   }
 
   void _completeOnboarding() {
@@ -278,6 +289,23 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   Widget _buildCurrentStep() {
     final stepData = _steps[_currentStep];
     
+    // Оборачиваем контент в AnimatedSwitcher для плавного перехода между шагами
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      child: Container(
+        key: ValueKey<int>(_currentStep), // Уникальный ключ для каждого шага
+        child: _buildStepContent(stepData),
+      ),
+    );
+  }
+  
+  Widget _buildStepContent(OnboardingStep stepData) {
     switch (stepData.type) {
       case StepType.treeAnimation:
         return _buildTreeAnimation();
@@ -371,11 +399,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   }
 
   Widget _buildWelcomeStep(OnboardingStep step) {
-    return FadeTransition(
-      opacity: _contentFadeAnimation,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
+    // Используем только один слой анимации для предотвращения конфликтов
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Простой логотип без анимаций
@@ -456,16 +483,15 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             ),
           ],
         ),
-      ),
-    );
+      );
+    
   }
 
   Widget _buildSimpleStep(OnboardingStep step) {
-    return FadeTransition(
-      opacity: _contentFadeAnimation,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
+    // Убираем лишний слой анимации
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
@@ -558,16 +584,15 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             ),
           ],
         ),
-      ),
-    );
+      );
+    
   }
 
   Widget _buildFullTextStep(OnboardingStep step) {
-    return FadeTransition(
-      opacity: _contentFadeAnimation,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
+    // Убираем лишний слой анимации
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
@@ -676,15 +701,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             ),
           ],
         ),
-      ),
-    );
+      );
+   
   }
 
   Widget _buildMenuStep(OnboardingStep step) {
-    return FadeTransition(
-      opacity: _contentFadeAnimation,
-      child: Stack(
-        children: [
+    // Убираем лишний слой анимации
+    return Stack(
+      children: [
           // Простое выделение меню без желтого контура
           Positioned(
             top: 20,
@@ -788,17 +812,16 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             ),
           ),
         ],
-      ),
-    );
+      );
+  
   }
 
   Widget _buildFinalWisdomStep(OnboardingStep step) {
     final lines = step.description.split('|');
     
-    return FadeTransition(
-      opacity: _contentFadeAnimation,
-      child: Center(
-        child: Padding(
+    // Убираем лишний слой анимации
+    return Center(
+      child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -906,8 +929,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
             ],
           ),
         ),
-      ),
-    );
+      );
+   
   }
 
   Widget _buildMenuItemDemo(String text) {

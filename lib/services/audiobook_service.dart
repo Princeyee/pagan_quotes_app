@@ -130,6 +130,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       // Группируем файлы по папкам (аудиокнигам)
       final Map<String, List<dynamic>> bookFolders = {};
       
+      // Сначала находим все папки
       for (final file in driveFiles) {
         if (file.mimeType == 'application/vnd.google-apps.folder') {
           bookFolders[file.id!] = []; // Используем ID папки вместо имени
@@ -137,12 +138,28 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
         }
       }
       
+      // Если папок нет, создаем виртуальную папку для всех аудиофайлов
+      if (bookFolders.isEmpty) {
+        bookFolders['root'] = [];
+      }
+      
+      // Распределяем аудиофайлы по папкам
       for (final file in driveFiles) {
-        if (file.mimeType?.contains('audio') == true && file.parents != null && file.parents!.isNotEmpty) {
-          final parentId = file.parents!.first;
-          if (bookFolders.containsKey(parentId)) {
-            bookFolders[parentId]!.add(file);
-            print('Добавлен аудиофайл ${file.name} в папку $parentId');
+        if (file.mimeType?.contains('audio') == true) {
+          if (file.parents != null && file.parents!.isNotEmpty) {
+            final parentId = file.parents!.first;
+            if (bookFolders.containsKey(parentId)) {
+              bookFolders[parentId]!.add(file);
+              print('Добавлен аудиофайл ${file.name} в папку $parentId');
+            } else {
+              // Если родительская папка не найдена, добавляем в корневую
+              bookFolders['root']?.add(file);
+              print('Добавлен аудиофайл ${file.name} в корневую папку');
+            }
+          } else {
+            // Если нет информации о родителе, добавляем в корневую
+            bookFolders['root']?.add(file);
+            print('Добавлен аудиофайл ${file.name} в корневую папку (нет родителя)');
           }
         }
       }
@@ -152,47 +169,57 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
         final folderId = entry.key;
         final files = entry.value;
         
-        // Находим имя папки по ID
-        final folderName = driveFiles
-            .firstWhere((file) => file.id == folderId, orElse: () => drive.File()..name = 'Неизвестная книга')
-            .name ?? 'Неизвестная книга';
+        if (files.isEmpty) continue;
         
-        if (files.isNotEmpty) {
-          final chapters = <AudiobookChapter>[];
-          files.sort((a, b) => (a.name ?? '').compareTo(b.name ?? ''));
-          
-          for (int i = 0; i < files.length; i++) {
-            final file = files[i];
-            final chapterTitle = _formatChapterTitle(file.name ?? '', i + 1);
-            
-            chapters.add(AudiobookChapter(
-              title: chapterTitle,
-              filePath: '', // Для стриминга не используется
-              duration: const Duration(minutes: 30), // Примерная длительность
-              chapterNumber: i + 1,
-              driveFileId: file.id,
-              isStreamable: true,
-            ));
-          }
-          
-          final totalDuration = Duration(
-            milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
+        // Находим имя папки по ID или используем имя первого файла
+        String bookTitle;
+        if (folderId == 'root') {
+          // Для корневой папки используем общее название
+          bookTitle = 'Аудиокниги';
+        } else {
+          // Для обычных папок ищем имя папки
+          final folder = driveFiles.firstWhere(
+            (file) => file.id == folderId, 
+            orElse: () => drive.File()..name = 'Аудиокнига'
           );
-          
-          final coverPath = await BookImageService.getStableBookImage(folderName, 'pagan');
-          
-          audiobooks.add(Audiobook(
-            id: 'drive_$folderId',
-            title: _formatBookTitle(folderName),
-            author: 'Google Drive',
-            coverPath: coverPath,
-            chapters: chapters,
-            totalDuration: totalDuration,
-            description: 'Аудиокнига из Google Drive',
-          ));
-          
-          print('Добавлена аудиокнига: ${folderName} с ${chapters.length} главами');
+          bookTitle = folder.name ?? 'Аудиокнига';
         }
+        
+        // Сортируем файлы по имени
+        files.sort((a, b) => (a.name ?? '').compareTo(b.name ?? ''));
+        
+        final chapters = <AudiobookChapter>[];
+        for (int i = 0; i < files.length; i++) {
+          final file = files[i];
+          final chapterTitle = _formatChapterTitle(file.name ?? '', i + 1);
+          
+          chapters.add(AudiobookChapter(
+            title: chapterTitle,
+            filePath: '', // Для стриминга не используется
+            duration: const Duration(minutes: 30), // Примерная длительность
+            chapterNumber: i + 1,
+            driveFileId: file.id,
+            isStreamable: true,
+          ));
+        }
+        
+        final totalDuration = Duration(
+          milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
+        );
+        
+        final coverPath = await BookImageService.getStableBookImage(bookTitle, 'pagan');
+        
+        audiobooks.add(Audiobook(
+          id: 'drive_$folderId',
+          title: _formatBookTitle(bookTitle),
+          author: 'Google Drive',
+          coverPath: coverPath,
+          chapters: chapters,
+          totalDuration: totalDuration,
+          description: 'Аудиокнига из Google Drive',
+        ));
+        
+        print('Добавлена аудиокнига: $bookTitle с ${chapters.length} главами');
       }
       
       return audiobooks;

@@ -1,15 +1,19 @@
 import 'dart:io';
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
-import 'package:http/http.dart' as http;
 
 class GoogleDriveService {
+  // Статус сервиса для диагностики
+  String _lastError = '';
+  bool _isInitialized = false;
+  String _currentUserEmail = '';
+  // Используем общедоступную папку с аудиокнигами
   static const String _folderId = '1b7PFjESsnY6bsn9rDmdAe10AU0pQNwiM'; // ID папки с аудиокнигами
+  static const bool _debugMode = true; // Включаем режим отладки
   static const List<String> _scopes = [drive.DriveApi.driveReadonlyScope];
   static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com'; // Client ID из JSON-файла
   
@@ -18,6 +22,10 @@ class GoogleDriveService {
 
   Future<bool> initialize() async {
     try {
+      _lastError = '';
+      _isInitialized = false;
+      _currentUserEmail = '';
+      
       final googleSignIn = GoogleSignIn(
         scopes: _scopes,
         clientId: _clientId,
@@ -30,36 +38,64 @@ class GoogleDriveService {
         // Если уже вошли, используем текущий аккаунт
         final account = await googleSignIn.signInSilently();
         if (account != null) {
+          _currentUserEmail = account.email;
+          print('Вход выполнен как: ${account.email}');
           final authHeaders = await account.authHeaders;
           final client = GoogleAuthClient(authHeaders);
           _driveApi = drive.DriveApi(client);
           print('Google Drive API инициализирован с существующим аккаунтом');
-          return true;
+          
+          // Проверяем доступ к API
+          try {
+            final about = await _driveApi!.about.get();
+            print('Доступ к API подтвержден');
+            _isInitialized = true;
+            return true;
+          } catch (apiError) {
+            _lastError = 'Ошибка проверки API: $apiError';
+            print(_lastError);
+            // Пробуем выйти и войти заново
+            await googleSignIn.signOut();
+          }
         }
       }
       
       // Если нет входа или не удалось использовать существующий аккаунт
       final account = await googleSignIn.signIn();
       if (account == null) {
-        print('Пользователь отменил вход');
+        _lastError = 'Пользователь отменил вход';
+        print(_lastError);
         return false;
       }
+      
+      _currentUserEmail = account.email;
+      print('Новый вход выполнен как: ${account.email}');
       
       try {
         final authHeaders = await account.authHeaders;
         final client = GoogleAuthClient(authHeaders);
         _driveApi = drive.DriveApi(client);
         
+        // Проверяем доступ к API
+        try {
+          final about = await _driveApi!.about.get();
+          print('Доступ к API подтвержден');
+        } catch (apiError) {
+          _lastError = 'Ошибка проверки API: $apiError';
+          print(_lastError);
+        }
+        
         print('Google Drive API инициализирован успешно');
+        _isInitialized = true;
         return true;
       } catch (authError) {
-        print('Ошибка получения токена авторизации: $authError');
-        // Попробуем выйти и войти снова
-        await googleSignIn.signOut();
+        _lastError = 'Ошибка получения токена авторизации: $authError';
+        print(_lastError);
         return false;
       }
     } catch (e) {
-      print('Ошибка инициализации Google Drive: $e');
+      _lastError = 'Ошибка инициализации Google Drive: $e';
+      print(_lastError);
       return false;
     }
   }
@@ -70,17 +106,69 @@ class GoogleDriveService {
   }
 
   Future<List<drive.File>> getAudiobookFiles() async {
-    if (_driveApi == null || !await isOnline()) {
+    if (_driveApi == null) {
+      print('DriveApi не инициализирован');
+      return [];
+    }
+    
+    if (!await isOnline()) {
+      print('Устройство не подключено к интернету');
       return [];
     }
 
     try {
-      final fileList = await _driveApi!.files.list(
-        q: "'$_folderId' in parents and (mimeType contains 'audio' or mimeType='application/vnd.google-apps.folder')",
+      // Проверяем существование указанной папки
+      try {
+        final folder = await _driveApi!.files.get(_folderId);
+        print('Папка найдена: $_folderId');
+      } catch (folderError) {
+        print('Ошибка доступа к папке $_folderId: $folderError');
+      }
+      
+      // Сначала пробуем получить файлы из указанной папки
+      try {
+        print('Запрашиваем файлы из папки: $_folderId');
+        final fileList = await _driveApi!.files.list(
+          q: "'$_folderId' in parents and (mimeType contains 'audio' or mimeType='application/vnd.google-apps.folder')",
+          spaces: 'drive',
+        );
+        
+        final files = fileList.files ?? [];
+        if (files.isNotEmpty) {
+          print('Найдено ${files.length} файлов в указанной папке:');
+          for (var file in files) {
+            print('- Найден файл в папке');
+          }
+          return files;
+        } else {
+          print('В указанной папке нет файлов');
+        }
+      } catch (folderError) {
+        print('Ошибка при запросе файлов из папки: $folderError');
+      }
+      
+      // Если не удалось получить файлы из указанной папки, запрашиваем все доступные аудиофайлы
+      print('Запрашиваем все доступные аудиофайлы');
+      final allFilesList = await _driveApi!.files.list(
+        q: "mimeType contains 'audio' or mimeType='application/vnd.google-apps.folder'",
         spaces: 'drive',
+        pageSize: 100,
       );
-
-      return fileList.files ?? [];
+      
+      final allFiles = allFilesList.files ?? [];
+      print('Найдено всего файлов: ${allFiles.length}');
+      
+      if (allFiles.isNotEmpty) {
+        print('Список найденных файлов:');
+        for (var file in allFiles.take(10)) { // Показываем только первые 10 файлов
+          print('- Найден файл');
+        }
+        if (allFiles.length > 10) {
+          print('... и еще ${allFiles.length - 10} файлов');
+        }
+      }
+      
+      return allFiles;
     } catch (e) {
       print('Ошибка получения файлов: $e');
       return [];
@@ -89,14 +177,28 @@ class GoogleDriveService {
 
   Future<String?> getFileStreamUrl(String fileId) async {
     if (_driveApi == null || !await isOnline()) {
+      _lastError = 'DriveApi не инициализирован или нет подключения';
+      print(_lastError);
       return null;
     }
 
     try {
-      // Получаем прямую ссылку на файл для стриминга
+      // Проверяем доступ к файлу
+      if (_debugMode) {
+        try {
+          final file = await _driveApi!.files.get(fileId);
+          print('Файл доступен: $fileId');
+        } catch (fileError) {
+          _lastError = 'Ошибка доступа к файлу $fileId: $fileError';
+          print(_lastError);
+        }
+      }
+      
+      // Возвращаем стандартную ссылку для скачивания
       return 'https://drive.google.com/uc?id=$fileId&export=download';
     } catch (e) {
-      print('Ошибка получения URL: $e');
+      _lastError = 'Ошибка получения URL: $e';
+      print(_lastError);
       return null;
     }
   }
@@ -144,6 +246,41 @@ class GoogleDriveService {
   Future<bool> isFileCached(String fileName) async {
     final cachedPath = await getCachedFilePath(fileName);
     return cachedPath != null;
+  }
+  
+  // Методы для диагностики
+  
+  String getLastError() {
+    return _lastError;
+  }
+  
+  bool isServiceInitialized() {
+    return _isInitialized;
+  }
+  
+  String getCurrentUserEmail() {
+    return _currentUserEmail;
+  }
+  
+  Future<Map<String, dynamic>> getDiagnosticInfo() async {
+    final Map<String, dynamic> info = {
+      'isInitialized': _isInitialized,
+      'lastError': _lastError,
+      'userEmail': _currentUserEmail,
+      'isOnline': await isOnline(),
+      'targetFolderId': _folderId,
+    };
+    
+    if (_driveApi != null) {
+      try {
+        final about = await _driveApi!.about.get();
+        info['apiStatus'] = 'OK';
+      } catch (e) {
+        info['apiError'] = e.toString();
+      }
+    }
+    
+    return info;
   }
 }
 
