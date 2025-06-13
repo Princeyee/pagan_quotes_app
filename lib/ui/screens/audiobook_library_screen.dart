@@ -1,10 +1,10 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/audiobook.dart';
 import '../../services/audiobook_service.dart';
 import '../../services/google_drive_service.dart';
 import '../../ui/widgets/audiobook_card.dart';
+import '../widgets/glass_background.dart';
 import 'audiobook_player_screen.dart';
 import 'dart:convert';
 
@@ -277,96 +277,75 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
             height: double.infinity,
           ),
           
-          // Стеклянный контейнер
+          // Стеклянный контейнер с использованием GlassBackground
           SafeArea(
-            child: ClipRRect(
+            child: GlassBackground(
               borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  margin: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha((0.3 * 255).round()),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withAlpha((0.1 * 255).round()),
-                      width: 0.5,
+              child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((0.2 * 255).round()),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: _isLoading
+                  )
+                : _audiobooks.isEmpty
                     ? Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.audiotrack,
+                              size: 80,
+                              color: Colors.grey[600],
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              'Нет доступных аудиокниг',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 18,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Добавьте аудиофайлы в папку assets/audiobooks/',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       )
-                    : _audiobooks.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.audiotrack,
-                                  size: 80,
-                                  color: Colors.grey[600],
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  'Нет доступных аудиокниг',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 18,
+                    : RefreshIndicator(
+                        onRefresh: _loadAudiobooks,
+                        child: GridView.builder(
+                          padding: EdgeInsets.all(16),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                            childAspectRatio: 0.7,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: _audiobooks.length,
+                          itemBuilder: (context, index) {
+                            final audiobook = _audiobooks[index];
+                            return AudiobookCard(
+                              audiobook: audiobook,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AudiobookPlayerScreen(
+                                      audiobook: audiobook,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Добавьте аудиофайлы в папку assets/audiobooks/',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _loadAudiobooks,
-                            child: GridView.builder(
-                              padding: EdgeInsets.all(16),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                                childAspectRatio: 0.7,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                              ),
-                              itemCount: _audiobooks.length,
-                              itemBuilder: (context, index) {
-                                final audiobook = _audiobooks[index];
-                                return AudiobookCard(
-                                  audiobook: audiobook,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AudiobookPlayerScreen(
-                                          audiobook: audiobook,
-                                        ),
-                                      ),
-                                    );
-                                  },
                                 );
                               },
-                            ),
-                          ),
-                ),
-              ),
+                            );
+                          },
+                        ),
+                      ),
             ),
           ),
         ],

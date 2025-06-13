@@ -1,8 +1,8 @@
 // lib/ui/screens/library_page.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../widgets/glass_background.dart';
 import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
 import '../../services/book_image_service.dart';
@@ -107,100 +107,79 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
             height: double.infinity,
           ),
           
-          // Стеклянный контейнер
+          // Стеклянный контейнер с использованием GlassBackground
           SafeArea(
-            child: ClipRRect(
+            child: GlassBackground(
               borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  margin: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha((0.3 * 255).round()),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withAlpha((0.1 * 255).round()),
-                      width: 0.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((0.2 * 255).round()),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                    : FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[900],
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white12),
-                              ),
-                              child: TextField(
-                                style: const TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  hintText: 'Поиск по названию или автору...',
-                                  hintStyle: TextStyle(color: Colors.white38),
-                                  prefixIcon: const Icon(Icons.search, color: Colors.white38),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                ),
-                                onChanged: (value) {
-                                  _searchQuery = value;
-                                  _filterBooks();
-                                },
-                              ),
+              child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[900],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          child: TextField(
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Поиск по названию или автору...',
+                              hintStyle: TextStyle(color: Colors.white38),
+                              prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             ),
-                            
-                            SizedBox(
-                              height: 50,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                children: [
-                                  _buildCategoryChip('all', 'Все'),
-                                  _buildCategoryChip('greece', 'Греция'),
-                                  _buildCategoryChip('nordic', 'Север'),
-                                  _buildCategoryChip('philosophy', 'Философия'),
-                                  _buildCategoryChip('pagan', 'Язычество & традиционализм'),
-                                ],
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            Expanded(
-                              child: _filteredBooks.isEmpty
-                                  ? Center(
-                                      child: Text(
-                                        'Книги не найдены',
-                                        style: TextStyle(color: Colors.white54),
-                                      ),
-                                    )
-                                  : GridView.builder(
-                                      padding: const EdgeInsets.all(16),
-                                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        childAspectRatio: 0.65,
-                                        crossAxisSpacing: 16,
-                                        mainAxisSpacing: 16,
-                                      ),
-                                      itemCount: _filteredBooks.length,
-                                      itemBuilder: (context, index) => _buildBookCard(_filteredBooks[index]),
-                                    ),
-                            ),
-                          ],
+                            onChanged: (value) {
+                              _searchQuery = value;
+                              _filterBooks();
+                            },
+                          ),
                         ),
-                      ),
-                ),
-              ),
+                        
+                        SizedBox(
+                          height: 50,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            children: [
+                              _buildCategoryChip('all', 'Все'),
+                              _buildCategoryChip('greece', 'Греция'),
+                              _buildCategoryChip('nordic', 'Север'),
+                              _buildCategoryChip('philosophy', 'Философия'),
+                              _buildCategoryChip('pagan', 'Язычество & традиционализм'),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        Expanded(
+                          child: _filteredBooks.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'Книги не найдены',
+                                    style: TextStyle(color: Colors.white54),
+                                  ),
+                                )
+                              : GridView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 0.65,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                  ),
+                                  itemCount: _filteredBooks.length,
+                                  itemBuilder: (context, index) => _buildBookCard(_filteredBooks[index]),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
             ),
           ),
         ],

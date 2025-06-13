@@ -15,7 +15,8 @@ class GoogleDriveService {
   static const String _folderId = '1b7PFjESsnY6bsn9rDmdAe10AU0pQNwiM'; // ID папки с аудиокнигами
   static const bool _debugMode = true; // Включаем режим отладки
   static const List<String> _scopes = [drive.DriveApi.driveReadonlyScope];
-  static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com'; // Client ID из JSON-файла
+  // Client ID из JSON-файла
+  static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com';
   
   drive.DriveApi? _driveApi;
   final Dio _dio = Dio();
@@ -26,9 +27,9 @@ class GoogleDriveService {
       _isInitialized = false;
       _currentUserEmail = '';
       
-      final googleSignIn = GoogleSignIn(
+      final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: _scopes,
-        clientId: _clientId,
+        serverClientId: _clientId,
         signInOption: SignInOption.standard,
       );
       
@@ -61,20 +62,21 @@ class GoogleDriveService {
       }
       
       // Если нет входа или не удалось использовать существующий аккаунт
-      final account = await googleSignIn.signIn();
-      if (account == null) {
-        _lastError = 'Пользователь отменил вход';
-        print(_lastError);
-        return false;
-      }
-      
-      _currentUserEmail = account.email;
-      print('Новый вход выполнен как: ${account.email}');
-      
       try {
-        final authHeaders = await account.authHeaders;
-        final client = GoogleAuthClient(authHeaders);
-        _driveApi = drive.DriveApi(client);
+        final account = await googleSignIn.signIn();
+        if (account == null) {
+          _lastError = 'Пользователь отменил вход';
+          print(_lastError);
+          return false;
+        }
+        
+        _currentUserEmail = account.email;
+        print('Новый вход выполнен как: ${account.email}');
+        
+        try {
+          final authHeaders = await account.authHeaders;
+          final client = GoogleAuthClient(authHeaders);
+          _driveApi = drive.DriveApi(client);
         
         // Проверяем доступ к API
         try {
@@ -91,6 +93,11 @@ class GoogleDriveService {
       } catch (authError) {
         _lastError = 'Ошибка получения токена авторизации: $authError';
         print(_lastError);
+        return false;
+      }
+      } catch (signInError) {
+        _lastError = 'Ошибка входа в Google: $signInError';
+        print('Детальная ошибка входа: $signInError');
         return false;
       }
     } catch (e) {

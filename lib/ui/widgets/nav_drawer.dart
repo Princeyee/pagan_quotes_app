@@ -411,59 +411,80 @@ class _NavDrawerState extends State<NavDrawer>
                   onTap: onTap,
                   splashColor: Colors.white.withAlpha((0.05 * 255).round()),
                   highlightColor: Colors.white.withAlpha((0.02 * 255).round()),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color: Colors.white.withAlpha((0.03 * 255).round()),
-                        width: 0.5,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.black.withAlpha((0.15 * 255).round()),
+                          border: Border.all(
+                            color: Colors.white.withAlpha((0.08 * 255).round()),
+                            width: 0.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha((0.25 * 255).round()),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 4),
+                            ),
+                            BoxShadow(
+                              color: Colors.white.withAlpha((0.05 * 255).round()),
+                              blurRadius: 5,
+                              spreadRadius: -1,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Иконка
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha((0.05 * 255).round()),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha((0.08 * 255).round()),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: Colors.white.withAlpha((0.8 * 255).round()),
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            
+                            // Текст
+                            Expanded(
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white.withAlpha((0.8 * 255).round()),
+                                  fontWeight: FontWeight.w300,
+                                  letterSpacing: 0.5,
+                                  fontFamily: 'serif',
+                                ),
+                              ),
+                            ),
+                            
+                            // Стрелка
+                            Icon(
+                              Icons.chevron_right,
+                              color: Colors.white.withAlpha((0.3 * 255).round()),
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Иконка
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha((0.05 * 255).round()),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: Colors.white.withAlpha((0.08 * 255).round()),
-                              width: 0.5,
-                            ),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: Colors.white.withAlpha((0.8 * 255).round()),
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        
-                        // Текст
-                        Expanded(
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white.withAlpha((0.8 * 255).round()),
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: 0.5,
-                              fontFamily: 'serif',
-                            ),
-                          ),
-                        ),
-                        
-                        // Стрелка
-                        Icon(
-                          Icons.chevron_right,
-                          color: Colors.white.withAlpha((0.3 * 255).round()),
-                          size: 18,
-                        ),
-                      ],
                     ),
                   ),
                 ),

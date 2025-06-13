@@ -143,24 +143,6 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.85,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha((0.7 * 255).round()),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha((0.3 * 255).round()),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                        border: Border.all(
-                          color: Colors.white.withAlpha((0.1 * 255).round()),
-                          width: 0.5,
-                        ),
-                      ),
                       clipBehavior: Clip.antiAlias,
                       child: ClipRRect(
                         borderRadius: const BorderRadius.only(
@@ -168,8 +150,16 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                           topRight: Radius.circular(20),
                         ),
                         child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                          child: Column(
+                          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha((0.3 * 255).round()),
+                              border: Border.all(
+                                color: Colors.white.withAlpha((0.1 * 255).round()),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Индикатор для свайпа вниз
@@ -431,8 +421,10 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
         ),
       ),
       )
+        )
       )
-    );
+        );
+       
   }
 }
 

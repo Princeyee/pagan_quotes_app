@@ -3,6 +3,7 @@
     <!-- Разрешение на фоновое воспроизведение -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
     
     <application
         android:label="Аудиокниги"
