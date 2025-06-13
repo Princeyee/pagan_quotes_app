@@ -7,14 +7,14 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:358123091745:android:generated",
+        "mobilesdk_app_id": "1:358123091745:android:dummy",
         "android_client_info": {
           "package_name": "com.yourcompany.dailyquotes"
         }
       },
       "oauth_client": [
         {
-          "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+          "client_id": "НУЖНО_СОЗДАТЬ_ANDROID_CLIENT_ID.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.yourcompany.dailyquotes",
@@ -28,7 +28,7 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD1sGI81Bep1Nm_zWNtQctmGbjO1eKQ24M"
+          "current_key": "НУЖНО_СОЗДАТЬ_API_KEY"
         }
       ],
       "services": {

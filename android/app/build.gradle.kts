@@ -7,7 +7,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flutter_application"
+    // ИСПРАВЛЕНО: Используем один и тот же package name
+    namespace = "com.yourcompany.dailyquotes"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -25,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        // Уникальный идентификатор приложения для Google Play
+        // ИСПРАВЛЕНО: Теперь namespace и applicationId совпадают
         applicationId = "com.yourcompany.dailyquotes"
         // Настройки для публикации
         minSdk = 21 // Минимальная поддерживаемая версия Android

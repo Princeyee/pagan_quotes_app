@@ -44,7 +44,7 @@ flutter:
   assets:
 #Иконка
     - assets/icon/app_icon.png
-    - android\app\client_secret_358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com.json
+    - android/app/google-services.json
 
 #Звуки
     - assets/sounds/candle.mp3
