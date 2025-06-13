@@ -4,7 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
-import 'dart:math' as math;
+
 import '../../models/daily_quote.dart';
 import '../../models/pagan_holiday.dart';
 import '../../services/quote_extraction_service.dart';

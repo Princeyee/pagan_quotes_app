@@ -22,7 +22,6 @@ class NoteModal extends StatefulWidget {
 
 class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
-  late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
   
   final TextEditingController _noteController = TextEditingController();
@@ -39,14 +38,6 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
       duration: const Duration(milliseconds: 350),
       vsync: this,
     );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.95,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutBack,
-    ));
     
     _fadeAnimation = Tween<double>(
       begin: 0.0,

@@ -1150,7 +1150,6 @@ class EnhancedWheelPainter extends CustomPainter {
       final isSelected = i == selectedMonth;
       
       final startAngle = i * sectorAngle - math.pi / 2;
-      final endAngle = startAngle + sectorAngle;
       final midAngle = startAngle + sectorAngle / 2;
 
       _drawSector(canvas, center, radius, startAngle, sectorAngle, month, isSelected);
@@ -1363,7 +1362,6 @@ class EnhancedWheelPainter extends CustomPainter {
     final lastMonth = months[2];
     
     final firstIndex = (firstMonth - 1) % 12;
-    final lastIndex = (lastMonth - 1) % 12;
     
     var startAngle = firstIndex * (2 * math.pi / 12) - math.pi / 2;
     

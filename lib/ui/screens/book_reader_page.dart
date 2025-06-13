@@ -681,7 +681,7 @@ class _BookReaderPageState extends State<BookReaderPage>
       spacing: 8,
       runSpacing: 8,
       children: colors.map((color) {
-        final isSelected = currentColor.value == color.value;
+        final isSelected = currentColor == color;
         return GestureDetector(
           onTap: () => onColorChanged(color),
           child: AnimatedContainer(

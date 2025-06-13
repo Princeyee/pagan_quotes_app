@@ -7,7 +7,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'dart:math' show sin, cos;
 import 'package:just_audio/just_audio.dart';
 import 'onboarding_overlay.dart';

@@ -1,6 +1,5 @@
  // lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'dart:math' as math;
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
@@ -880,7 +879,6 @@ class _FullTextPage2State extends State<FullTextPage2>
 
   // Новые переменные для элегантной анимации поиска
   bool _isSearchingQuote = false;
-  bool _canStartScroll = false;
   
   // Прогресс чтения
   double _readingProgress = 0.0;
@@ -1106,10 +1104,6 @@ class _FullTextPage2State extends State<FullTextPage2>
 
     // Ждем 1.5 секунды перед началом скролла
     await Future.delayed(const Duration(milliseconds: 1500));
-    
-    setState(() {
-      _canStartScroll = true;
-    });
 
     // Плавный скролл к цитате без прыжков
     await _itemScrollController.scrollTo(
@@ -1583,15 +1577,10 @@ class _FullTextPage2State extends State<FullTextPage2>
     setState(() {
       _isSearchingQuote = true;
       _findingQuote = true;
-      _canStartScroll = false;
     });
 
     // Ждем 1.5 секунды перед началом скролла
     await Future.delayed(const Duration(milliseconds: 1500));
-    
-    setState(() {
-      _canStartScroll = true;
-    });
 
     // Выполняем плавный скролл к цитате
     await _itemScrollController.scrollTo(

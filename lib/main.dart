@@ -77,7 +77,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           primary: Colors.white,
           secondary: Colors.white70,
           surface: Colors.black,
-          background: Colors.black,
         ),
       ),
       home: const SplashScreen(),
