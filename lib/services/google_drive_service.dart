@@ -28,22 +28,22 @@ class GoogleDriveService {
       _isInitialized = false;
       _currentUserEmail = '';
       
-      // Используем более простую конфигурацию без serverClientId
+      // Используем конфигурацию с указанием clientId для Android
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: _scopes,
-        // Убираем serverClientId, так как он может вызывать проблемы на Android
-        // serverClientId: _clientId,
+        // Добавляем serverClientId из google-services.json
+        serverClientId: '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com',
       );
       
       print('Инициализация Google Sign-In...');
       
-      // Сначала выходим из всех аккаунтов для чистого старта
+      // Сначала отключаемся от предыдущих сессий
       try {
-        await googleSignIn.signOut();
-        print('Выполнен выход из предыдущих сессий');
-      } catch (signOutError) {
-        print('Ошибка при выходе из аккаунта: $signOutError');
-        // Продолжаем работу, это не критическая ошибка
+        await googleSignIn.disconnect();
+        print('Отключение от предыдущих сессий выполнено');
+      } catch (disconnectError) {
+        print('Ошибка при отключении: $disconnectError');
+        // Продолжаем работу, это не критическая ��шибка
       }
       
       // Пробуем выполнить вход

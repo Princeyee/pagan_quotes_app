@@ -357,64 +357,48 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            if (notification is ScrollUpdateNotification) {
-              if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
-                // Скролл вниз - скрываем AppBar
-                if (_scrollController.offset > 20) {
-                  _fadeController.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                }
-              } else if (notification.scrollDelta != null && notification.scrollDelta! < 0) {
-                // Скролл вверх - показываем AppBar
-                _fadeController.animateTo(1.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-              }
-            }
-            return false;
+        child: AnimatedBuilder(
+          animation: _fadeController,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, -kToolbarHeight * (1 - _fadeController.value)),
+              child: Opacity(
+                opacity: _fadeController.value,
+                child: child,
+              ),
+            );
           },
-          child: AnimatedBuilder(
-            animation: _fadeController,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, -kToolbarHeight * (1 - _fadeController.value)),
-                child: Opacity(
-                  opacity: _fadeController.value,
-                  child: child,
-                ),
-              );
-            },
-            child: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              flexibleSpace: ClipRect(
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withAlpha((0.8 * 255).round()),
-                          Colors.black.withAlpha((0.5 * 255).round()),
-                          Colors.black.withAlpha((0.2 * 255).round()),
-                        ],
-                      ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            flexibleSpace: ClipRect(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withAlpha((0.8 * 255).round()),
+                        Colors.black.withAlpha((0.5 * 255).round()),
+                        Colors.black.withAlpha((0.2 * 255).round()),
+                      ],
                     ),
                   ),
                 ),
               ),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              title: Text(
-                'Календарь',
-                style: GoogleFonts.merriweather(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(
+              'Календарь',
+              style: GoogleFonts.merriweather(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
           ),
@@ -549,10 +533,25 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             : Stack(
                 children: [
                   // Прокручиваемый контент под колесом
-                  SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
+                  NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification is ScrollUpdateNotification) {
+                        if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
+                          // Скролл вниз - скрываем AppBar
+                          if (_scrollController.offset > 20) {
+                            _fadeController.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                          }
+                        } else if (notification.scrollDelta != null && notification.scrollDelta! < 0) {
+                          // Скролл вверх - показываем AppBar
+                          _fadeController.animateTo(1.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                        }
+                      }
+                      return false;
+                    },
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
                       children: [
                         // Колесо в верхней части экрана
                         _buildPaganWheel(),
@@ -571,15 +570,19 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                                 _buildCalendar(),
                                 const SizedBox(height: 20),
                                 _buildSelectedDayEvents(),
+                                const SizedBox(height: 20),
+                                _buildMonthHolidaysSection(),
                               ],
                               // Дополнительный отступ внизу для удобства прокрутки
-                              const SizedBox(height: 40),
+                              const SizedBox(height: 100),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
+                  ),
+            
                 ],
               ),
       ),
@@ -801,10 +804,10 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           colors: [
             Colors.black.withAlpha((0.95 * 255).round()),
             Colors.black.withAlpha((0.8 * 255).round()),
-            Colors.black.withAlpha((0.5 * 255).round()),
-            Colors.transparent,
+            Colors.black.withAlpha((0.6 * 255).round()),
+            Colors.black.withAlpha((0.6 * 255).round()), // Убираем прозрачность в конце
           ],
-          stops: const [0.0, 0.3, 0.7, 1.0],
+          stops: const [0.0, 0.3, 0.8, 1.0],
         ),
       ),
       child: Column(
@@ -1098,9 +1101,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
           ),
           ...holidays.map((holiday) => _buildHolidayCard(holiday)).toList(),
-          
-          // Отображение всех праздников месяца
-          if (_selectedDay != null) _buildMonthHolidaysSection(),
         ],
       ),
     );
@@ -1108,9 +1108,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   
   // Новый метод для отображения всех праздников месяца
   Widget _buildMonthHolidaysSection() {
-    // Получаем все праздники для текущего месяца
-    final currentMonth = _selectedDay?.month ?? DateTime.now().month;
-    final currentYear = _selectedDay?.year ?? DateTime.now().year;
+    // Получаем все праздники для текущего месяца (используем _focusedDay вместо _selectedDay)
+    final currentMonth = _focusedDay.month;
+    final currentYear = _focusedDay.year;
     
     // Фильтруем праздники по выбранным фильтрам
     final monthHolidays = _getFilteredHolidays().where((holiday) {

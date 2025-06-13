@@ -148,7 +148,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.black.withAlpha((0.5 * 255).round()),
+                            color: Colors.black.withAlpha((0.9 * 255).round()),
                             border: Border.all(
                               color: Colors.white.withAlpha((0.1 * 255).round()),
                               width: 0.5,
@@ -423,14 +423,18 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
 
 // Вспомогательная функция для показа модалки
 Future<void> showNoteModal(BuildContext context, Quote quote, {VoidCallback? onSaved}) {
+  print('Showing note modal for quote: ${quote.id}');
   return showDialog(
     context: context,
     barrierDismissible: true,
     barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
     useSafeArea: false,
-    builder: (context) => NoteModal(
-      quote: quote,
-      onSaved: onSaved,
-    ),
+    builder: (context) {
+      print('Building dialog for note modal');
+      return NoteModal(
+        quote: quote,
+        onSaved: onSaved,
+      );
+    },
   );
 }
