@@ -89,18 +89,18 @@ class _NavDrawerState extends State<NavDrawer>
             width: MediaQuery.of(context).size.width * 0.85,
             decoration: BoxDecoration(
               // Очень прозрачное черное стекло
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withAlpha((0.15 * 255).round()),
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(25),
                 bottomRight: Radius.circular(25),
               ),
               border: Border.all(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withAlpha((0.08 * 255).round()),
                 width: 0.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withAlpha((0.3 * 255).round()),
                   blurRadius: 40,
                   spreadRadius: 0,
                   offset: const Offset(5, 0),
@@ -124,12 +124,12 @@ class _NavDrawerState extends State<NavDrawer>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withAlpha((0.15 * 255).round()),
                                 width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.4),
+                                  color: Colors.black.withAlpha((0.4 * 255).round()),
                                   blurRadius: 20,
                                   spreadRadius: 2,
                                 ),
@@ -140,7 +140,7 @@ class _NavDrawerState extends State<NavDrawer>
                                 filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.03),
+                                    color: Colors.white.withAlpha((0.03 * 255).round()),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -169,7 +169,7 @@ class _NavDrawerState extends State<NavDrawer>
                                                   ),
                                                   child: Icon(
                                                     Icons.account_tree,
-                                                    color: Colors.white.withOpacity(0.8),
+                                                    color: Colors.white.withAlpha((0.8 * 255).round()),
                                                     size: 30,
                                                   ),
                                                 );
@@ -197,7 +197,7 @@ class _NavDrawerState extends State<NavDrawer>
                               'SACRAL',
                               style: TextStyle(
                                 fontSize: 24,
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withAlpha((0.9 * 255).round()),
                                 fontWeight: FontWeight.w200,
                                 letterSpacing: 4,
                                 fontFamily: 'serif',
@@ -213,7 +213,7 @@ class _NavDrawerState extends State<NavDrawer>
                               gradient: LinearGradient(
                                 colors: [
                                   Colors.transparent,
-                                  Colors.white.withOpacity(0.2),
+                                  Colors.white.withAlpha((0.2 * 255).round()),
                                   Colors.transparent,
                                 ],
                               ),
@@ -327,7 +327,7 @@ class _NavDrawerState extends State<NavDrawer>
                                       gradient: LinearGradient(
                                         colors: [
                                           Colors.transparent,
-                                          Colors.white.withOpacity(0.08 * value),
+                                          Colors.white.withAlpha(((0.08 * value) * 255).round()),
                                           Colors.transparent,
                                         ],
                                       ),
@@ -368,7 +368,7 @@ class _NavDrawerState extends State<NavDrawer>
                         'Возрождение близко',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white.withOpacity(0.25),
+                          color: Colors.white.withAlpha((0.25 * 255).round()),
                           fontStyle: FontStyle.italic,
                           letterSpacing: 1,
                           fontFamily: 'serif',
@@ -409,15 +409,15 @@ class _NavDrawerState extends State<NavDrawer>
                 child: InkWell(
                   borderRadius: BorderRadius.circular(15),
                   onTap: onTap,
-                  splashColor: Colors.white.withOpacity(0.05),
-                  highlightColor: Colors.white.withOpacity(0.02),
+                  splashColor: Colors.white.withAlpha((0.05 * 255).round()),
+                  highlightColor: Colors.white.withAlpha((0.02 * 255).round()),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.03),
+                        color: Colors.white.withAlpha((0.03 * 255).round()),
                         width: 0.5,
                       ),
                     ),
@@ -428,16 +428,16 @@ class _NavDrawerState extends State<NavDrawer>
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withAlpha((0.05 * 255).round()),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.08),
+                              color: Colors.white.withAlpha((0.08 * 255).round()),
                               width: 0.5,
                             ),
                           ),
                           child: Icon(
                             icon,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withAlpha((0.8 * 255).round()),
                             size: 20,
                           ),
                         ),
@@ -449,7 +449,7 @@ class _NavDrawerState extends State<NavDrawer>
                             label,
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withAlpha((0.8 * 255).round()),
                               fontWeight: FontWeight.w300,
                               letterSpacing: 0.5,
                               fontFamily: 'serif',
@@ -460,7 +460,7 @@ class _NavDrawerState extends State<NavDrawer>
                         // Стрелка
                         Icon(
                           Icons.chevron_right,
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withAlpha((0.3 * 255).round()),
                           size: 18,
                         ),
                       ],

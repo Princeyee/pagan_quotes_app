@@ -207,15 +207,15 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
                 child: Container(
                   margin: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
                       width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withAlpha((0.2 * 255).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -287,14 +287,14 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
           Icon(
             Icons.note_alt_outlined,
             size: 64,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withAlpha((0.3 * 255).round()),
           ),
           const SizedBox(height: 16),
           Text(
             'Нет сохраненных заметок',
             style: GoogleFonts.merriweather(
               fontSize: 20,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withAlpha((0.5 * 255).round()),
             ),
           ),
           const SizedBox(height: 8),
@@ -302,7 +302,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
             'Долгое нажатие на цитату создаст заметку',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withAlpha((0.3 * 255).round()),
             ),
           ),
         ],
@@ -318,14 +318,14 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
           Icon(
             Icons.search_off,
             size: 64,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withAlpha((0.3 * 255).round()),
           ),
           const SizedBox(height: 16),
           Text(
             'Ничего не найдено',
             style: GoogleFonts.merriweather(
               fontSize: 20,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withAlpha((0.5 * 255).round()),
             ),
           ),
           const SizedBox(height: 8),
@@ -333,7 +333,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
             'Попробуйте изменить поисковый запрос',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withAlpha((0.3 * 255).round()),
             ),
           ),
         ],
@@ -441,10 +441,10 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).round()),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
                     ),
                   ),
                   child: Column(

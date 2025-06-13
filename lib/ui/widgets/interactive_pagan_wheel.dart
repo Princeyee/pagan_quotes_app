@@ -317,9 +317,9 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                       radius: 1.5,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.3),
-                        Colors.black.withOpacity(0.5),
+                        Colors.black.withAlpha((0.1 * 255).round()),
+                        Colors.black.withAlpha((0.3 * 255).round()),
+                        Colors.black.withAlpha((0.5 * 255).round()),
                       ],
                       stops: const [0.0, 0.4, 0.7, 1.0],
                     ),
@@ -468,7 +468,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: _months[_selectedMonth - 1].color.withOpacity(0.05 * _glowAnimation.value),
+                  color: _months[_selectedMonth - 1].color.withAlpha((0.05 * _glowAnimation.value * 255).round()),
                   blurRadius: 120,
                   spreadRadius: 60,
                 ),
@@ -489,7 +489,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
               gradient: RadialGradient(
                 colors: [
                   Colors.transparent,
-                  _months[_selectedMonth - 1].color.withOpacity(0.03 * _glowAnimation.value),
+                  _months[_selectedMonth - 1].color.withAlpha((0.03 * _glowAnimation.value * 255).round()),
                   Colors.transparent,
                 ],
                 stops: const [0.0, 0.7, 1.0],
@@ -509,22 +509,22 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            Colors.black.withOpacity(0.9),
-            Colors.black.withOpacity(0.7),
+            Colors.black.withAlpha((0.9 * 255).round()),
+            Colors.black.withAlpha((0.7 * 255).round()),
           ],
         ),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withAlpha((0.1 * 255).round()),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withAlpha((0.5 * 255).round()),
             blurRadius: 20,
             spreadRadius: 5,
           ),
           BoxShadow(
-            color: _months[_selectedMonth - 1].color.withOpacity(0.2),
+            color: _months[_selectedMonth - 1].color.withAlpha((0.2 * 255).round()),
             blurRadius: 30,
             spreadRadius: 0,
           ),
@@ -537,7 +537,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  Colors.white.withOpacity(0.05),
+                  Colors.white.withAlpha((0.05 * 255).round()),
                   Colors.transparent,
                 ],
               ),
@@ -554,14 +554,14 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            _months[_selectedMonth - 1].color.withOpacity(0.6),
-                            _months[_selectedMonth - 1].color.withOpacity(0.2),
+                            _months[_selectedMonth - 1].color.withAlpha((0.6 * 255).round()),
+                            _months[_selectedMonth - 1].color.withAlpha((0.2 * 255).round()),
                           ],
                         ),
                       ),
                       child: Icon(
                         Icons.auto_awesome,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha((0.9 * 255).round()),
                         size: 40,
                       ),
                     );
@@ -602,10 +602,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black.withOpacity(0.8),
-              Colors.black.withOpacity(0.6),
-              Colors.black.withOpacity(0.3),
-              Colors.black.withOpacity(0.1),
+              Colors.black.withAlpha((0.8 * 255).round()),
+              Colors.black.withAlpha((0.6 * 255).round()),
+              Colors.black.withAlpha((0.3 * 255).round()),
+              Colors.black.withAlpha((0.1 * 255).round()),
               Colors.transparent,
             ],
             stops: const [0.0, 0.3, 0.6, 0.8, 1.0],
@@ -632,20 +632,20 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.white.withOpacity(0.3),
-                    Colors.white.withOpacity(0.9),
-                    Colors.white.withOpacity(0.3),
+                    Colors.white.withAlpha((0.3 * 255).round()),
+                    Colors.white.withAlpha((0.9 * 255).round()),
+                    Colors.white.withAlpha((0.3 * 255).round()),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(4),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.6 * _glowAnimation.value),
+                    color: Colors.white.withAlpha((0.6 * _glowAnimation.value * 255).round()),
                     blurRadius: 15,
                     spreadRadius: 3,
                   ),
                   BoxShadow(
-                    color: _months[_selectedMonth - 1].color.withOpacity(0.4),
+                    color: _months[_selectedMonth - 1].color.withAlpha((0.4 * 255).round()),
                     blurRadius: 20,
                     spreadRadius: 0,
                   ),
@@ -672,15 +672,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  currentMonth.color.withOpacity(0.1),
-                  currentMonth.color.withOpacity(0.05),
+                  currentMonth.color.withAlpha((0.1 * 255).round()),
+                  currentMonth.color.withAlpha((0.05 * 255).round()),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: currentMonth.color.withOpacity(0.2),
+                color: currentMonth.color.withAlpha((0.2 * 255).round()),
                 width: 1,
               ),
             ),
@@ -694,7 +694,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                     color: Colors.white,
                     shadows: [
                       Shadow(
-                        color: currentMonth.color.withOpacity(0.5),
+                        color: currentMonth.color.withAlpha((0.5 * 255).round()),
                         blurRadius: 10,
                       ),
                     ],
@@ -704,10 +704,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   decoration: BoxDecoration(
-                    color: currentMonth.color.withOpacity(0.15),
+                    color: currentMonth.color.withAlpha((0.15 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: currentMonth.color.withOpacity(0.3),
+                      color: currentMonth.color.withAlpha((0.3 * 255).round()),
                       width: 1,
                     ),
                   ),
@@ -715,7 +715,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                     _getSeasonName(currentMonth.season),
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha((0.9 * 255).round()),
                       fontWeight: FontWeight.w600,
                       letterSpacing: 1.2,
                     ),
@@ -757,16 +757,16 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.03),
+                color: Colors.white.withAlpha((0.03 * 255).round()),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withAlpha((0.08 * 255).round()),
                 ),
               ),
               child: Text(
                 emptyMessage,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withAlpha((0.5 * 255).round()),
                   fontSize: 14,
                   fontStyle: FontStyle.italic,
                 ),
@@ -786,10 +786,10 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
           filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withAlpha((0.05 * 255).round()),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withAlpha((0.1 * 255).round()),
               ),
             ),
             child: Column(
@@ -802,12 +802,12 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
+                          color: Colors.white.withAlpha((0.08 * 255).round()),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           Icons.celebration,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withAlpha((0.8 * 255).round()),
                           size: 20,
                         ),
                       ),
@@ -834,7 +834,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                       _getTraditionDisplayName(widget.selectedTradition!),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.orange.withOpacity(0.8),
+                                        color: Colors.orange.withAlpha((0.8 * 255).round()),
                                         fontStyle: FontStyle.italic,
                                       ),
                                     ),
@@ -843,7 +843,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                         ' • ',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Colors.white.withOpacity(0.6),
+                                          color: Colors.white.withAlpha((0.6 * 255).round()),
                                         ),
                                       ),
                                     ],
@@ -859,7 +859,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                       _getAuthenticityDisplayName(widget.selectedAuthenticity!),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: _getAuthenticityColor(widget.selectedAuthenticity!).withOpacity(0.8),
+                                        color: _getAuthenticityColor(widget.selectedAuthenticity!).withAlpha((0.8 * 255).round()),
                                         fontStyle: FontStyle.italic,
                                       ),
                                     ),
@@ -902,15 +902,15 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  traditionColor.withOpacity(0.1),
-                  traditionColor.withOpacity(0.05),
+                  traditionColor.withAlpha((0.1 * 255).round()),
+                  traditionColor.withAlpha((0.05 * 255).round()),
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: traditionColor.withOpacity(0.2),
+                color: traditionColor.withAlpha((0.2 * 255).round()),
                 width: 1,
               ),
             ),
@@ -923,13 +923,13 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                     gradient: RadialGradient(
                       colors: [
                         traditionColor,
-                        traditionColor.withOpacity(0.4),
+                        traditionColor.withAlpha((0.4 * 255).round()),
                       ],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: traditionColor.withOpacity(0.6),
+                        color: traditionColor.withAlpha((0.6 * 255).round()),
                         blurRadius: 8,
                         spreadRadius: 2,
                       ),
@@ -950,7 +950,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                               style: GoogleFonts.merriweather(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.95),
+                                color: Colors.white.withAlpha((0.95 * 255).round()),
                               ),
                             ),
                           ),
@@ -959,7 +959,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withAlpha((0.5 * 255).round()),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -972,7 +972,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                           style: TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
-                            color: traditionColor.withOpacity(0.7),
+                            color: traditionColor.withAlpha((0.7 * 255).round()),
                           ),
                         ),
                       ],
@@ -981,7 +981,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                         '${holiday.date.day} ${_getMonthName(holiday.date.month)} • ${holiday.description}',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withAlpha((0.7 * 255).round()),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -991,7 +991,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: traditionColor.withOpacity(0.5),
+                  color: traditionColor.withAlpha((0.5 * 255).round()),
                   size: 16,
                 ),
               ],
@@ -1108,8 +1108,8 @@ class LoadingWheelPainter extends CustomPainter {
       
       paint.shader = LinearGradient(
         colors: [
-          Colors.white.withOpacity(0.1),
-          Colors.white.withOpacity(0.3 * progress),
+          Colors.white.withAlpha((0.1 * 255).round()),
+          Colors.white.withAlpha((0.3 * progress * 255).round()),
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
       
@@ -1170,7 +1170,7 @@ class EnhancedWheelPainter extends CustomPainter {
 
   void _drawWheelShadow(Canvas canvas, Offset center, double radius) {
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withAlpha((0.3 * 255).round())
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
     
     canvas.drawCircle(center, radius + 5, shadowPaint);
@@ -1186,10 +1186,10 @@ class EnhancedWheelPainter extends CustomPainter {
         math.sin(startAngle + sectorAngle / 2) * 0.5,
       ),
       colors: [
-        Colors.black.withOpacity(0.9),
-        Colors.black.withOpacity(0.7),
-        month.color.withOpacity(0.2),
-        month.color.withOpacity(isSelected ? 0.5 : 0.3),
+        Colors.black.withAlpha((0.9 * 255).round()),
+        Colors.black.withAlpha((0.7 * 255).round()),
+        month.color.withAlpha((0.2 * 255).round()),
+        month.color.withAlpha(((isSelected ? 0.5 : 0.3) * 255).round()),
       ],
       stops: const [0.0, 0.3, 0.7, 1.0],
     );
@@ -1214,7 +1214,7 @@ class EnhancedWheelPainter extends CustomPainter {
           ),
           colors: [
             Colors.transparent,
-            month.color.withOpacity(0.2 * glowIntensity),
+            month.color.withAlpha((0.2 * glowIntensity * 255).round()),
           ],
         ).createShader(rect)
         ..style = PaintingStyle.fill;
@@ -1225,7 +1225,7 @@ class EnhancedWheelPainter extends CustomPainter {
 
   void _drawSectorLines(Canvas canvas, Offset center, double radius, double angle) {
     final linePaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withAlpha((0.1 * 255).round())
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
 
@@ -1248,7 +1248,7 @@ class EnhancedWheelPainter extends CustomPainter {
     final symbolY = center.dy + math.sin(angle) * radius;
     
     final glowPaint = Paint()
-      ..color = monthData.color.withOpacity(0.3 * glowIntensity)
+      ..color = monthData.color.withAlpha((0.3 * glowIntensity * 255).round())
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     
     canvas.drawCircle(Offset(symbolX, symbolY), 15, glowPaint);
@@ -1258,16 +1258,16 @@ class EnhancedWheelPainter extends CustomPainter {
       text: TextSpan(
         text: monthSymbol,
         style: TextStyle(
-          color: monthData.color.withOpacity(0.9),
+          color: monthData.color.withAlpha((0.9 * 255).round()),
           fontSize: 24,
           fontWeight: FontWeight.w600,
           shadows: [
             Shadow(
-              color: monthData.color.withOpacity(0.5),
+              color: monthData.color.withAlpha((0.5 * 255).round()),
               blurRadius: 4,
             ),
             Shadow(
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withAlpha((0.8 * 255).round()),
               blurRadius: 2,
               offset: const Offset(1, 1),
             ),
@@ -1292,13 +1292,13 @@ class EnhancedWheelPainter extends CustomPainter {
       text: TextSpan(
         text: name,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withAlpha((0.8 * 255).round()),
           fontSize: 14,
           fontWeight: FontWeight.w500,
           letterSpacing: 0.5,
           shadows: [
             Shadow(
-              color: Colors.black.withOpacity(0.9),
+              color: Colors.black.withAlpha((0.9 * 255).round()),
               blurRadius: 4,
               offset: const Offset(1, 1),
             ),
@@ -1327,8 +1327,8 @@ class EnhancedWheelPainter extends CustomPainter {
     final ringPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          Colors.white.withOpacity(0.3),
-          Colors.white.withOpacity(0.1),
+          Colors.white.withAlpha((0.3 * 255).round()),
+          Colors.white.withAlpha((0.1 * 255).round()),
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke
@@ -1337,7 +1337,7 @@ class EnhancedWheelPainter extends CustomPainter {
     canvas.drawCircle(center, radius, ringPaint);
     
     final innerRingPaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
+      ..color = Colors.white.withAlpha((0.05 * 255).round())
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     
@@ -1392,18 +1392,18 @@ class EnhancedWheelPainter extends CustomPainter {
         text: TextSpan(
           text: char,
           style: TextStyle(
-            color: seasonColor.withOpacity(0.8),
+            color: seasonColor.withAlpha((0.8 * 255).round()),
             fontSize: 16,
             fontWeight: FontWeight.w700,
             letterSpacing: 2,
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.9),
+                color: Colors.black.withAlpha((0.9 * 255).round()),
                 blurRadius: 4,
                 offset: const Offset(1, 1),
               ),
               Shadow(
-                color: seasonColor.withOpacity(0.4),
+                color: seasonColor.withAlpha((0.4 * 255).round()),
                 blurRadius: 10,
               ),
             ],
@@ -1429,7 +1429,7 @@ class EnhancedWheelPainter extends CustomPainter {
         end: Alignment(-1 + shimmerProgress * 2 + 0.5, 1),
         colors: [
           Colors.transparent,
-          Colors.white.withOpacity(0.05),
+          Colors.white.withAlpha((0.05 * 255).round()),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
@@ -1475,7 +1475,7 @@ class DecorativeElementsPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final paint = Paint()
-      ..color = color.withOpacity(0.1)
+      ..color = color.withAlpha((0.1 * 255).round())
       ..style = PaintingStyle.fill;
 
     // Рисуем орбитальные точки
@@ -1487,7 +1487,7 @@ class DecorativeElementsPainter extends CustomPainter {
       final y = center.dy + math.sin(angle) * radius;
       
       final opacity = (0.3 + 0.3 * math.sin(progress * 2 * math.pi + i)).clamp(0.0, 1.0);
-      paint.color = color.withOpacity(opacity * 0.2);
+      paint.color = color.withAlpha((opacity * 0.2 * 255).round());
       
       canvas.drawCircle(Offset(x, y), 2, paint);
     }

@@ -18,7 +18,7 @@ class AudiobookCard extends StatelessWidget {
       children: [
         Card(
           elevation: 8,
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withAlpha((0.8 * 255).round()),
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -42,7 +42,7 @@ class AudiobookCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withAlpha((0.4 * 255).round()),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
                           ),

@@ -101,7 +101,7 @@ class _QuotePageOldState extends State<QuotePageOld> with SingleTickerProviderSt
           ),
 
           // 🌒 Тёмный фильтр
-          Container(color: Colors.black.withOpacity(0.3)),
+          Container(color: Colors.black.withAlpha((0.3 * 255).round())),
 
           SafeArea(
             child: Stack(
@@ -132,7 +132,7 @@ class _QuotePageOldState extends State<QuotePageOld> with SingleTickerProviderSt
                           Text(
                             widget.quote.author.toUpperCase(),
                             style: GoogleFonts.merriweather(
-                              color: widget.textColor.withOpacity(0.8),
+                              color: widget.textColor.withAlpha((0.8 * 255).round()),
                               fontSize: 16,
                               fontStyle: FontStyle.italic,
                             ),

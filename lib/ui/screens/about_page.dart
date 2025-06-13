@@ -72,15 +72,15 @@ class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMix
                 child: Container(
                   margin: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
                       width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withAlpha((0.2 * 255).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),

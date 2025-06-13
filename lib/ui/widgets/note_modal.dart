@@ -133,7 +133,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withAlpha((0.5 * 255).round()),
             child: SafeArea(
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -154,20 +154,20 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                         maxHeight: MediaQuery.of(context).size.height * 0.85,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withAlpha((0.7 * 255).round()),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20),
                           topRight: Radius.circular(20),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withAlpha((0.3 * 255).round()),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
                         ],
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withAlpha((0.1 * 255).round()),
                           width: 0.5,
                         ),
                       ),
@@ -183,7 +183,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                             width: 40,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withAlpha((0.3 * 255).round()),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -193,7 +193,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withAlpha((0.1 * 255).round()),
                                 ),
                               ),
                             ),
@@ -202,7 +202,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: Colors.white.withAlpha((0.1 * 255).round()),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
@@ -224,7 +224,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                 ),
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: Colors.white.withAlpha((0.1 * 255).round()),
                                     shape: BoxShape.circle,
                                   ),
                                   child: IconButton(
@@ -250,10 +250,10 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                     width: double.infinity,
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.3),
+                                      color: Colors.black.withAlpha((0.3 * 255).round()),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: Colors.white.withOpacity(0.1),
+                                        color: Colors.white.withAlpha((0.1 * 255).round()),
                                       ),
                                     ),
                                     child: Column(
@@ -301,10 +301,10 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                       maxHeight: 300,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.2),
+                                      color: Colors.black.withAlpha((0.2 * 255).round()),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color: Colors.white.withAlpha((0.2 * 255).round()),
                                       ),
                                     ),
                                     child: TextField(
@@ -320,7 +320,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                                       decoration: InputDecoration(
                                         hintText: 'Запишите свои размышления о этой цитате...',
                                         hintStyle: TextStyle(
-                                          color: Colors.white.withOpacity(0.3),
+                                          color: Colors.white.withAlpha((0.3 * 255).round()),
                                         ),
                                         border: InputBorder.none,
                                         contentPadding: const EdgeInsets.all(16),
@@ -353,7 +353,7 @@ class _NoteModalState extends State<NoteModal> with SingleTickerProviderStateMix
                             decoration: BoxDecoration(
                               border: Border(
                                 top: BorderSide(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withAlpha((0.1 * 255).round()),
                                 ),
                               ),
                             ),

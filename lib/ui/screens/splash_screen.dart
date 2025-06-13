@@ -166,8 +166,8 @@ if (!_soundManager.isMuted) {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            Colors.orange.withOpacity(0.8),
-                            Colors.red.withOpacity(0.6),
+                            Colors.orange.withAlpha((0.8 * 255).round()),
+                            Colors.red.withAlpha((0.6 * 255).round()),
                             Colors.transparent,
                           ],
                         ),
@@ -209,7 +209,7 @@ if (!_soundManager.isMuted) {
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          Colors.white.withOpacity(0.6),
+                          Colors.white.withAlpha((0.6 * 255).round()),
                           Colors.transparent,
                         ],
                       ),

@@ -116,15 +116,15 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                 child: Container(
                   margin: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
                       width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withAlpha((0.2 * 255).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -245,7 +245,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha((0.3 * 255).round()),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -274,7 +274,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          _getCategoryColor(book.category).withOpacity(0.3),
+                          _getCategoryColor(book.category).withAlpha((0.3 * 255).round()),
                           Colors.grey[900]!,
                         ],
                         begin: Alignment.topLeft,
@@ -290,7 +290,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.8),
+                      Colors.black.withAlpha((0.8 * 255).round()),
                     ],
                     begin: Alignment.center,
                     end: Alignment.bottomCenter,
@@ -390,10 +390,10 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withAlpha((0.7 * 255).round()),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withAlpha((0.3 * 255).round()),
                         width: 1,
                       ),
                     ),

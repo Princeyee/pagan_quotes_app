@@ -177,7 +177,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
         animation: _containerFadeAnimation,
         builder: (context, child) {
           return Container(
-            color: widget.theme.backgroundColor.withOpacity(0.95 * _containerFadeAnimation.value),
+            color: widget.theme.backgroundColor.withAlpha(((0.95 * _containerFadeAnimation.value) * 255).round()),
             child: FadeTransition(
               opacity: _containerFadeAnimation,
               child: _showContent ? _buildMainContent() : const SizedBox.shrink(),
@@ -226,7 +226,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: widget.theme.quoteHighlightColor.withOpacity(0.3 * _glowAnimation.value),
+                          color: widget.theme.quoteHighlightColor.withAlpha(((0.3 * _glowAnimation.value) * 255).round()),
                           blurRadius: 30,
                           spreadRadius: 10,
                         ),
@@ -251,7 +251,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
                   shape: BoxShape.circle,
                   color: widget.theme.cardColor,
                   border: Border.all(
-                    color: widget.theme.quoteHighlightColor.withOpacity(0.3),
+                    color: widget.theme.quoteHighlightColor.withAlpha((0.3 * 255).round()),
                     width: 2,
                   ),
                 ),
@@ -299,7 +299,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w300,
-            color: widget.theme.textColor.withOpacity(0.6),
+            color: widget.theme.textColor.withAlpha((0.6 * 255).round()),
             letterSpacing: 2,
           ),
         ),
@@ -328,7 +328,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w400,
-            color: widget.theme.textColor.withOpacity(0.8),
+            color: widget.theme.textColor.withAlpha((0.8 * 255).round()),
             fontStyle: FontStyle.italic,
           ),
         ),
@@ -345,7 +345,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
           width: 200,
           height: 2,
           decoration: BoxDecoration(
-            color: widget.theme.borderColor.withOpacity(0.2),
+            color: widget.theme.borderColor.withAlpha((0.2 * 255).round()),
             borderRadius: BorderRadius.circular(1),
           ),
           child: Stack(
@@ -356,7 +356,7 @@ class _AppleStyleSearchOverlayState extends State<AppleStyleSearchOverlay>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        widget.theme.quoteHighlightColor.withOpacity(0.8),
+                        widget.theme.quoteHighlightColor.withAlpha((0.8 * 255).round()),
                         widget.theme.quoteHighlightColor,
                       ],
                     ),
@@ -385,7 +385,7 @@ class ParticlePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withAlpha((0.3 * 255).round())
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width / 2, size.height / 2);
@@ -400,7 +400,7 @@ class ParticlePainter extends CustomPainter {
       final y = center.dy + math.sin(angle) * distance;
       
       final opacity = (0.5 + 0.5 * math.sin(progress * 2 * math.pi + i)).clamp(0.0, 1.0);
-      paint.color = color.withOpacity(opacity * 0.5);
+      paint.color = color.withAlpha(((opacity * 0.5) * 255).round());
       
       canvas.drawCircle(Offset(x, y), 2, paint);
     }
@@ -467,7 +467,7 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha((0.05 * 255).round()),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -482,10 +482,10 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: widget.currentTheme.highlightColor.withOpacity(0.2),
+                      color: widget.currentTheme.highlightColor.withAlpha((0.2 * 255).round()),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.tune, size: 20, color: widget.currentTheme.textColor.withOpacity(0.8)),
+                    child: Icon(Icons.tune, size: 20, color: widget.currentTheme.textColor.withAlpha((0.8 * 255).round())),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -532,9 +532,9 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: widget.currentTheme.highlightColor.withOpacity(0.3),
+                        color: widget.currentTheme.highlightColor.withAlpha((0.3 * 255).round()),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: widget.currentTheme.borderColor.withOpacity(0.3)),
+                        border: Border.all(color: widget.currentTheme.borderColor.withAlpha((0.3 * 255).round())),
                       ),
                       child: Text(
                         '${widget.fontSize.toInt()}px',
@@ -557,9 +557,9 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: widget.currentTheme.highlightColor.withOpacity(0.3),
+                        color: widget.currentTheme.highlightColor.withAlpha((0.3 * 255).round()),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: widget.currentTheme.borderColor.withOpacity(0.3)),
+                        border: Border.all(color: widget.currentTheme.borderColor.withAlpha((0.3 * 255).round())),
                       ),
                       child: Text(
                         '${widget.lineHeight.toStringAsFixed(1)}x',
@@ -594,18 +594,18 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                           border: Border.all(
                             color: isSelected 
                                 ? theme.quoteHighlightColor 
-                                : theme.borderColor.withOpacity(0.3),
+                                : theme.borderColor.withAlpha((0.3 * 255).round()),
                             width: isSelected ? 3 : 1,
                           ),
                           boxShadow: isSelected ? [
                             BoxShadow(
-                              color: theme.quoteHighlightColor.withOpacity(0.3),
+                              color: theme.quoteHighlightColor.withAlpha((0.3 * 255).round()),
                               blurRadius: 12,
                               spreadRadius: 2,
                             ),
                           ] : [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withAlpha((0.1 * 255).round()),
                               blurRadius: 4,
                               spreadRadius: 1,
                             ),
@@ -642,7 +642,7 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                                 'Цвет текста',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: widget.currentTheme.textColor.withOpacity(0.6),
+                                  color: widget.currentTheme.textColor.withAlpha((0.6 * 255).round()),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -665,7 +665,7 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
                                 'Цвет фона',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: widget.currentTheme.textColor.withOpacity(0.6),
+                                  color: widget.currentTheme.textColor.withAlpha((0.6 * 255).round()),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -693,7 +693,7 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
 
   Widget _buildNavigationButton(String label, IconData icon, VoidCallback? onTap) {
     return Material(
-      color: widget.currentTheme.highlightColor.withOpacity(0.8),
+      color: widget.currentTheme.highlightColor.withAlpha((0.8 * 255).round()),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -702,7 +702,7 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: widget.currentTheme.borderColor.withOpacity(0.3)),
+            border: Border.all(color: widget.currentTheme.borderColor.withAlpha((0.3 * 255).round())),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -728,18 +728,18 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.currentTheme.highlightColor.withOpacity(0.1),
+        color: widget.currentTheme.highlightColor.withAlpha((0.1 * 255).round()),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: widget.currentTheme.borderColor.withOpacity(0.2)),
+        border: Border.all(color: widget.currentTheme.borderColor.withAlpha((0.2 * 255).round())),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: widget.currentTheme.textColor.withOpacity(0.7)),
+              Icon(icon, size: 16, color: widget.currentTheme.textColor.withAlpha((0.7 * 255).round())),
               const SizedBox(width: 8),
-              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: widget.currentTheme.textColor.withOpacity(0.8))),
+              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: widget.currentTheme.textColor.withAlpha((0.8 * 255).round()))),
             ],
           ),
           const SizedBox(height: 12),
@@ -758,13 +758,13 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
         height: 40,
         decoration: BoxDecoration(
           color: enabled 
-              ? widget.currentTheme.highlightColor.withOpacity(0.8)
-              : widget.currentTheme.highlightColor.withOpacity(0.3),
+              ? widget.currentTheme.highlightColor.withAlpha((0.8 * 255).round())
+              : widget.currentTheme.highlightColor.withAlpha((0.3 * 255).round()),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: widget.currentTheme.borderColor.withOpacity(0.3)),
-          boxShadow: enabled ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))] : null,
+          border: Border.all(color: widget.currentTheme.borderColor.withAlpha((0.3 * 255).round())),
+          boxShadow: enabled ? [BoxShadow(color: Colors.black.withAlpha((0.1 * 255).round()), blurRadius: 4, offset: const Offset(0, 2))] : null,
         ),
-        child: Icon(icon, size: 18, color: enabled ? widget.currentTheme.textColor : widget.currentTheme.textColor.withOpacity(0.4)),
+        child: Icon(icon, size: 18, color: enabled ? widget.currentTheme.textColor : widget.currentTheme.textColor.withAlpha((0.4 * 255).round())),
       ),
     );
   }
@@ -800,10 +800,10 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
               border: Border.all(
                 color: isSelected 
                     ? widget.currentTheme.quoteHighlightColor 
-                    : Colors.grey.withOpacity(0.3),
+                    : Colors.grey.withAlpha((0.3 * 255).round()),
                 width: isSelected ? 3 : 1,
               ),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+              boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.1 * 255).round()), blurRadius: 4, offset: const Offset(0, 2))],
             ),
             child: isSelected
                 ? Icon(
@@ -1251,7 +1251,7 @@ class _FullTextPage2State extends State<FullTextPage2>
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
                     'Назад',
-                    style: TextStyle(color: _effectiveTextColor.withOpacity(0.7)),
+                    style: TextStyle(color: _effectiveTextColor.withAlpha((0.7 * 255).round())),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1312,7 +1312,7 @@ class _FullTextPage2State extends State<FullTextPage2>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((0.1 * 255).round()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1343,7 +1343,7 @@ class _FullTextPage2State extends State<FullTextPage2>
                   _bookSource?.author ?? 'Автор',
                   style: TextStyle(
                     fontSize: 14,
-                    color: _effectiveTextColor.withOpacity(0.7),
+                    color: _effectiveTextColor.withAlpha((0.7 * 255).round()),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1370,7 +1370,7 @@ class _FullTextPage2State extends State<FullTextPage2>
               children: [
                 CircularProgressIndicator(
                   value: _readingProgress,
-                  backgroundColor: _currentTheme.borderColor.withOpacity(0.2),
+                  backgroundColor: _currentTheme.borderColor.withAlpha((0.2 * 255).round()),
                   valueColor: AlwaysStoppedAnimation<Color>(_currentTheme.quoteHighlightColor),
                   strokeWidth: 3,
                 ),
@@ -1476,7 +1476,7 @@ class _FullTextPage2State extends State<FullTextPage2>
         margin: const EdgeInsets.symmetric(vertical: 12.0),
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: _currentTheme.quoteHighlightColor.withOpacity(0.15),
+          color: _currentTheme.quoteHighlightColor.withAlpha((0.15 * 255).round()),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _currentTheme.quoteHighlightColor,
@@ -1484,7 +1484,7 @@ class _FullTextPage2State extends State<FullTextPage2>
           ),
           boxShadow: [
             BoxShadow(
-              color: _currentTheme.quoteHighlightColor.withOpacity(0.2),
+              color: _currentTheme.quoteHighlightColor.withAlpha((0.2 * 255).round()),
               blurRadius: 12,
               spreadRadius: 2,
             ),
@@ -1531,10 +1531,10 @@ class _FullTextPage2State extends State<FullTextPage2>
         margin: const EdgeInsets.symmetric(vertical: 6.0),
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
-          color: _currentTheme.contextHighlightColor.withOpacity(0.1),
+          color: _currentTheme.contextHighlightColor.withAlpha((0.1 * 255).round()),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _currentTheme.contextHighlightColor.withOpacity(0.3),
+            color: _currentTheme.contextHighlightColor.withAlpha((0.3 * 255).round()),
             width: 1,
           ),
         ),
@@ -1546,7 +1546,7 @@ class _FullTextPage2State extends State<FullTextPage2>
               width: 3,
               height: 20,
               decoration: BoxDecoration(
-                color: _currentTheme.quoteHighlightColor.withOpacity(0.6),
+                color: _currentTheme.quoteHighlightColor.withAlpha((0.6 * 255).round()),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1556,7 +1556,7 @@ class _FullTextPage2State extends State<FullTextPage2>
                 style: TextStyle(
                   fontSize: _fontSize,
                   height: _lineHeight,
-                  color: _effectiveTextColor.withOpacity(0.9),
+                  color: _effectiveTextColor.withAlpha((0.9 * 255).round()),
                 ),
               ),
             ),

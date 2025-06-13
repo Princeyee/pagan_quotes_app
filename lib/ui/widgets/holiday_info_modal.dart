@@ -53,7 +53,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Container(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withAlpha((0.8 * 255).round()),
               ),
             ),
             
@@ -78,7 +78,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
+                          color: Colors.black.withAlpha((0.4 * 255).round()),
                           blurRadius: 25,
                           spreadRadius: 0,
                           offset: const Offset(0, -8),
@@ -98,14 +98,14 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.black.withOpacity(0.97),
-                                Colors.black.withOpacity(0.98),
-                                Colors.black.withOpacity(0.99),
+                                Colors.black.withAlpha((0.97 * 255).round()),
+                                Colors.black.withAlpha((0.98 * 255).round()),
+                                Colors.black.withAlpha((0.99 * 255).round()),
                               ],
                               stops: const [0.0, 0.5, 1.0],
                             ),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.08),
+                              color: Colors.white.withAlpha((0.08 * 255).round()),
                               width: 1,
                             ),
                           ),
@@ -138,15 +138,15 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            traditionColor.withOpacity(0.15),
-            traditionColor.withOpacity(0.08),
-            Colors.black.withOpacity(0.05),
+            traditionColor.withAlpha((0.15 * 255).round()),
+            traditionColor.withAlpha((0.08 * 255).round()),
+            Colors.black.withAlpha((0.05 * 255).round()),
           ],
           stops: const [0.0, 0.5, 1.0],
         ),
         border: Border(
           bottom: BorderSide(
-            color: traditionColor.withOpacity(0.25),
+            color: traditionColor.withAlpha((0.25 * 255).round()),
             width: 0.5, // Тонкая линия как в Apple
           ),
         ),
@@ -179,13 +179,13 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        traditionColor.withOpacity(0.18),
-                        traditionColor.withOpacity(0.12),
+                        traditionColor.withAlpha((0.18 * 255).round()),
+                        traditionColor.withAlpha((0.12 * 255).round()),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16), // Rounded как в iOS
                     border: Border.all(
-                      color: traditionColor.withOpacity(0.3),
+                      color: traditionColor.withAlpha((0.3 * 255).round()),
                       width: 0.5,
                     ),
                   ),
@@ -208,7 +208,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             width: 30,
             height: 30,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withAlpha((0.08 * 255).round()),
               shape: BoxShape.circle,
             ),
             child: Material(
@@ -311,18 +311,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            color.withOpacity(0.06),
-            Colors.black.withOpacity(0.1),
+            color.withAlpha((0.06 * 255).round()),
+            Colors.black.withAlpha((0.1 * 255).round()),
           ],
         ),
         borderRadius: BorderRadius.circular(16), // iOS стандарт
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withAlpha((0.2 * 255).round()),
           width: 0.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((0.1 * 255).round()),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -336,7 +336,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: color.withOpacity(0.8),
+              color: color.withAlpha((0.8 * 255).round()),
               letterSpacing: -0.1,
             ),
           ),
@@ -363,18 +363,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            traditionColor.withOpacity(0.08),
-            Colors.black.withOpacity(0.15),
+            traditionColor.withAlpha((0.08 * 255).round()),
+            Colors.black.withAlpha((0.15 * 255).round()),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: traditionColor.withOpacity(0.2),
+          color: traditionColor.withAlpha((0.2 * 255).round()),
           width: 0.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((0.1 * 255).round()),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -400,18 +400,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            color.withOpacity(0.06),
-            Colors.black.withOpacity(0.1),
+            color.withAlpha((0.06 * 255).round()),
+            Colors.black.withAlpha((0.1 * 255).round()),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withAlpha((0.2 * 255).round()),
           width: 0.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((0.1 * 255).round()),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -425,7 +425,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: color.withOpacity(0.8),
+              color: color.withAlpha((0.8 * 255).round()),
               letterSpacing: -0.1,
             ),
           ),
@@ -442,7 +442,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                     height: 4,
                     margin: const EdgeInsets.only(top: 8, right: 16),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.6),
+                      color: color.withAlpha((0.6 * 255).round()),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -472,10 +472,10 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
+        color: Colors.black.withAlpha((0.6 * 255).round()),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withAlpha((0.05 * 255).round()),
           width: 1,
         ),
       ),
@@ -487,7 +487,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withAlpha((0.6 * 255).round()),
               letterSpacing: 0.5,
             ),
           ),
@@ -502,7 +502,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                   height: 3,
                   margin: const EdgeInsets.only(top: 8, right: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withAlpha((0.3 * 255).round()),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -511,7 +511,7 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                     source,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
                       height: 1.4,
                       fontStyle: FontStyle.italic,
                     ),
@@ -538,18 +538,18 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  traditionColor.withOpacity(0.08),
-                  Colors.black.withOpacity(0.1),
+                  traditionColor.withAlpha((0.08 * 255).round()),
+                  Colors.black.withAlpha((0.1 * 255).round()),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: traditionColor.withOpacity(0.25),
+                color: traditionColor.withAlpha((0.25 * 255).round()),
                 width: 0.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withAlpha((0.1 * 255).round()),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),

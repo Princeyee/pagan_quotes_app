@@ -135,11 +135,11 @@ class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
               height: 56,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withAlpha((0.3 * 255).round()),
                 boxShadow: widget.isLiked
                     ? [
                         BoxShadow(
-                          color: Colors.red.withOpacity(0.3),
+                          color: Colors.red.withAlpha((0.3 * 255).round()),
                           blurRadius: 8,
                           spreadRadius: 2,
                         )
@@ -259,9 +259,9 @@ class _AnimatedShareButtonState extends State<AnimatedShareButton>
                 height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withAlpha((0.3 * 255).round()),
                   border: Border.all(
-                    color: widget.color.withOpacity(0.3),
+                    color: widget.color.withAlpha((0.3 * 255).round()),
                     width: 1,
                   ),
                 ),
@@ -359,7 +359,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           FadeTransition(
             opacity: _fadeAnimation,
             child: Container(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withAlpha((0.7 * 255).round()),
               child: _buildTutorialStep(),
             ),
           ),
@@ -404,9 +404,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             margin: const EdgeInsets.symmetric(horizontal: 40),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withAlpha((0.8 * 255).round()),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              border: Border.all(color: Colors.white.withAlpha((0.2 * 255).round())),
             ),
             child: const Text(
               'Свайп вверх для просмотра контекста цитаты',
@@ -439,7 +439,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha((0.2 * 255).round()),
                     border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: const Icon(
@@ -456,9 +456,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             margin: const EdgeInsets.symmetric(horizontal: 40),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withAlpha((0.8 * 255).round()),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              border: Border.all(color: Colors.white.withAlpha((0.2 * 255).round())),
             ),
             child: const Text(
               'Долгое нажатие на цитату для добавления заметки',
@@ -715,7 +715,7 @@ class _QuotePageState extends State<QuotePage>
       case 'nordic':
         return Colors.white;
       case 'philosophy':
-        return Colors.white.withOpacity(0.95);
+        return Colors.white.withAlpha((0.95 * 255).round());
       case 'pagan':
         return Colors.white;
       default:
@@ -887,7 +887,7 @@ class _QuotePageState extends State<QuotePage>
 Widget build(BuildContext context) {
   final mainScaffold = Scaffold(
     backgroundColor: Colors.black,
-    drawerScrimColor: Colors.black.withOpacity(0.3),
+    drawerScrimColor: Colors.black.withAlpha((0.3 * 255).round()),
     drawer: Theme(
       data: Theme.of(context).copyWith(
         canvasColor: Colors.transparent,
@@ -1007,8 +1007,8 @@ Widget build(BuildContext context) {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withAlpha((0.4 * 255).round()),
+                    Colors.black.withAlpha((0.7 * 255).round()),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -1105,7 +1105,7 @@ Widget build(BuildContext context) {
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
-            color: _textColor.withOpacity(0.8),
+            color: _textColor.withAlpha((0.8 * 255).round()),
             width: 3,
           ),
         ),
@@ -1191,7 +1191,7 @@ Widget build(BuildContext context) {
           quote.source,
           style: TextStyle(
             fontSize: sourceFontSize,
-            color: _textColor.withOpacity(0.8),
+            color: _textColor.withAlpha((0.8 * 255).round()),
             fontStyle: FontStyle.italic,
           ),
           textAlign: TextAlign.center,
@@ -1225,7 +1225,7 @@ Widget build(BuildContext context) {
                     'Сегодня',
                     style: TextStyle(
                       fontSize: 12,
-                      color: _textColor.withOpacity(0.8),
+                      color: _textColor.withAlpha((0.8 * 255).round()),
                       fontWeight: FontWeight.w300,
                     ),
                   ),
@@ -1275,7 +1275,7 @@ else
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withAlpha((0.3 * 255).round()),
         ),
         child: AnimatedBuilder(
           animation: _soundButtonAnimation,
@@ -1328,7 +1328,7 @@ else
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withAlpha((0.3 * 255).round()),
         ),
         child: Icon(
           _isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -1348,9 +1348,9 @@ else
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withAlpha((0.3 * 255).round()),
           border: Border.all(
-            color: _textColor.withOpacity(0.3),
+            color: _textColor.withAlpha((0.3 * 255).round()),
             width: 1,
           ),
         ),
@@ -1380,10 +1380,10 @@ else
               margin: const EdgeInsets.symmetric(horizontal: 40),
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withAlpha((0.7 * 255).round()),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: _textColor.withOpacity(0.2),
+                  color: _textColor.withAlpha((0.2 * 255).round()),
                   width: 1,
                 ),
               ),
@@ -1393,14 +1393,14 @@ else
                 children: [
                   Icon(
                     Icons.keyboard_arrow_up,
-                    color: _textColor.withOpacity(0.8),
+                    color: _textColor.withAlpha((0.8 * 255).round()),
                     size: 18,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'Свайп для контекста',
                     style: GoogleFonts.merriweather(
-                      color: _textColor.withOpacity(0.8),
+                      color: _textColor.withAlpha((0.8 * 255).round()),
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
                     ),

@@ -145,15 +145,15 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 child: Container(
                   margin: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withAlpha((0.1 * 255).round()),
                       width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withAlpha((0.2 * 255).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -183,14 +183,14 @@ class _FavoritesPageState extends State<FavoritesPage> {
           Icon(
             Icons.favorite_border,
             size: 64,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withAlpha((0.5 * 255).round()),
           ),
           const SizedBox(height: 16),
           Text(
             'Нет избранных цитат',
             style: GoogleFonts.merriweather(
               fontSize: 20,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withAlpha((0.7 * 255).round()),
             ),
           ),
           const SizedBox(height: 8),
@@ -199,7 +199,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withAlpha((0.5 * 255).round()),
             ),
           ),
         ],
@@ -223,7 +223,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.redAccent.withOpacity(0.8),
+              color: Colors.redAccent.withAlpha((0.8 * 255).round()),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
@@ -240,7 +240,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withAlpha((0.6 * 255).round()),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 )
@@ -286,8 +286,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.black.withOpacity(0.7),
+                          Colors.black.withAlpha((0.3 * 255).round()),
+                          Colors.black.withAlpha((0.7 * 255).round()),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -311,7 +311,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withAlpha((0.5 * 255).round()),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -329,7 +329,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
+                                  color: Colors.black.withAlpha((0.5 * 255).round()),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -365,7 +365,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                   favorite.quote.author,
                                   style: GoogleFonts.merriweather(
                                     fontSize: 14,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withAlpha((0.9 * 255).round()),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -374,7 +374,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                     favorite.quote.source,
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.white.withOpacity(0.7),
+                                      color: Colors.white.withAlpha((0.7 * 255).round()),
                                       fontStyle: FontStyle.italic,
                                     ),
                                     maxLines: 1,

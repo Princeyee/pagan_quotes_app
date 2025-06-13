@@ -204,7 +204,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.3),
+        backgroundColor: Colors.black.withAlpha((0.3 * 255).round()),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -212,8 +212,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.black.withOpacity(0.3),
+                Colors.black.withAlpha((0.7 * 255).round()),
+                Colors.black.withAlpha((0.3 * 255).round()),
                 Colors.transparent,
               ],
             ),
@@ -231,13 +231,13 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           Container(
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha((0.3 * 255).round()),
               borderRadius: BorderRadius.circular(20),
             ),
             child: PopupMenuButton<String>(
               icon: Icon(
                 Icons.filter_list, 
-                color: _selectedTradition != null ? Colors.orange : Colors.white.withOpacity(0.9)
+                color: _selectedTradition != null ? Colors.orange : Colors.white.withAlpha((0.9 * 255).round())
               ),
               color: Colors.grey[900],
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -269,13 +269,13 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           Container(
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha((0.3 * 255).round()),
               borderRadius: BorderRadius.circular(20),
             ),
             child: PopupMenuButton<HistoricalAuthenticity?>(
               icon: Icon(
                 Icons.verified_user, 
-                color: _selectedAuthenticity != null ? Colors.green : Colors.white.withOpacity(0.9)
+                color: _selectedAuthenticity != null ? Colors.green : Colors.white.withAlpha((0.9 * 255).round())
               ),
               color: Colors.grey[900],
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -440,8 +440,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.black.withOpacity(0.8),
-                        Colors.black.withOpacity(0.9),
+                        Colors.black.withAlpha((0.8 * 255).round()),
+                        Colors.black.withAlpha((0.9 * 255).round()),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -517,9 +517,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withAlpha((0.15 * 255).round()),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withAlpha((0.3 * 255).round())),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -540,7 +540,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             child: Icon(
               Icons.close,
               size: 14,
-              color: color.withOpacity(0.7),
+              color: color.withAlpha((0.7 * 255).round()),
             ),
           ),
         ],
@@ -552,15 +552,15 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withAlpha((0.08 * 255).round()),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withAlpha((0.15 * 255).round()),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withAlpha((0.3 * 255).round()),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 8),
@@ -615,11 +615,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   calendarStyle: CalendarStyle(
                     // Основные дни
                     defaultTextStyle: GoogleFonts.merriweather(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha((0.9 * 255).round()),
                       fontWeight: FontWeight.w400,
                     ),
                     weekendTextStyle: GoogleFonts.merriweather(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
                       fontWeight: FontWeight.w300,
                     ),
                     outsideDaysVisible: false,
@@ -628,14 +628,14 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     selectedDecoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.white.withOpacity(0.8),
-                          Colors.white.withOpacity(0.6),
+                          Colors.white.withAlpha((0.8 * 255).round()),
+                          Colors.white.withAlpha((0.6 * 255).round()),
                         ],
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withAlpha((0.3 * 255).round()),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -648,10 +648,10 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
                     // Сегодня
                     todayDecoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withAlpha((0.2 * 255).round()),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withAlpha((0.5 * 255).round()),
                         width: 2,
                       ),
                     ),
@@ -675,10 +675,10 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   ),
                   
                   todayDecoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha((0.2 * 255).round()),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withAlpha((0.5 * 255).round()),
                       width: 2,
                     ),
                   ),
@@ -709,7 +709,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: markerColor.withOpacity(0.5),
+                                    color: markerColor.withAlpha((0.5 * 255).round()),
                                     blurRadius: 3,
                                     spreadRadius: 1,
                                   ),
@@ -749,7 +749,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: markerColor.withOpacity(0.5),
+                                  color: markerColor.withAlpha((0.5 * 255).round()),
                                   blurRadius: 3,
                                   spreadRadius: 1,
                                 ),
@@ -835,16 +835,16 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withAlpha((0.1 * 255).round()),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withAlpha((0.2 * 255).round()),
               width: 1,
             ),
           ),
           child: Icon(
             icon,
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withAlpha((0.8 * 255).round()),
             size: 20,
           ),
         ),
@@ -870,20 +870,20 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  traditionColor.withOpacity(0.2),
-                  traditionColor.withOpacity(0.1),
+                  traditionColor.withAlpha((0.2 * 255).round()),
+                  traditionColor.withAlpha((0.1 * 255).round()),
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: traditionColor.withOpacity(0.3),
+                color: traditionColor.withAlpha((0.3 * 255).round()),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: traditionColor.withOpacity(0.2),
+                  color: traditionColor.withAlpha((0.2 * 255).round()),
                   blurRadius: 15,
                   spreadRadius: 0,
                   offset: const Offset(0, 4),
@@ -901,7 +901,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: traditionColor.withOpacity(0.2),
+                          color: traditionColor.withAlpha((0.2 * 255).round()),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -919,7 +919,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                               'Ближайший праздник',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withAlpha((0.7 * 255).round()),
                                 fontWeight: FontWeight.w300,
                               ),
                             ),
@@ -941,7 +941,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                                   width: 4,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.5),
+                                    color: Colors.grey.withAlpha((0.5 * 255).round()),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -952,7 +952,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                               '${_daysUntilHoliday} ${_getDaysWord(_daysUntilHoliday!)} • ${_formatDate(_nextHolidayDate!)}',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withAlpha((0.8 * 255).round()),
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -1004,14 +1004,14 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withAlpha((0.08 * 255).round()),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withAlpha((0.15 * 255).round()),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withAlpha((0.2 * 255).round()),
             blurRadius: 15,
             spreadRadius: 0,
             offset: const Offset(0, 4),
@@ -1031,7 +1031,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   children: [
                     Icon(
                       Icons.event,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withAlpha((0.8 * 255).round()),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -1078,15 +1078,15 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  traditionColor.withOpacity(0.15),
-                  traditionColor.withOpacity(0.08),
+                  traditionColor.withAlpha((0.15 * 255).round()),
+                  traditionColor.withAlpha((0.08 * 255).round()),
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: traditionColor.withOpacity(0.3),
+                color: traditionColor.withAlpha((0.3 * 255).round()),
                 width: 1,
               ),
             ),
@@ -1100,7 +1100,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: traditionColor.withOpacity(0.5),
+                        color: traditionColor.withAlpha((0.5 * 255).round()),
                         blurRadius: 4,
                         spreadRadius: 1,
                       ),
@@ -1129,7 +1129,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withAlpha((0.5 * 255).round()),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -1141,7 +1141,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                           style: TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withAlpha((0.7 * 255).round()),
                           ),
                         ),
                       const SizedBox(height: 4),
@@ -1149,7 +1149,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         '${_getTraditionDisplayName(holiday.tradition)} • ${holiday.description}',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withAlpha((0.8 * 255).round()),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1183,15 +1183,15 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.08),
-                  Colors.white.withOpacity(0.04),
+                  Colors.white.withAlpha((0.08 * 255).round()),
+                  Colors.white.withAlpha((0.04 * 255).round()),
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withAlpha((0.2 * 255).round()),
                 width: 1,
               ),
             ),
@@ -1205,7 +1205,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withAlpha((0.3 * 255).round()),
                         blurRadius: 4,
                         spreadRadius: 1,
                       ),
@@ -1231,7 +1231,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         style: TextStyle(
                           fontSize: 13,
                           fontStyle: FontStyle.italic,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withAlpha((0.8 * 255).round()),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1241,7 +1241,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         '— ${dailyQuote.quote.author}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withAlpha((0.6 * 255).round()),
                         ),
                       ),
                     ],
@@ -1249,7 +1249,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 ),
                 Icon(
                   Icons.format_quote,
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
                   size: 20,
                 ),
               ],

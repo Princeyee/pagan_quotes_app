@@ -281,7 +281,7 @@ class _BookReaderPageState extends State<BookReaderPage>
               children: [
                 TextButton(
                   onPressed: _goBack,
-                  child: Text('Назад', style: TextStyle(color: _effectiveTextColor.withOpacity(0.7))),
+                  child: Text('Назад', style: TextStyle(color: _effectiveTextColor.withAlpha((0.7 * 255).round()))),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
@@ -321,7 +321,7 @@ class _BookReaderPageState extends State<BookReaderPage>
       decoration: BoxDecoration(
         color: _currentTheme.cardColor,
         border: Border(bottom: BorderSide(color: _currentTheme.borderColor, width: 1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.1 * 255).round()), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
@@ -342,7 +342,7 @@ class _BookReaderPageState extends State<BookReaderPage>
                 ),
                 Text(
                   widget.book.author,
-                  style: TextStyle(fontSize: 14, color: _currentTheme.textColor.withOpacity(0.7)),
+                  style: TextStyle(fontSize: 14, color: _currentTheme.textColor.withAlpha((0.7 * 255).round())),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -383,7 +383,7 @@ class _BookReaderPageState extends State<BookReaderPage>
         children: [
           CircularProgressIndicator(
             value: progress,
-            backgroundColor: _currentTheme.borderColor.withOpacity(0.3),
+            backgroundColor: _currentTheme.borderColor.withAlpha((0.3 * 255).round()),
             valueColor: AlwaysStoppedAnimation<Color>(_currentTheme.quoteHighlightColor),
             strokeWidth: 3,
           ),
@@ -414,7 +414,7 @@ class _BookReaderPageState extends State<BookReaderPage>
             bottomLeft: Radius.circular(16),
             bottomRight: Radius.circular(16),
           ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.05 * 255).round()), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -425,10 +425,10 @@ class _BookReaderPageState extends State<BookReaderPage>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _currentTheme.highlightColor.withOpacity(0.2),
+                      color: _currentTheme.highlightColor.withAlpha((0.2 * 255).round()),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.tune, size: 20, color: _currentTheme.textColor.withOpacity(0.8)),
+                    child: Icon(Icons.tune, size: 20, color: _currentTheme.textColor.withAlpha((0.8 * 255).round())),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -448,9 +448,9 @@ class _BookReaderPageState extends State<BookReaderPage>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: _currentTheme.highlightColor.withOpacity(0.3),
+                        color: _currentTheme.highlightColor.withAlpha((0.3 * 255).round()),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+                        border: Border.all(color: _currentTheme.borderColor.withAlpha((0.3 * 255).round())),
                       ),
                       child: Text(
                         '${_fontSize.toInt()}px',
@@ -473,9 +473,9 @@ class _BookReaderPageState extends State<BookReaderPage>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: _currentTheme.highlightColor.withOpacity(0.3),
+                        color: _currentTheme.highlightColor.withAlpha((0.3 * 255).round()),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
+                        border: Border.all(color: _currentTheme.borderColor.withAlpha((0.3 * 255).round())),
                       ),
                       child: Text(
                         '${_lineHeight.toStringAsFixed(1)}x',
@@ -515,18 +515,18 @@ class _BookReaderPageState extends State<BookReaderPage>
                           border: Border.all(
                             color: isSelected 
                                 ? theme.quoteHighlightColor 
-                                : theme.borderColor.withOpacity(0.3),
+                                : theme.borderColor.withAlpha((0.3 * 255).round()),
                             width: isSelected ? 3 : 1,
                           ),
                           boxShadow: isSelected ? [
                             BoxShadow(
-                              color: theme.quoteHighlightColor.withOpacity(0.3),
+                              color: theme.quoteHighlightColor.withAlpha((0.3 * 255).round()),
                               blurRadius: 12,
                               spreadRadius: 2,
                             ),
                           ] : [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withAlpha((0.1 * 255).round()),
                               blurRadius: 4,
                               spreadRadius: 1,
                             ),
@@ -563,7 +563,7 @@ class _BookReaderPageState extends State<BookReaderPage>
                                 'Цвет текста',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: _currentTheme.textColor.withOpacity(0.6),
+                                  color: _currentTheme.textColor.withAlpha((0.6 * 255).round()),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -589,7 +589,7 @@ class _BookReaderPageState extends State<BookReaderPage>
                                 'Цвет фона',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: _currentTheme.textColor.withOpacity(0.6),
+                                  color: _currentTheme.textColor.withAlpha((0.6 * 255).round()),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -622,18 +622,18 @@ class _BookReaderPageState extends State<BookReaderPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _currentTheme.highlightColor.withOpacity(0.1),
+        color: _currentTheme.highlightColor.withAlpha((0.1 * 255).round()),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _currentTheme.borderColor.withOpacity(0.2)),
+        border: Border.all(color: _currentTheme.borderColor.withAlpha((0.2 * 255).round())),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: _currentTheme.textColor.withOpacity(0.7)),
+              Icon(icon, size: 16, color: _currentTheme.textColor.withAlpha((0.7 * 255).round())),
               const SizedBox(width: 8),
-              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _currentTheme.textColor.withOpacity(0.8))),
+              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _currentTheme.textColor.withAlpha((0.8 * 255).round()))),
             ],
           ),
           const SizedBox(height: 12),
@@ -652,13 +652,13 @@ class _BookReaderPageState extends State<BookReaderPage>
         height: 40,
         decoration: BoxDecoration(
           color: enabled 
-              ? _currentTheme.highlightColor.withOpacity(0.8)
-              : _currentTheme.highlightColor.withOpacity(0.3),
+              ? _currentTheme.highlightColor.withAlpha((0.8 * 255).round())
+              : _currentTheme.highlightColor.withAlpha((0.3 * 255).round()),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _currentTheme.borderColor.withOpacity(0.3)),
-          boxShadow: enabled ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))] : null,
+          border: Border.all(color: _currentTheme.borderColor.withAlpha((0.3 * 255).round())),
+          boxShadow: enabled ? [BoxShadow(color: Colors.black.withAlpha((0.1 * 255).round()), blurRadius: 4, offset: const Offset(0, 2))] : null,
         ),
-        child: Icon(icon, size: 18, color: enabled ? _currentTheme.textColor : _currentTheme.textColor.withOpacity(0.4)),
+        child: Icon(icon, size: 18, color: enabled ? _currentTheme.textColor : _currentTheme.textColor.withAlpha((0.4 * 255).round())),
       ),
     );
   }
@@ -694,10 +694,10 @@ class _BookReaderPageState extends State<BookReaderPage>
               border: Border.all(
                 color: isSelected 
                     ? _currentTheme.quoteHighlightColor 
-                    : Colors.grey.withOpacity(0.3),
+                    : Colors.grey.withAlpha((0.3 * 255).round()),
                 width: isSelected ? 3 : 1,
               ),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+              boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.1 * 255).round()), blurRadius: 4, offset: const Offset(0, 2))],
             ),
             child: isSelected
                 ? Icon(

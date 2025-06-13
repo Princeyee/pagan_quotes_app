@@ -287,7 +287,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                   child: Container(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withAlpha((0.7 * 255).round()),
                   ),
                 ),
               ),
@@ -333,7 +333,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withAlpha((0.3 * 255).round()),
         borderRadius: BorderRadius.circular(16),
       ),
       margin: const EdgeInsets.all(8.0),
@@ -361,7 +361,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   widget.audiobook.author,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withAlpha((0.7 * 255).round()),
                   ),
                 ),
               ],
@@ -371,7 +371,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withAlpha((0.1 * 255).round()),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -385,7 +385,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 Text(
                   _showChapterList ? "Скрыть главы" : "Показать главы",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha((0.9 * 255).round()),
                     fontSize: 12,
                   ),
                 ),
@@ -395,7 +395,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: _handleMenuAction,
-            color: Colors.black.withOpacity(0.8),
+            color: Colors.black.withAlpha((0.8 * 255).round()),
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'speed', 
@@ -455,7 +455,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withAlpha((0.5 * 255).round()),
                     blurRadius: 30,
                     offset: const Offset(0, 15),
                     spreadRadius: 5,
@@ -604,11 +604,11 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isActive
-                  ? [color.withOpacity(0.3), color.withOpacity(0.1)]
-                  : [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)],
+                  ? [color.withAlpha((0.3 * 255).round()), color.withAlpha((0.1 * 255).round())]
+                  : [Colors.white.withAlpha((0.1 * 255).round()), Colors.white.withAlpha((0.05 * 255).round())],
             ),
             border: Border.all(
-              color: isActive ? color.withOpacity(0.5) : Colors.white.withOpacity(0.1),
+              color: isActive ? color.withAlpha((0.5 * 255).round()) : Colors.white.withAlpha((0.1 * 255).round()),
               width: 1,
             ),
           ),
@@ -618,7 +618,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               Icon(
                 icon,
                 size: 18,
-                color: isActive ? color : Colors.white.withOpacity(0.8),
+                color: isActive ? color : Colors.white.withAlpha((0.8 * 255).round()),
               ),
               const SizedBox(width: 6),
               Text(
@@ -626,7 +626,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive ? color : Colors.white.withOpacity(0.8),
+                  color: isActive ? color : Colors.white.withAlpha((0.8 * 255).round()),
                 ),
               ),
             ],
@@ -707,11 +707,11 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               // Play/Pause
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7), // Меняем цвет с белого на темный
+                  color: Colors.black.withAlpha((0.7 * 255).round()), // Меняем цвет с белого на темный
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: theme.primaryColor.withOpacity(0.4),
+                      color: theme.primaryColor.withAlpha((0.4 * 255).round()),
                       blurRadius: 15,
                       spreadRadius: 2,
                       offset: const Offset(0, 4),
@@ -798,18 +798,18 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.75),
-                    Colors.black.withOpacity(0.85),
+                    Colors.black.withAlpha((0.75 * 255).round()),
+                    Colors.black.withAlpha((0.85 * 255).round()),
                   ],
                 ),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withAlpha((0.15 * 255).round()),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withAlpha((0.6 * 255).round()),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -824,7 +824,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withAlpha((0.3 * 255).round()),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -838,13 +838,13 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          theme.primaryColor.withOpacity(0.2),
-                          Colors.black.withOpacity(0.5),
+                          theme.primaryColor.withAlpha((0.2 * 255).round()),
+                          Colors.black.withAlpha((0.5 * 255).round()),
                         ],
                       ),
                       border: Border(
                         bottom: BorderSide(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withAlpha((0.15 * 255).round()),
                           width: 1,
                         ),
                       ),
@@ -866,7 +866,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                             letterSpacing: 0.5,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withAlpha((0.5 * 255).round()),
                                 blurRadius: 5,
                               ),
                             ],
@@ -875,7 +875,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                         const Spacer(),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withAlpha((0.1 * 255).round()),
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
@@ -907,15 +907,15 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                     begin: Alignment.centerLeft,
                                     end: Alignment.centerRight,
                                     colors: [
-                                      theme.primaryColor.withOpacity(0.2),
-                                      theme.primaryColor.withOpacity(0.1),
+                                      theme.primaryColor.withAlpha((0.2 * 255).round()),
+                                      theme.primaryColor.withAlpha((0.1 * 255).round()),
                                     ],
                                   )
                                 : null,
                             boxShadow: isCurrentChapter
                                 ? [
                                     BoxShadow(
-                                      color: theme.primaryColor.withOpacity(0.2),
+                                      color: theme.primaryColor.withAlpha((0.2 * 255).round()),
                                       blurRadius: 8,
                                       spreadRadius: 1,
                                     ),
@@ -927,8 +927,8 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
                               onTap: () => _changeChapter(index),
-                              splashColor: theme.primaryColor.withOpacity(0.1),
-                              highlightColor: theme.primaryColor.withOpacity(0.05),
+                              splashColor: theme.primaryColor.withAlpha((0.1 * 255).round()),
+                              highlightColor: theme.primaryColor.withAlpha((0.05 * 255).round()),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                 child: Row(
@@ -946,26 +946,26 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                           colors: isCurrentChapter
                                               ? [
                                                   theme.primaryColor,
-                                                  theme.primaryColor.withOpacity(0.6),
+                                                  theme.primaryColor.withAlpha((0.6 * 255).round()),
                                                 ]
                                               : [
-                                                  Colors.grey.withOpacity(0.3),
-                                                  Colors.grey.withOpacity(0.1),
+                                                  Colors.grey.withAlpha((0.3 * 255).round()),
+                                                  Colors.grey.withAlpha((0.1 * 255).round()),
                                                 ],
                                         ),
                                         boxShadow: [
                                           BoxShadow(
                                             color: isCurrentChapter
-                                                ? theme.primaryColor.withOpacity(0.5)
-                                                : Colors.black.withOpacity(0.3),
+                                                ? theme.primaryColor.withAlpha((0.5 * 255).round())
+                                                : Colors.black.withAlpha((0.3 * 255).round()),
                                             blurRadius: isCurrentChapter ? 10 : 5,
                                             spreadRadius: isCurrentChapter ? 1 : 0,
                                           ),
                                         ],
                                         border: Border.all(
                                           color: isCurrentChapter
-                                              ? theme.primaryColor.withOpacity(0.7)
-                                              : Colors.white.withOpacity(0.1),
+                                              ? theme.primaryColor.withAlpha((0.7 * 255).round())
+                                              : Colors.white.withAlpha((0.1 * 255).round()),
                                           width: 1,
                                         ),
                                       ),
@@ -975,13 +975,13 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                           style: TextStyle(
                                             color: isCurrentChapter
                                                 ? Colors.white
-                                                : Colors.white.withOpacity(0.9),
+                                                : Colors.white.withAlpha((0.9 * 255).round()),
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
                                             shadows: isCurrentChapter
                                                 ? [
                                                     Shadow(
-                                                      color: Colors.black.withOpacity(0.5),
+                                                      color: Colors.black.withAlpha((0.5 * 255).round()),
                                                       blurRadius: 3,
                                                       offset: const Offset(0, 1),
                                                     ),
@@ -1006,7 +1006,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                                   : FontWeight.normal,
                                               color: isCurrentChapter
                                                   ? Colors.white
-                                                  : Colors.white.withOpacity(0.9),
+                                                  : Colors.white.withAlpha((0.9 * 255).round()),
                                               letterSpacing: 0.3,
                                             ),
                                             maxLines: 2,
@@ -1020,7 +1020,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                                 size: 14,
                                                 color: isCurrentChapter
                                                     ? theme.primaryColor
-                                                    : Colors.white.withOpacity(0.5),
+                                                    : Colors.white.withAlpha((0.5 * 255).round()),
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
@@ -1029,7 +1029,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                                   fontSize: 14,
                                                   color: isCurrentChapter
                                                       ? theme.primaryColor
-                                                      : Colors.white.withOpacity(0.5),
+                                                      : Colors.white.withAlpha((0.5 * 255).round()),
                                                 ),
                                               ),
                                             ],
@@ -1045,7 +1045,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                                         height: 40,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.black.withOpacity(0.3),
+                                          color: Colors.black.withAlpha((0.3 * 255).round()),
                                         ),
                                         child: AnimatedBuilder(
                                           animation: _waveController,
@@ -1153,10 +1153,10 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: AlertDialog(
-          backgroundColor: Colors.black.withOpacity(0.8),
+          backgroundColor: Colors.black.withAlpha((0.8 * 255).round()),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+            side: BorderSide(color: Colors.white.withAlpha((0.1 * 255).round()), width: 1),
           ),
           title: const Text(
             'Скорость воспроизведения',
@@ -1197,10 +1197,10 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: AlertDialog(
-          backgroundColor: Colors.black.withOpacity(0.8),
+          backgroundColor: Colors.black.withAlpha((0.8 * 255).round()),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+            side: BorderSide(color: Colors.white.withAlpha((0.1 * 255).round()), width: 1),
           ),
           title: const Text(
             'Таймер сна',

@@ -121,7 +121,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
           child: BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withAlpha((0.5 * 255).round()),
               child: SafeArea(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -141,8 +141,8 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.black.withOpacity(0.8),
-                                Colors.black.withOpacity(0.9),
+                                Colors.black.withAlpha((0.8 * 255).round()),
+                                Colors.black.withAlpha((0.9 * 255).round()),
                               ],
                             ),
                             borderRadius: const BorderRadius.vertical(
@@ -150,7 +150,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withAlpha((0.3 * 255).round()),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -191,7 +191,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
+          bottom: BorderSide(color: Colors.white.withAlpha((0.1 * 255).round())),
         ),
       ),
       child: Row(
@@ -199,7 +199,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withAlpha((0.1 * 255).round()),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -225,7 +225,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
                   _getCategoryDisplayName(widget.dailyQuote.quote.category),
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withAlpha((0.7 * 255).round()),
                   ),
                 ),
               ],
@@ -245,7 +245,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
       return Container(
         height: 160,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withAlpha((0.3 * 255).round()),
         ),
         child: const Center(
           child: CircularProgressIndicator(color: Colors.white),
@@ -263,7 +263,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
           cacheManager: CustomCache.instance,
           fit: BoxFit.cover,
           placeholder: (_, __) => Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withAlpha((0.3 * 255).round()),
             child: const Center(
               child: CircularProgressIndicator(color: Colors.white),
             ),
@@ -306,11 +306,11 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withAlpha((0.2 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
                 border: Border(
                   left: BorderSide(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withAlpha((0.8 * 255).round()),
                     width: 3,
                   ),
                 ),
@@ -343,7 +343,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
               style: TextStyle(
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withAlpha((0.7 * 255).round()),
               ),
             ),
           ],
@@ -357,7 +357,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.1)),
+          top: BorderSide(color: Colors.white.withAlpha((0.1 * 255).round())),
         ),
       ),
       child: Column(
@@ -428,10 +428,10 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withAlpha((0.05 * 255).round()),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: color.withOpacity(0.3),
+              color: color.withAlpha((0.3 * 255).round()),
               width: 1,
             ),
           ),
@@ -563,7 +563,7 @@ Future<void> showCalendarQuoteModal(BuildContext context, DailyQuote dailyQuote)
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withAlpha((0.5 * 255).round()),
     builder: (context) => CalendarQuoteModal(dailyQuote: dailyQuote),
   );
 }

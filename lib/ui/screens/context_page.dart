@@ -229,8 +229,8 @@ class _ContextPageState extends State<ContextPage>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.7),
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withAlpha((0.7 * 255).round()),
+                    Colors.black.withAlpha((0.8 * 255).round()),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -371,7 +371,7 @@ class _ContextPageState extends State<ContextPage>
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
+                    color: Colors.black.withAlpha((0.8 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white24),
                   ),
@@ -410,7 +410,7 @@ class _ContextPageState extends State<ContextPage>
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
+                    color: Colors.black.withAlpha((0.8 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white24),
                   ),
@@ -450,7 +450,7 @@ class _ContextPageState extends State<ContextPage>
           fontSize: 16,
           height: 1.6,
           color: isContext 
-              ? Colors.white.withOpacity(0.8)
+              ? Colors.white.withAlpha((0.8 * 255).round())
               : Colors.white,
         ),
         textAlign: TextAlign.justify,
@@ -476,7 +476,7 @@ class _ContextPageState extends State<ContextPage>
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withAlpha((0.1 * 255).round()),
           borderRadius: BorderRadius.circular(8),
           border: Border(
             left: BorderSide(
@@ -507,7 +507,7 @@ class _ContextPageState extends State<ContextPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withAlpha((0.1 * 255).round()),
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(

@@ -264,7 +264,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               sigmaY: _blurAnimation.value,
             ),
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withAlpha((0.5 * 255).round()),
               child: SafeArea(
                 child: _buildCurrentStep(),
               ),
@@ -316,7 +316,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.2 * _glowAnimation.value),
+                          color: Colors.green.withAlpha(((0.2 * _glowAnimation.value) * 255).round()),
                           blurRadius: 40,
                           spreadRadius: 20,
                         ),
@@ -341,9 +341,9 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withAlpha((0.3 * 255).round()),
                   border: Border.all(
-                    color: Colors.green.withOpacity(0.2),
+                    color: Colors.green.withAlpha((0.2 * 255).round()),
                     width: 1,
                   ),
                 ),
@@ -386,7 +386,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha((0.2 * 255).round()),
                   width: 1,
                 ),
               ),
@@ -422,7 +422,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               style: GoogleFonts.merriweather(
                 fontSize: 17,
                 fontWeight: FontWeight.w300,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withAlpha((0.8 * 255).round()),
                 height: 1.5,
                 decoration: TextDecoration.none,
               ),
@@ -439,7 +439,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               ),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha((0.2 * 255).round()),
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -447,7 +447,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               child: Text(
                 'Нажмите для продолжения',
                 style: GoogleFonts.merriweather(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
                   fontSize: 14,
                   fontWeight: FontWeight.w300,
                   decoration: TextDecoration.none,
@@ -486,7 +486,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               step.description,
               style: GoogleFonts.merriweather(
                 fontSize: 16,
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withAlpha((0.85 * 255).round()),
                 height: 1.6,
                 decoration: TextDecoration.none,
               ),
@@ -501,10 +501,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 padding: const EdgeInsets.all(24),
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withAlpha((0.2 * 255).round()),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withAlpha((0.1 * 255).round()),
                     width: 1,
                   ),
                 ),
@@ -515,7 +515,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                       style: GoogleFonts.merriweather(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha((0.9 * 255).round()),
                         decoration: TextDecoration.none,
                         height: 1.4,
                       ),
@@ -526,7 +526,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                       '— Фридрих Ницше',
                       style: GoogleFonts.merriweather(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withAlpha((0.6 * 255).round()),
                         decoration: TextDecoration.none,
                       ),
                     ),
@@ -543,14 +543,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               ),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha((0.2 * 255).round()),
                 ),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Text(
                 'Нажмите для продолжения',
                 style: GoogleFonts.merriweather(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
                   fontSize: 14,
                   decoration: TextDecoration.none,
                 ),
@@ -588,7 +588,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               step.description,
               style: GoogleFonts.merriweather(
                 fontSize: 16,
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withAlpha((0.85 * 255).round()),
                 height: 1.6,
                 decoration: TextDecoration.none,
               ),
@@ -602,10 +602,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               padding: const EdgeInsets.all(20),
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withAlpha((0.2 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withAlpha((0.1 * 255).round()),
                 ),
               ),
               child: Column(
@@ -613,14 +613,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withAlpha((0.05 * 255).round()),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'Контекст цитаты...\n"Танцующий — тот, кто может ходить по воде"\n...полный текст источника',
                       style: GoogleFonts.merriweather(
                         fontSize: 13,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withAlpha((0.7 * 255).round()),
                         decoration: TextDecoration.none,
                         height: 1.4,
                       ),
@@ -633,17 +633,17 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withAlpha((0.1 * 255).round()),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.blue.withOpacity(0.2),
+                        color: Colors.blue.withAlpha((0.2 * 255).round()),
                       ),
                     ),
                     child: Text(
                       '→ Полный текст книги',
                       style: GoogleFonts.merriweather(
                         fontSize: 13,
-                        color: Colors.blue.withOpacity(0.8),
+                        color: Colors.blue.withAlpha((0.8 * 255).round()),
                         decoration: TextDecoration.none,
                       ),
                     ),
@@ -661,14 +661,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               ),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha((0.2 * 255).round()),
                 ),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Text(
                 'Нажмите для продолжения',
                 style: GoogleFonts.merriweather(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
                   fontSize: 14,
                   decoration: TextDecoration.none,
                 ),
@@ -695,14 +695,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withAlpha((0.4 * 255).round()),
                   width: 2,
                 ),
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withAlpha((0.1 * 255).round()),
               ),
               child: Icon(
                 Icons.menu,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withAlpha((0.9 * 255).round()),
                 size: 30,
               ),
             ),
@@ -732,7 +732,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                     step.description,
                     style: GoogleFonts.merriweather(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withAlpha((0.85 * 255).round()),
                       height: 1.6,
                       decoration: TextDecoration.none,
                     ),
@@ -745,10 +745,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withAlpha((0.2 * 255).round()),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withAlpha((0.1 * 255).round()),
                       ),
                     ),
                     child: Column(
@@ -770,14 +770,14 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha((0.2 * 255).round()),
                       ),
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Text(
                       'Нажмите для продолжения',
                       style: GoogleFonts.merriweather(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withAlpha((0.7 * 255).round()),
                         fontSize: 14,
                         decoration: TextDecoration.none,
                       ),
@@ -810,7 +810,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha((0.2 * 255).round()),
                     width: 1,
                   ),
                 ),
@@ -824,7 +824,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                       return Icon(
                         Icons.auto_awesome,
                         size: 50,
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withAlpha((0.6 * 255).round()),
                       );
                     },
                   ),
@@ -850,10 +850,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
               Container(
                 padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withAlpha((0.2 * 255).round()),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withAlpha((0.1 * 255).round()),
                     width: 1,
                   ),
                 ),
@@ -868,7 +868,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                       style: GoogleFonts.merriweather(
                         fontSize: 16,
                         fontWeight: FontWeight.w300,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha((0.9 * 255).round()),
                         height: 1.6,
                         decoration: TextDecoration.none,
                         letterSpacing: 0.5,
@@ -888,7 +888,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withAlpha((0.3 * 255).round()),
                     width: 1,
                   ),
                   borderRadius: BorderRadius.circular(25),
@@ -896,7 +896,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 child: Text(
                   'Нажмите, чтобы войти',
                   style: GoogleFonts.merriweather(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withAlpha((0.8 * 255).round()),
                     fontSize: 14,
                     fontWeight: FontWeight.w300,
                     decoration: TextDecoration.none,
@@ -916,7 +916,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
       child: Text(
         text,
         style: GoogleFonts.merriweather(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withAlpha((0.7 * 255).round()),
           fontSize: 15,
           decoration: TextDecoration.none,
         ),
@@ -968,7 +968,7 @@ class MagicalParticlesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.4)
+      ..color = color.withAlpha((0.4 * 255).round())
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width / 2, size.height / 2);
@@ -985,14 +985,14 @@ class MagicalParticlesPainter extends CustomPainter {
       final y = center.dy + math.sin(angle) * radius;
       
       final opacity = (0.2 + 0.5 * math.sin(progress * 2 * math.pi + i * 0.5)).clamp(0.0, 1.0);
-      paint.color = color.withOpacity(opacity * 0.4);
+      paint.color = color.withAlpha(((opacity * 0.4) * 255).round());
       
       final particleSize = 2 + 1 * math.sin(progress * 2 * math.pi + i);
       
       canvas.drawCircle(Offset(x, y), particleSize, paint);
       
       // Легкое свечение
-      paint.color = color.withOpacity(opacity * 0.1);
+      paint.color = color.withAlpha(((opacity * 0.1) * 255).round());
       canvas.drawCircle(Offset(x, y), particleSize + 2, paint);
     }
   }
