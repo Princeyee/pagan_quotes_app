@@ -10,8 +10,7 @@
         android:label="Ежедневные цитаты"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup="true"
-        android:fullBackupContent="@xml/backup_rules">
+        android:allowBackup="true">
         <!-- Добавляем мета-данные для Google Sign-In -->
         <meta-data
             android:name="com.google.android.gms.version"

@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:358123091745:android:1234567890abcdef",
         "android_client_info": {
-          "package_name": "com.example.flutter_application"
+          "package_name": "com.yourcompany.dailyquotes"
         }
       },
       "oauth_client": [
