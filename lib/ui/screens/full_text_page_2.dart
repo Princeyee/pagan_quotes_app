@@ -786,7 +786,7 @@ class _ReadingSettingsPanelState extends State<ReadingSettingsPanel> {
       spacing: 8,
       runSpacing: 8,
       children: colors.map((color) {
-        final isSelected = currentColor.value == color.value;
+        final isSelected = currentColor == color;
         return GestureDetector(
           onTap: () => onColorChanged(color),
           child: AnimatedContainer(
