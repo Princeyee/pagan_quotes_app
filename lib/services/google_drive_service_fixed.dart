@@ -46,7 +46,7 @@ class GoogleDriveServiceFixed {
       _googleSignIn = GoogleSignIn(
         scopes: _scopes,
         // Используем Web Client ID из google-services.json
-        clientId: '112687964915-usd3dib9prsllich0e8n9nlo9arceco0.apps.googleusercontent.com',
+        clientId: '358123091745-e0v8lr845svr3e6rt2bnrrmlckl8hstn.apps.googleusercontent.com',
       );
       
       print('📱 Проверяем текущий статус входа...');
