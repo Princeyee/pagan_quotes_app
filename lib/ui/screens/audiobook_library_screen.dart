@@ -137,6 +137,9 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
 Пользователь: ${diagnosticInfo['userEmail'] ?? 'Нет'}
 Онлайн: ${diagnosticInfo['isOnline'] ? 'Да' : 'Нет'}
 ID папки: ${diagnosticInfo['targetFolderId']}
+Кеш: ${diagnosticInfo['cacheStatus'] ?? 'Не определен'}
+Файлов в кеше: ${diagnosticInfo['cachedFilesCount'] ?? '0'}
+Последнее обновление кеша: ${diagnosticInfo['cacheLastUpdated'] ?? 'Никогда'}
 Последняя ошибка: ${diagnosticInfo['lastError'] ?? 'Нет'}
 
 ПОЛНАЯ ИНФОРМАЦИЯ:
@@ -160,6 +163,18 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                   SizedBox(height: 8),
                   Text('ID папки: ${diagnosticInfo['targetFolderId']}'),
                   SizedBox(height: 8),
+                  // Новые поля
+                  Text('Статус кеша: ${diagnosticInfo['cacheStatus'] ?? 'Не определен'}'),
+                  SizedBox(height: 8),
+                  Text('Файлов в кеше: ${diagnosticInfo['cachedFilesCount'] ?? '0'}'),
+                  SizedBox(height: 8),
+                  Text('Последнее обновление кеша: ${
+                    diagnosticInfo['cacheLastUpdated'] != null
+                      ? DateTime.parse(diagnosticInfo['cacheLastUpdated']).toLocal().toString()
+                      : 'Никогда'
+                  }'),
+                  SizedBox(height: 8),
+                  // Конец новых полей
                   Text('Последняя ошибка: ${diagnosticInfo['lastError'] ?? 'Нет'}'),
                   SizedBox(height: 16),
                   Text('Полная информация:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -195,6 +210,29 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                       );
                     },
                   ),
+                  // Кнопка для очистки кеша
+                  SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.delete),
+                    label: Text('Очистить кеш'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 48),
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _googleDriveService.clearCache();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Кеш успешно очищен'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      // Показываем диагностику снова
+                      _showDiagnosticInfo();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -218,7 +256,7 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка получения диагностической информации: $e')),
       );
@@ -250,9 +288,32 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
               color: _isGoogleDriveConnected ? Colors.green : Colors.grey,
             ),
             onPressed: _isLoading ? null : _connectToGoogleDrive,
-            tooltip: _isGoogleDriveConnected 
-                ? 'Подключено к Google Drive' 
+            tooltip: _isGoogleDriveConnected
+                ? 'Подключено к Google Drive'
                 : 'Подключиться к Google Drive',
+          ),
+          // Кнопка для обновления файлов Drive
+          IconButton(
+            icon: Icon(Icons.cloud_sync),
+            onPressed: _isLoading ? null : () async {
+              setState(() { _isLoading = true; });
+              try {
+                // Принудительно обновляем файлы
+                await _googleDriveService.refreshFiles();
+                // Затем перезагружаем аудиокниги
+                await _loadAudiobooks();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Список файлов Drive обновлен'))
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Ошибка обновления: $e'))
+                );
+              } finally {
+                if (mounted) setState(() { _isLoading = false; });
+              }
+            },
+            tooltip: 'Обновить файлы Drive',
           ),
           // Кнопка для диагностики
           IconButton(
@@ -263,7 +324,7 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _isLoading ? null : _loadAudiobooks,
-            tooltip: 'Обновить',
+            tooltip: 'Обновить библиотеку',
           ),
         ],
       ),
@@ -276,7 +337,7 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
             width: double.infinity,
             height: double.infinity,
           ),
-          
+
           // Стеклянный контейнер с использованием GlassBackground
           SafeArea(
             child: GlassBackground(
@@ -307,7 +368,7 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Добавьте аудиофайлы в папку assets/audiobooks/',
+                              'Добавьте аудиофайлы в папку Google Drive',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,
