@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../models/audiobook.dart';
 import '../../services/audiobook_service.dart';
 import '../../services/google_drive_service.dart';
+import '../../services/debug_audiobook_service.dart';
 import '../../ui/widgets/audiobook_card.dart';
 import '../widgets/glass_background.dart';
 import 'audiobook_player_screen.dart';
@@ -16,9 +17,11 @@ class AudiobookLibraryScreen extends StatefulWidget {
 class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
   final AudiobookService _audiobookService = AudiobookService();
   final GoogleDriveService _googleDriveService = GoogleDriveService();
+  final DebugAudiobookService _debugService = DebugAudiobookService();
   List<Audiobook> _audiobooks = [];
   bool _isLoading = true;
   bool _isGoogleDriveConnected = false;
+  bool _useDebugMode = false; // Флаг для режима отладки
 
   @override
   void initState() {
@@ -44,7 +47,16 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
     });
     
     try {
-      final audiobooks = await _audiobookService.getAudiobooks();
+      List<Audiobook> audiobooks;
+      
+      if (_useDebugMode) {
+        // Режим отладки - только локальные файлы
+        print('🔧 Режим отладки: загружаем только локальные аудиокниги');
+        audiobooks = await _debugService.getLocalAudiobooks();
+      } else {
+        // Обычный режим - пытаемся загрузить из Google Drive
+        audiobooks = await _audiobookService.getAudiobooks();
+      }
       
       if (mounted) {
         setState(() {
@@ -52,8 +64,10 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
           _isLoading = false;
         });
         
-        // Проверяем статус Google Drive после загрузки книг
-        _checkGoogleDriveStatus();
+        // Проверяем статус Google Drive после загрузки книг (только в обычном режиме)
+        if (!_useDebugMode) {
+          _checkGoogleDriveStatus();
+        }
       }
     } catch (e) {
       print('Ошибка при загрузке аудиокниг: $e');
@@ -63,7 +77,7 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка загрузки аудиокниг: $e')),
+          SnackBar(content: Text('Ошибка загрузки аудиок��иг: $e')),
         );
       }
     }
@@ -281,8 +295,33 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
-          // Кнопка для подключения к Google Drive
+          // Кнопка переключения режима отладки
           IconButton(
+            icon: Icon(
+              _useDebugMode ? Icons.bug_report : Icons.cloud,
+              color: _useDebugMode ? Colors.orange : Colors.blue,
+            ),
+            onPressed: _isLoading ? null : () {
+              setState(() {
+                _useDebugMode = !_useDebugMode;
+              });
+              _loadAudiobooks();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(_useDebugMode 
+                    ? '🔧 Режим отладки: только локальные файлы' 
+                    : '☁️ Обычный режим: Google Drive + локальные файлы'
+                  ),
+                  backgroundColor: _useDebugMode ? Colors.orange : Colors.blue,
+                ),
+              );
+            },
+            tooltip: _useDebugMode 
+                ? 'Режим отладки (только локальные файлы)'
+                : 'Обычный режим (Google Drive + локальные)',
+          ),
+          // Кнопка для подключения к Google Drive (только в обычном режиме)
+          if (!_useDebugMode) IconButton(
             icon: Icon(
               _isGoogleDriveConnected ? Icons.cloud_done : Icons.cloud_off,
               color: _isGoogleDriveConnected ? Colors.green : Colors.grey,
@@ -292,8 +331,8 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                 ? 'Подключено к Google Drive'
                 : 'Подключиться к Google Drive',
           ),
-          // Кнопка для обновления файлов Drive
-          IconButton(
+          // Кнопка для обновления файлов Drive (только в обычном режиме)
+          if (!_useDebugMode) IconButton(
             icon: Icon(Icons.cloud_sync),
             onPressed: _isLoading ? null : () async {
               setState(() { _isLoading = true; });
@@ -313,10 +352,10 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                 if (mounted) setState(() { _isLoading = false; });
               }
             },
-            tooltip: 'Обновить файлы Drive',
+            tooltip: 'Обновить файл�� Drive',
           ),
-          // Кнопка для диагностики
-          IconButton(
+          // Кнопка для диагностики (только в обычном режиме)
+          if (!_useDebugMode) IconButton(
             icon: Icon(Icons.info_outline),
             onPressed: _isLoading ? null : _showDiagnosticInfo,
             tooltip: 'Диагностика Google Drive',
@@ -354,13 +393,15 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.audiotrack,
+                              _useDebugMode ? Icons.bug_report : Icons.audiotrack,
                               size: 80,
-                              color: Colors.grey[600],
+                              color: _useDebugMode ? Colors.orange[600] : Colors.grey[600],
                             ),
                             SizedBox(height: 20),
                             Text(
-                              'Нет доступных аудиокниг',
+                              _useDebugMode 
+                                ? 'Нет локальных аудиокниг'
+                                : 'Нет доступных аудиокниг',
                               style: TextStyle(
                                 color: Colors.grey[400],
                                 fontSize: 18,
@@ -368,13 +409,32 @@ ${const JsonEncoder.withIndent('  ').convert(diagnosticInfo)}
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Добавьте аудиофайлы в папку Google Drive',
+                              _useDebugMode
+                                ? 'Добавьте аудиофайлы в папку assets/audiobooks/\nили переключитесь в обычный режим'
+                                : 'Добавьте аудиофайлы в папку Google Drive\nили переключитесь в режим отладки',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
                             ),
+                            if (_useDebugMode) ...[
+                              SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                icon: Icon(Icons.cloud),
+                                label: Text('Переключиться в обычный режим'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _useDebugMode = false;
+                                  });
+                                  _loadAudiobooks();
+                                },
+              ),
+                            ],
                           ],
                         ),
                       )

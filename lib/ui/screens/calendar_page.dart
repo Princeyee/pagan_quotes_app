@@ -530,60 +530,54 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         opacity: _fadeAnimation,
         child: _isLoading
             ? _buildLoadingIndicator()
-            : Stack(
-                children: [
-                  // Прокручиваемый контент под колесом
-                  NotificationListener<ScrollNotification>(
-                    onNotification: (notification) {
-                      if (notification is ScrollUpdateNotification) {
-                        if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
-                          // Скролл вниз - скрываем AppBar
-                          if (_scrollController.offset > 20) {
-                            _fadeController.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                          }
-                        } else if (notification.scrollDelta != null && notification.scrollDelta! < 0) {
-                          // Скролл вверх - показываем AppBar
-                          _fadeController.animateTo(1.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                        }
+            : NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification is ScrollUpdateNotification) {
+                    if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
+                      // Скролл вниз - скрываем AppBar
+                      if (_scrollController.offset > 20) {
+                        _fadeController.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                       }
-                      return false;
-                    },
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                      children: [
-                        // Колесо в верхней части экрана
-                        _buildPaganWheel(),
-                        // Отступ после колеса
-                        const SizedBox(height: 80), // Увеличиваем отступ после колеса
-                        // Контент
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            children: [
-                              if (_nextHoliday != null) _buildNextHolidayCard(),
+                    } else if (notification.scrollDelta != null && notification.scrollDelta! < 0) {
+                      // Скролл вверх - показываем AppBar
+                      _fadeController.animateTo(1.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                    }
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      // Колесо в верхней части экрана
+                      _buildPaganWheel(),
+                      // Отступ после колеса
+                      const SizedBox(height: 80),
+                      // Контент
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            if (_nextHoliday != null) _buildNextHolidayCard(),
+                            const SizedBox(height: 20),
+                            _buildDailyQuoteCard(),
+                            if (_showCalendar) ...[
                               const SizedBox(height: 20),
-                              _buildDailyQuoteCard(),
-                              if (_showCalendar) ...[
-                                const SizedBox(height: 20),
-                                _buildCalendar(),
-                                const SizedBox(height: 20),
-                                _buildSelectedDayEvents(),
-                                const SizedBox(height: 20),
-                                _buildMonthHolidaysSection(),
-                              ],
-                              // Дополнительный отступ внизу для удобства прокрутки
-                              const SizedBox(height: 100),
+                              _buildCalendar(),
+                              const SizedBox(height: 20),
+                              _buildSelectedDayEvents(),
+                              const SizedBox(height: 20),
+                              _buildMonthHolidaysSection(),
                             ],
-                          ),
+                            // Дополнительный отступ внизу для удобства прокрутки
+                            const SizedBox(height: 100),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  ),
-            
-                ],
+                ),
               ),
       ),
     );

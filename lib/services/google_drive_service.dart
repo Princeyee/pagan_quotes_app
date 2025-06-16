@@ -73,19 +73,26 @@ class GoogleDriveService {
         try {
           print('Получаем заголовки авторизации...');
           final authHeaders = await account.authHeaders;
+          print('Заголовки авторизации получены: ${authHeaders.keys}');
+          
           final client = GoogleAuthClient(authHeaders);
           _driveApi = drive.DriveApi(client);
         
-          // Проверяем доступ к API
+          // Проверяем доступ �� API
           try {
-            print('Проверяем доступ к API...');
-            await _driveApi!.about.get();
-            print('Доступ к API подтвержден');
+            print('Проверяем доступ к Drive API...');
+            final about = await _driveApi!.about.get();
+            print('Доступ к API подтвержден. Пользователь: ${about.user?.displayName}');
             _isInitialized = true;
             return true;
           } catch (apiError) {
-            _lastError = 'Ошибка проверки API: $apiError';
+            _lastError = 'Ошибка проверки Drive API: $apiError';
             print(_lastError);
+            
+            // Проверяем, не связана ли ошибка с отсутствием разрешений API
+            if (apiError.toString().contains('403') || apiError.toString().contains('forbidden')) {
+              _lastError += '\n\nВозможные причины:\n1. Drive API не включен в Google Cloud Console\n2. Недостаточно разрешений для приложения\n3. Превышена квота API';
+            }
             return false;
           }
         } catch (authError) {
@@ -96,6 +103,12 @@ class GoogleDriveService {
       } catch (signInError) {
         _lastError = 'Ошибка входа в Google: $signInError';
         print('Детальная ошибка входа: $signInError');
+        
+        // Анализируем тип ошибки для более точной диагностики
+        final errorString = signInError.toString();
+        if (errorString.contains('SIGN_IN_FAILED') || errorString.contains('sign_in_failed')) {
+          _lastError += '\n\nВозможные причины:\n1. Неправильная настройка OAuth 2.0 в Google Console\n2. Неверный SHA-1 отпечаток\n3. Google Sign-In API не включен\n4. Неправильный package name в google-services.json';
+        }
         return false;
       }
     } catch (e) {
