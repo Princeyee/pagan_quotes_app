@@ -362,10 +362,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           builder: (context, child) {
             return Transform.translate(
               offset: Offset(0, -kToolbarHeight * (1 - _fadeController.value)),
-              child: Opacity(
-                opacity: _fadeController.value,
-                child: child,
-              ),
+              child: child,
             );
           },
           child: AppBar(
@@ -532,17 +529,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ? _buildLoadingIndicator()
             : NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
-                  if (notification is ScrollUpdateNotification) {
-                    if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
-                      // Скролл вниз - скрываем AppBar
-                      if (_scrollController.offset > 20) {
-                        _fadeController.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                      }
-                    } else if (notification.scrollDelta != null && notification.scrollDelta! < 0) {
-                      // Скролл вверх - показываем AppBar
-                      _fadeController.animateTo(1.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                    }
-                  }
                   return false;
                 },
                 child: SingleChildScrollView(

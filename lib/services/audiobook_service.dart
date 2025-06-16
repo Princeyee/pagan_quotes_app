@@ -6,14 +6,14 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
-import 'google_drive_service.dart';
+import 'google_drive_service_fixed.dart';
 
 class AudiobookService {
   static const String _progressKey = 'audiobook_progress';
   static const String _favoritesKey = 'favorite_audiobooks';
   static const String _offlineAudiobooksKey = 'offline_audiobooks';
   
-  final GoogleDriveService _driveService = GoogleDriveService();
+  final GoogleDriveServiceFixed _driveService = GoogleDriveServiceFixed();
 
   Future<List<Audiobook>> getAudiobooks() async {
     final connectivityResult = await Connectivity().checkConnectivity();

@@ -39,11 +39,12 @@ class GoogleDriveService {
       // Загружаем кеш если он есть
       await _loadFilesCache();
 
-      // Используем базовую конфигурацию без явного указания serverClientId
-      // Это позволит использовать ID из google-services.json
+      // Используем конфигурацию с явным указанием serverClientId из google-services.json
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: _scopes,
-        // Убираем явное указание serverClientId, чтобы использовать настройки из google-services.json
+        serverClientId: '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com',
+        // Добавляем дополнительные параметры для работы в России
+        forceCodeForRefreshToken: true,
       );
       
       print('Инициализация Google Sign-In...');
@@ -455,6 +456,7 @@ class GoogleDriveService {
   
   Future<Map<String, dynamic>> getDiagnosticInfo() async {
     final Map<String, dynamic> info = {
+      'timestamp': DateTime.now().toIso8601String(),
       'isInitialized': _isInitialized,
       'lastError': _lastError,
       'userEmail': _currentUserEmail,
@@ -463,15 +465,165 @@ class GoogleDriveService {
       'cacheStatus': _isCacheValid() ? 'Действителен' : 'Устарел или отсутствует',
       'cachedFilesCount': _cachedFiles?.length ?? 0,
       'cacheLastUpdated': _cacheTimestamp?.toIso8601String(),
+      'debugMode': _debugMode,
+      'scopes': _scopes,
     };
     
-    if (_driveApi != null) {
-      try {
-        await _driveApi!.about.get();
-        info['apiStatus'] = 'OK';
-      } catch (e) {
-        info['apiError'] = e.toString();
+    // Подробная информация о Google Sign-In
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: _scopes);
+      info['googleSignInCurrentUser'] = googleSignIn.currentUser?.email ?? 'null';
+      info['googleSignInIsSignedIn'] = await googleSignIn.isSignedIn();
+      
+      // Пытаемся получить информацию о текущем пользователе
+      final currentUser = googleSignIn.currentUser;
+      if (currentUser != null) {
+        info['currentUserDetails'] = {
+          'email': currentUser.email,
+          'displayName': currentUser.displayName,
+          'id': currentUser.id,
+          'photoUrl': currentUser.photoUrl,
+        };
+        
+        // Пытаемся получить auth headers
+        try {
+          final authHeaders = await currentUser.authHeaders;
+          info['authHeadersAvailable'] = true;
+          info['authHeadersKeys'] = authHeaders.keys.toList();
+          // Не показываем сами токены из соображений безопасности
+        } catch (e) {
+          info['authHeadersError'] = e.toString();
+          info['authHeadersAvailable'] = false;
+        }
       }
+    } catch (e) {
+      info['googleSignInError'] = e.toString();
+    }
+    
+    // Информация о Drive API
+    if (_driveApi != null) {
+      info['driveApiInitialized'] = true;
+      try {
+        print('🔍 Тестируем Drive API...');
+        final about = await _driveApi!.about.get();
+        info['driveApiStatus'] = 'OK';
+        info['driveApiUser'] = {
+          'displayName': about.user?.displayName,
+          'emailAddress': about.user?.emailAddress,
+          'permissionId': about.user?.permissionId,
+        };
+        info['driveApiStorageQuota'] = {
+          'limit': about.storageQuota?.limit,
+          'usage': about.storageQuota?.usage,
+          'usageInDrive': about.storageQuota?.usageInDrive,
+        };
+        print('✅ Drive API работает');
+      } catch (e) {
+        info['driveApiError'] = e.toString();
+        info['driveApiStatus'] = 'ERROR';
+        print('❌ Drive API ошибка: $e');
+        
+        // Детальный анализ ошибки Drive API
+        final errorStr = e.toString();
+        if (errorStr.contains('403')) {
+          info['driveApiErrorType'] = 'FORBIDDEN_403';
+          info['driveApiErrorSuggestion'] = 'API не включен или нет разрешений';
+        } else if (errorStr.contains('401')) {
+          info['driveApiErrorType'] = 'UNAUTHORIZED_401';
+          info['driveApiErrorSuggestion'] = 'Проблемы с авторизацией';
+        } else if (errorStr.contains('400')) {
+          info['driveApiErrorType'] = 'BAD_REQUEST_400';
+          info['driveApiErrorSuggestion'] = 'Неверные параметры запроса';
+        } else {
+          info['driveApiErrorType'] = 'UNKNOWN';
+        }
+      }
+    } else {
+      info['driveApiInitialized'] = false;
+    }
+    
+    // Информация о кеше
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      info['cachePrefsKeys'] = prefs.getKeys().where((key) => key.contains('google_drive')).toList();
+      
+      // Размер кешированных данных
+      final cacheString = prefs.getString(_filesCacheKey);
+      if (cacheString != null) {
+        info['cacheDataSize'] = cacheString.length;
+        try {
+          final cacheData = jsonDecode(cacheString);
+          info['cacheDataStructure'] = cacheData is List ? 'List[${cacheData.length}]' : cacheData.runtimeType.toString();
+        } catch (e) {
+          info['cacheDataParseError'] = e.toString();
+        }
+      }
+    } catch (e) {
+      info['cacheInfoError'] = e.toString();
+    }
+    
+    // Информация о сети
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      info['connectivityType'] = connectivityResult.toString();
+    } catch (e) {
+      info['connectivityError'] = e.toString();
+    }
+    
+    // Информация о файловой системе
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final cacheDir = Directory('${directory.path}/audiobook_cache');
+      info['cacheDirExists'] = await cacheDir.exists();
+      if (await cacheDir.exists()) {
+        final files = await cacheDir.list().toList();
+        info['cachedFilesOnDisk'] = files.length;
+        info['cachedFileNames'] = files.map((f) => f.path.split('/').last).toList();
+      }
+    } catch (e) {
+      info['fileSystemError'] = e.toString();
+    }
+    
+ // Попытка тестового запроса к целевой папке
+if (_driveApi != null) {
+  try {
+    print('🔍 Тестируем доступ к целевой папке...');
+    final folderResponse = await _driveApi!.files.get(_folderId);
+    final folder = folderResponse as drive.File;
+    info['targetFolderAccess'] = 'OK';
+    info['targetFolderInfo'] = {
+      'name': folder.name,
+      'mimeType': folder.mimeType,
+      'parents': folder.parents,
+    };
+    print('✅ Доступ к папке есть: ${folder.name}');
+  } catch (e) {
+    info['targetFolderError'] = e.toString();
+    print('❌ Ошибка доступа к папке: $e');
+  }
+      
+     // Попытка получить список файлов
+try {
+  print('🔍 Тестируем получение списка файлов...');
+  final fileList = await _driveApi!.files.list(
+    q: "'$_folderId' in parents",
+    pageSize: 5, // Ограничиваем для теста
+  );
+  info['fileListTest'] = 'OK';
+  info['fileListCount'] = fileList.files?.length ?? 0;
+  info['fileListSample'] = fileList.files?.take(3).map((f) {
+    final file = f as drive.File;
+    return {
+      'name': file.name,
+      'mimeType': file.mimeType,
+      'id': file.id,
+    };
+  }).toList();
+  print('✅ Получен список файлов: ${fileList.files?.length ?? 0}');
+} catch (e) {
+  info['fileListError'] = e.toString();
+  print('❌ Ошибка получения списка файлов: $e');
+}
     }
     
     return info;

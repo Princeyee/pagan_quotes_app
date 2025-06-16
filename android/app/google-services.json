@@ -2,40 +2,40 @@
   "project_info": {
     "project_number": "358123091745",
     "project_id": "sinuous-transit-460717-j9",
-    "storage_bucket": "sinuous-transit-460717-j9.appspot.com"
+    "storage_bucket": "sinuous-transit-460717-j9.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:358123091745:android:generated",
+        "mobilesdk_app_id": "1:358123091745:android:35f4991ef934a79a0d3060",
         "android_client_info": {
-          "package_name": "com.yourcompany.dailyquotes"
+          "package_name": "com.sacral.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+          "client_id": "358123091745-6d8083drl2dk0e3l1b14m9u6ppe83uuf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.yourcompany.dailyquotes",
-            "certificate_hash": "E8:39:D8:08:6A:81:8A:E4:ED:AB:3F:9C:25:9B:47:34:DE:37:C3:7E"
+            "package_name": "com.sacral.app",
+            "certificate_hash": "e839d8086a818ae4edab3f9c259b4734de37c37e"
           }
         },
         {
-          "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+          "client_id": "358123091745-e0v8lr845svr3e6rt2bnrrmlckl8hstn.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD1sGI81Bep1Nm_zWNtQctmGbjO1eKQ24M"
+          "current_key": "AIzaSyA73TXKniwj8Mo7d7zML-j3hOpXFUoRVKo"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com",
+              "client_id": "358123091745-e0v8lr845svr3e6rt2bnrrmlckl8hstn.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

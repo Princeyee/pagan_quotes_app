@@ -8,7 +8,7 @@ plugins {
 
 android {
     // ИСПРАВЛЕНО: Используем один и тот же package name
-    namespace = "com.yourcompany.dailyquotes"
+    namespace = "com.sacral.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -28,7 +28,7 @@ android {
 
     defaultConfig {
         // ИСПРАВЛЕНО: Теперь namespace и applicationId совпадают
-        applicationId = "com.yourcompany.dailyquotes"
+        applicationId = "com.sacral.app"
         // Настройки для публикации
         minSdk = 21 // Минимальная поддерживаемая версия Android
         targetSdk = flutter.targetSdkVersion

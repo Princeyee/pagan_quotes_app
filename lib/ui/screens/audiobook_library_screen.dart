@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/audiobook.dart';
 import '../../services/audiobook_service.dart';
-import '../../services/google_drive_service.dart';
+import '../../services/google_drive_service_fixed.dart';
 import '../../services/debug_audiobook_service.dart';
 import '../../ui/widgets/audiobook_card.dart';
 import '../widgets/glass_background.dart';
@@ -16,7 +16,7 @@ class AudiobookLibraryScreen extends StatefulWidget {
 
 class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
   final AudiobookService _audiobookService = AudiobookService();
-  final GoogleDriveService _googleDriveService = GoogleDriveService();
+  final GoogleDriveServiceFixed _googleDriveService = GoogleDriveServiceFixed();
   final DebugAudiobookService _debugService = DebugAudiobookService();
   List<Audiobook> _audiobooks = [];
   bool _isLoading = true;
