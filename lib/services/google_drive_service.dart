@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GoogleDriveService {
   // Статус сервиса для диагностики
@@ -15,12 +17,18 @@ class GoogleDriveService {
   static const String _folderId = '1b7PFjESsnY6bsn9rDmdAe10AU0pQNwiM'; // ID папки с аудиокнигами
   static const bool _debugMode = true; // Включаем режим отладки
   static const List<String> _scopes = [drive.DriveApi.driveReadonlyScope];
-  // Client ID из JSON-файла
-  // Убираем явное указание clientId, будем использовать значение из ресурсов Android
-  // static const String _clientId = '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com';
-  
+
+  // Ключи для SharedPreferences
+  static const String _filesCacheKey = 'google_drive_files_cache';
+  static const String _filesCacheTimestampKey = 'google_drive_files_cache_timestamp';
+  static const Duration _cacheValidity = Duration(days: 1); // Кеш действителен 24 часа
+
   drive.DriveApi? _driveApi;
   final Dio _dio = Dio();
+
+  // Кеш файлов
+  List<drive.File>? _cachedFiles;
+  DateTime? _cacheTimestamp;
 
   Future<bool> initialize() async {
     try {
@@ -28,11 +36,14 @@ class GoogleDriveService {
       _isInitialized = false;
       _currentUserEmail = '';
       
-      // Используем конфигурацию с указанием clientId для Android
+      // Загружаем кеш если он есть
+      await _loadFilesCache();
+
+      // Используем базовую конфигурацию без явного указания serverClientId
+      // Это позволит использовать ID из google-services.json
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: _scopes,
-        // Добавляем serverClientId из google-services.json
-        serverClientId: '358123091745-dk8931trk267ed1qbn8q00giqcldab58.apps.googleusercontent.com',
+        // Убираем явное указание serverClientId, чтобы использовать настройки из google-services.json
       );
       
       print('Инициализация Google Sign-In...');
@@ -43,7 +54,7 @@ class GoogleDriveService {
         print('Отключение от предыдущих сессий выполнено');
       } catch (disconnectError) {
         print('Ошибка при отключении: $disconnectError');
-        // Продолжаем работу, это не критическая ��шибка
+        // Продолжаем работу, это не критическая ошибка
       }
       
       // Пробуем выполнить вход
@@ -100,13 +111,33 @@ class GoogleDriveService {
   }
 
   Future<List<drive.File>> getAudiobookFiles() async {
-    if (_driveApi == null) {
-      print('DriveApi не инициализирован');
-      return [];
+    // Проверяем наличие действительного кеша
+    if (_isCacheValid()) {
+      print('Используем кешированный список файлов (${_cachedFiles!.length} файлов)');
+      return _cachedFiles!;
     }
     
+    if (_driveApi == null) {
+      print('DriveApi не инициализирован');
+
+      // Если DriveApi не инициализирован, но у нас есть кеш, используем его даже если срок истек
+      if (_cachedFiles != null && _cachedFiles!.isNotEmpty) {
+        print('Используем устаревший кеш так как DriveApi не инициализирован');
+        return _cachedFiles!;
+      }
+
+      return [];
+    }
+
     if (!await isOnline()) {
       print('Устройство не подключено к интернету');
+
+      // Используем кеш в автономном режиме, даже если срок истек
+      if (_cachedFiles != null && _cachedFiles!.isNotEmpty) {
+        print('Используем кеш в автономном режиме');
+        return _cachedFiles!;
+      }
+
       return [];
     }
 
@@ -129,8 +160,15 @@ class GoogleDriveService {
         
         final files = fileList.files ?? [];
         if (files.isNotEmpty) {
-          print('Найдено ${files.length} файлов в указанной папке:');
-          print('- Найдено ${files.length} файлов в папке');
+
+
+          print('Найдено ${files.length} файлов в указанной папке');
+
+          // Обновляем кеш
+          _cachedFiles = files;
+          _cacheTimestamp = DateTime.now();
+          _saveFilesCache(files);
+
           return files;
         } else {
           print('В указанной папке нет файлов');
@@ -151,18 +189,131 @@ class GoogleDriveService {
       print('Найдено всего файлов: ${allFiles.length}');
       
       if (allFiles.isNotEmpty) {
-        print('Список найденных файлов:');
-        print('- Показаны первые 10 из ${allFiles.length} файлов');
-        if (allFiles.length > 10) {
-          print('... и еще ${allFiles.length - 10} файлов');
-        }
+
+
+
+
+
+        // Обновляем кеш
+        _cachedFiles = allFiles;
+        _cacheTimestamp = DateTime.now();
+        _saveFilesCache(allFiles);
+
+        print('Список найденных файлов закеширован');
       }
       
       return allFiles;
     } catch (e) {
       print('Ошибка получения файлов: $e');
+
+      // В случае ошибки используем существующий кеш, если он есть
+      if (_cachedFiles != null && _cachedFiles!.isNotEmpty) {
+        print('Используем кешированные данные из-за ошибки');
+        return _cachedFiles!;
+      }
+
       return [];
     }
+  }
+
+  // Проверка валидности кеша
+  bool _isCacheValid() {
+    if (_cachedFiles == null || _cachedFiles!.isEmpty || _cacheTimestamp == null) {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final difference = now.difference(_cacheTimestamp!);
+
+    return difference < _cacheValidity;
+  }
+
+  // Сохранение кеша файлов
+  Future<void> _saveFilesCache(List<drive.File> files) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Преобразуем файлы в список карт, чтобы сохранить их
+      final List<Map<String, dynamic>> filesList = [];
+
+      for (final file in files) {
+        final Map<String, dynamic> fileMap = {
+          'id': file.id,
+          'name': file.name,
+          'mimeType': file.mimeType,
+        };
+
+        if (file.parents != null) {
+          fileMap['parents'] = file.parents;
+        }
+
+        filesList.add(fileMap);
+      }
+
+      // Сохраняем JSON-строку
+      final String jsonFiles = jsonEncode(filesList);
+      await prefs.setString(_filesCacheKey, jsonFiles);
+
+      // Сохраняем временную метку
+      await prefs.setString(_filesCacheTimestampKey, DateTime.now().toIso8601String());
+
+      print('Кеш файлов успешно сохранен (${files.length} файлов)');
+    } catch (e) {
+      print('Ошибка при сохранении кеша файлов: $e');
+    }
+  }
+
+  // Загрузка кеша файлов
+  Future<void> _loadFilesCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Загружаем временную метку
+      final timestampString = prefs.getString(_filesCacheTimestampKey);
+      if (timestampString != null) {
+        _cacheTimestamp = DateTime.parse(timestampString);
+      }
+
+      // Загружаем файлы
+      final jsonFiles = prefs.getString(_filesCacheKey);
+      if (jsonFiles != null) {
+        final List<dynamic> filesList = jsonDecode(jsonFiles);
+
+        // Преобразуем обратно в объекты drive.File
+        _cachedFiles = filesList.map((fileMap) {
+          return drive.File()
+            ..id = fileMap['id']
+            ..name = fileMap['name']
+            ..mimeType = fileMap['mimeType']
+            ..parents = fileMap['parents'] != null
+                ? List<String>.from(fileMap['parents'])
+                : null;
+        }).toList();
+
+        print('Кеш файлов успешно загружен (${_cachedFiles!.length} файлов)');
+
+        // Проверяем, не устарел ли кеш
+        if (_isCacheValid()) {
+          print('Кеш действителен, срок истекает: ${_cacheTimestamp!.add(_cacheValidity)}');
+        } else if (_cacheTimestamp != null) {
+          print('Кеш устарел, последнее обновление: $_cacheTimestamp');
+        }
+      }
+    } catch (e) {
+      print('Ошибка при загрузке кеша файлов: $e');
+      _cachedFiles = null;
+      _cacheTimestamp = null;
+    }
+  }
+
+  // Принудительное обновление кеша
+  Future<List<drive.File>> refreshFiles() async {
+    // Сбрасываем кеш
+    _cachedFiles = null;
+    _cacheTimestamp = null;
+
+    // Получаем свежие данные
+    return await getAudiobookFiles();
   }
 
   Future<String?> getFileStreamUrl(String fileId) async {
@@ -194,8 +345,17 @@ class GoogleDriveService {
   }
 
   Future<String?> downloadAndCacheFile(String fileId, String fileName) async {
+    // Сначала проверяем, есть ли файл уже в кеше
+    final cachedPath = await getCachedFilePath(fileName);
+    if (cachedPath != null) {
+      print('Файл $fileName уже в кеше');
+      return cachedPath;
+    }
+
     if (!await isOnline()) {
-      return await getCachedFilePath(fileName);
+
+      print('Нет подключения к интернету, невозможно загрузить файл');
+      return null;
     }
 
     try {
@@ -209,12 +369,16 @@ class GoogleDriveService {
       }
 
       final filePath = '${cacheDir.path}/$fileName';
+      print('Загрузка файла $fileName из $url');
       await _dio.download(url, filePath);
-      
+
+      print('Файл $fileName успешно загружен в кеш');
+
       return filePath;
     } catch (e) {
       print('Ошибка загрузки файла: $e');
-      return await getCachedFilePath(fileName);
+
+      return null;
     }
   }
 
@@ -238,6 +402,30 @@ class GoogleDriveService {
     return cachedPath != null;
   }
   
+  // Метод для очистки кеша файлов
+  Future<void> clearCache() async {
+    try {
+      // Очищаем кеш в памяти
+      _cachedFiles = null;
+      _cacheTimestamp = null;
+
+      // Очищаем кеш в SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_filesCacheKey);
+      await prefs.remove(_filesCacheTimestampKey);
+
+      // Очищаем файловый кеш
+      final directory = await getApplicationDocumentsDirectory();
+      final cacheDir = Directory('${directory.path}/audiobook_cache');
+      if (await cacheDir.exists()) {
+        await cacheDir.delete(recursive: true);
+        print('Кеш файлов успешно очищен');
+      }
+    } catch (e) {
+      print('Ошибка при очистке кеша: $e');
+    }
+  }
+
   // Методы для диагностики
   
   String getLastError() {
@@ -259,6 +447,9 @@ class GoogleDriveService {
       'userEmail': _currentUserEmail,
       'isOnline': await isOnline(),
       'targetFolderId': _folderId,
+      'cacheStatus': _isCacheValid() ? 'Действителен' : 'Устарел или отсутствует',
+      'cachedFilesCount': _cachedFiles?.length ?? 0,
+      'cacheLastUpdated': _cacheTimestamp?.toIso8601String(),
     };
     
     if (_driveApi != null) {
