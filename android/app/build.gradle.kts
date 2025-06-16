@@ -38,24 +38,16 @@ android {
 
     signingConfigs {
         create("release") {
-            // Эти значения нужно будет заменить на реальные после создания keystore
-            // storeFile = file("path/to/your/keystore.jks")
-            // storePassword = "your-store-password"
-            // keyAlias = "your-key-alias"
-            // keyPassword = "your-key-password"
-            
-            // Для безопасности рекомендуется хранить эти значения в отдельном файле
-            // который не добавляется в систему контроля версий
+            storeFile = file("release-key.jks")
+            storePassword = "1488228"
+            keyAlias = "release"
+            keyPassword = "1488228"
         }
     }
     
     buildTypes {
         release {
-            // Раскомментируйте строку ниже после настройки signingConfig
-            // signingConfig = signingConfigs.getByName("release")
-            
-            // Пока используем debug для тестирования
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             
             // Включаем минификацию кода для уменьшения размера APK
             isMinifyEnabled = true

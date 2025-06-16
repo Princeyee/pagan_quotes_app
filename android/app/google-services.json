@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "358123091745-rdp047u22scq09u0diqrv75m6u9e49pr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sacral.app",
+            "certificate_hash": "44ee3b738e0f1c76ad6fc8335b06c7fab382c1fb"
+          }
+        },
+        {
           "client_id": "358123091745-e0v8lr845svr3e6rt2bnrrmlckl8hstn.apps.googleusercontent.com",
           "client_type": 3
         }
