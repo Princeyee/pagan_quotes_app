@@ -397,13 +397,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
               ),
         ),
         
-        // Информация о месяце
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 600),
-          opacity: _isLoading ? 0.0 : 1.0,
-          child: _buildMonthInfo(),
-        ),
-        
+                
         // Список праздников
         if (_hasInteracted && !_isLoading) ...[
           SlideTransition(
@@ -593,119 +587,11 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildMonthIndicator() {
-    return Positioned(
-      bottom: 10,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: AnimatedBuilder(
-          animation: _glowAnimation,
-          builder: (context, child) {
-            return Container(
-              width: 8,
-              height: 35,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withAlpha((0.3 * 255).round()),
-                    Colors.white.withAlpha((0.9 * 255).round()),
-                    Colors.white.withAlpha((0.3 * 255).round()),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(4),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withAlpha((0.6 * _glowAnimation.value * 255).round()),
-                    blurRadius: 15,
-                    spreadRadius: 3,
-                  ),
-                  BoxShadow(
-                    color: _months[_selectedMonth - 1].color.withAlpha((0.4 * 255).round()),
-                    blurRadius: 20,
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
+    // Убираем белую палочку - возвращаем пустой виджет
+    return const SizedBox.shrink();
   }
 
-  Widget _buildMonthInfo() {
-    final currentMonth = _months[_selectedMonth - 1];
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  currentMonth.color.withAlpha((0.1 * 255).round()),
-                  currentMonth.color.withAlpha((0.05 * 255).round()),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: currentMonth.color.withAlpha((0.2 * 255).round()),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  currentMonth.name,
-                  style: GoogleFonts.merriweather(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: currentMonth.color.withAlpha((0.5 * 255).round()),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: currentMonth.color.withAlpha((0.15 * 255).round()),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: currentMonth.color.withAlpha((0.3 * 255).round()),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    _getSeasonName(currentMonth.season),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withAlpha((0.9 * 255).round()),
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+  
   Widget _buildHolidaysList() {
     // ОБНОВЛЯЕМ СООБЩЕНИЕ О ПУСТОМ СПИСКЕ С УЧЕТОМ ОБОИХ ФИЛЬТРОВ
     if (_currentMonthHolidays.isEmpty) {
@@ -999,18 +885,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     }
   }
 
-  String _getSeasonName(SeasonType season) {
-    switch (season) {
-      case SeasonType.winter:
-        return 'Зима';
-      case SeasonType.spring:
-        return 'Весна';
-      case SeasonType.summer:
-        return 'Лето';
-      case SeasonType.autumn:
-        return 'Осень';
-    }
-  }
+ 
 
   String _getMonthName(int month) {
     const months = [

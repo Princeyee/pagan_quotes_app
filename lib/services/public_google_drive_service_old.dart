@@ -27,7 +27,7 @@ class PublicGoogleDriveService {
   List<Map<String, dynamic>>? _cachedFolders;
   DateTime? _cacheTimestamp;
   
-  // Сервисы для прогрессив��ой загрузки
+  // Сервисы для прогрессивной загрузки
   final ProgressiveDownloadService _progressiveDownloadService = ProgressiveDownloadService();
   final LocalAudioServer _localServer = LocalAudioServer.instance;
 
@@ -160,7 +160,7 @@ class PublicGoogleDriveService {
     return null;
   }
 
-  // Предзагрузка файла в кеш (старый метод для совместимости)
+  // Предзагрузка файла в кеш
   Future<String?> preloadFile(String fileId, String fileName, {Function(double)? onProgress}) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -174,7 +174,7 @@ class PublicGoogleDriveService {
       final filePath = '${cacheDir.path}/$fileName';
       final file = File(filePath);
       
-      // Если файл уже есть в кеше, во��вращаем путь
+      // Если файл уже есть в кеше, возвращаем путь
       if (await file.exists()) {
         return filePath;
       }
@@ -198,14 +198,14 @@ class PublicGoogleDriveService {
         int downloaded = 0;
         final sink = file.openWrite();
         
-        await for (final chunk in response.data.stream) {
-          sink.add(chunk);
-          downloaded += (chunk as List<int>).length;
-          
-          if (total > 0 && onProgress != null) {
-            onProgress(downloaded / total);
-          }
-        }
+       await for (final chunk in response.data.stream) {
+  sink.add(chunk);
+  downloaded += (chunk as List<int>).length;
+  
+  if (total > 0 && onProgress != null) {
+    onProgress(downloaded / total);
+  }
+}
         
         await sink.close();
         return filePath;
@@ -215,95 +215,6 @@ class PublicGoogleDriveService {
     }
     
     return null;
-  }
-
-  /// НОВЫЕ МЕТОДЫ ДЛЯ ПРОГРЕССИВНОЙ ЗАГРУЗКИ
-  
-  /// Начать прогрессивную загрузку файла
-  Future<String?> startProgressiveDownload(String fileId, String fileName, {Function(DownloadProgress)? onProgress}) async {
-    try {
-      final downloadUrl = getFileDownloadUrl(fileId);
-      
-      // Подписываемся на прогресс загрузки
-      if (onProgress != null) {
-        _progressiveDownloadService.getProgressStream(fileId).listen(onProgress);
-      }
-      
-      // Начинаем загрузку
-      final filePath = await _progressiveDownloadService.startProgressiveDownload(
-        fileId: fileId,
-        downloadUrl: downloadUrl,
-        fileName: fileName,
-      );
-      
-      if (filePath != null) {
-        // Регистрируем файл в локальном сервере
-        final serverUrl = _localServer.registerFile(fileId, filePath);
-        print('🎵 Файл зарегистрирован в локальном сервере: $serverUrl');
-        return serverUrl;
-      }
-      
-      return null;
-    } catch (e) {
-      print('❌ Ошибка прогрессивной загрузки: $e');
-      return null;
-    }
-  }
-  
-  /// Получить поток прогресса загрузки
-  Stream<DownloadProgress> getDownloadProgressStream(String fileId) {
-    return _progressiveDownloadService.getProgressStream(fileId);
-  }
-  
-  /// Проверить, можно ли на��ать воспроизведение
-  Future<bool> isFilePlayable(String fileId) async {
-    return await _progressiveDownloadService.isPlayable(fileId);
-  }
-  
-  /// Получить URL для воспроизведения (локальный сервер или прямая ссылка)
-  Future<String?> getPlayableUrl(String fileId, String fileName) async {
-    // Сначала проверяем полностью загруженный файл в старом кеше
-    final cachedPath = await getCachedFilePath(fileName);
-    if (cachedPath != null) {
-      print('✅ Используем полностью кешированный файл: $cachedPath');
-      return cachedPath;
-    }
-    
-    // Проверяем частично загруженный файл
-    final partialPath = await _progressiveDownloadService.getPartialFilePath(fileId);
-    if (partialPath != null) {
-      final isPlayable = await _progressiveDownloadService.isPlayable(fileId);
-      if (isPlayable) {
-        // Регистрируем в локальном сервере и возвращаем URL
-        final serverUrl = _localServer.registerFile(fileId, partialPath);
-        print('🎵 Используем частично загруженный файл через локальный сервер: $serverUrl');
-        return serverUrl;
-      }
-    }
-    
-    // Если онлайн, начинаем прогрессивную загрузку
-    if (await isOnline()) {
-      print('🔄 Начинаем прогрессивную загрузку: $fileName');
-      return await startProgressiveDownload(fileId, fileName);
-    }
-    
-    return null;
-  }
-  
-  /// Приостановить загрузку
-  void pauseDownload(String fileId) {
-    _progressiveDownloadService.pauseDownload(fileId);
-  }
-  
-  /// Отменить загрузку
-  Future<void> cancelDownload(String fileId) async {
-    await _progressiveDownloadService.cancelDownload(fileId);
-    _localServer.unregisterFile(fileId);
-  }
-  
-  /// Получить информацию о частично загруженных файлах
-  List<PartialFileInfo> getPartialDownloads() {
-    return _progressiveDownloadService.getPartialFiles();
   }
 
   // Проверка валидности кеша
@@ -351,7 +262,7 @@ class PublicGoogleDriveService {
     }
   }
 
-  // Очистка кеша (обновленная версия)
+  // Очистка кеша
   Future<void> clearCache() async {
     try {
       _cachedFiles = null;
@@ -361,30 +272,17 @@ class PublicGoogleDriveService {
       await prefs.remove(_filesCacheKey);
       await prefs.remove(_filesCacheTimestampKey);
 
-      // Очищаем старый кеш
       final directory = await getApplicationDocumentsDirectory();
       final cacheDir = Directory('${directory.path}/audiobook_cache');
       if (await cacheDir.exists()) {
         await cacheDir.delete(recursive: true);
       }
-      
-      // Очищаем прогрессивный кеш
-      await _progressiveDownloadService.clearCache();
-      
     } catch (e) {
       // Игнорируем ошибки очистки кеша
     }
-  }
-  
-  /// Освобождение ресурсов
-  Future<void> dispose() async {
-    _progressiveDownloadService.dispose();
-    await _localServer.stop();
   }
 
   // Геттеры для диагностики
   String getLastError() => _lastError;
   bool isServiceInitialized() => _isInitialized;
-  bool get isLocalServerRunning => _localServer.isRunning;
-  int get localServerPort => _localServer.port;
 }

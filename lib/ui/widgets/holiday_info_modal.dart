@@ -170,6 +170,21 @@ class _HolidayInfoModalState extends State<HolidayInfoModal>
                   overflow: TextOverflow.ellipsis,
                 ),
                 
+                // Оригинальное название, если отличается
+                if (widget.holiday.nameOriginal != widget.holiday.name) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.holiday.nameOriginal,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
+                      fontStyle: FontStyle.italic,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+                
                 const SizedBox(height: 12),
                 
                 // Минимальный бейдж традиции

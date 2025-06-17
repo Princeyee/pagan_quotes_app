@@ -162,6 +162,9 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   }
 
   Future<void> _startOnboarding() async {
+    // Предварительно загружаем шрифты Google Fonts
+    await _preloadFonts();
+    
     // Ждем загрузки контента (дерева, шрифтов и т.д.)
     await Future.delayed(const Duration(milliseconds: 1200));
     
@@ -186,6 +189,20 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     
     if (mounted) { // Проверяем перед переходом к следующему шагу
       _nextStep();
+    }
+  }
+
+  Future<void> _preloadFonts() async {
+    try {
+      // Предварительно загружаем все нужные варианты шрифта
+      await GoogleFonts.pendingFonts([
+        GoogleFonts.merriweather(fontSize: 16, fontWeight: FontWeight.w300),
+        GoogleFonts.merriweather(fontSize: 16, fontWeight: FontWeight.w400, fontStyle: FontStyle.italic),
+        GoogleFonts.merriweather(fontSize: 14, fontWeight: FontWeight.w300),
+        GoogleFonts.merriweather(fontSize: 26, fontWeight: FontWeight.w400),
+      ]);
+    } catch (e) {
+      print('Font preloading failed: $e');
     }
   }
 
@@ -298,16 +315,13 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
   Widget _buildCurrentStep() {
     final stepData = _steps[_currentStep];
     
-    // Используем AnimatedBuilder вместо AnimatedSwitcher для более стабильной анимации
+    // Упрощаем анимацию - используем только opacity без transform
     return AnimatedBuilder(
       animation: _contentController,
       builder: (context, child) {
         return Opacity(
           opacity: _contentController.value,
-          child: Transform.translate(
-            offset: Offset(0, (1 - _contentController.value) * 20),
-            child: _buildStepContent(stepData),
-          ),
+          child: _buildStepContent(stepData),
         );
       },
     );

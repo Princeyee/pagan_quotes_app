@@ -8,6 +8,7 @@ import 'dart:ui' as ui;
 import '../../models/daily_quote.dart';
 import '../../models/pagan_holiday.dart';
 import '../../services/image_picker_service.dart';
+import '../../services/calendar_quote_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/calendar_quote_modal.dart';
 import '../widgets/holiday_info_modal.dart';
@@ -22,6 +23,7 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMixin {
   final CustomCachePrefs _cache = CustomCache.prefs;
+  final CalendarQuoteService _calendarQuoteService = CalendarQuoteService();
   final ScrollController _scrollController = ScrollController();
 
   late AnimationController _fadeController;
@@ -206,12 +208,24 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   }
 
   // Обработчики событий календаря
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
       });
+      
+      // Генерируем цитату для выбранной даты, если её нет
+      final dateKey = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+      if (!_cachedQuotes.containsKey(dateKey)) {
+        final quote = await _calendarQuoteService.generateQuoteForDate(dateKey);
+        if (quote != null) {
+          setState(() {
+            _cachedQuotes[dateKey] = quote;
+            _prepareEvents();
+          });
+        }
+      }
     }
   }
   
@@ -545,6 +559,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
+                            // Виджет цитаты дня
+                            _buildDailyQuoteCard(),
+                            const SizedBox(height: 20),
                             if (_nextHoliday != null) _buildNextHolidayCard(),
                             if (_showCalendar) ...[
                               const SizedBox(height: 20),
@@ -915,7 +932,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 markerBuilder: (context, day, events) {
                   if (events.isEmpty) return null;
                   
-                  // Группируем события по традициям
+                  // Показываем маркеры ТОЛЬКО для праздников, НЕ для цитат
                   final holidays = events.whereType<PaganHoliday>().toList();
                   if (holidays.isEmpty) return null;
                   
@@ -961,10 +978,12 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   Widget _buildSelectedDayEvents() {
     final events = _getEventsForDay(_selectedDay ?? DateTime.now());
     
-    // Фильтруем события, чтобы показывать только праздники (без цитат)
+    // Разделяем события на праздники и цитаты
     final holidays = events.whereType<PaganHoliday>().toList();
+    final quotes = events.whereType<DailyQuote>().toList();
     
-    if (holidays.isEmpty) {
+    // Если нет ни праздников, ни цитат
+    if (holidays.isEmpty && quotes.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -984,7 +1003,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
             const SizedBox(height: 12),
             Text(
-              'Нет праздников',
+              'Нет событий',
               style: GoogleFonts.merriweather(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -994,8 +1013,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             const SizedBox(height: 8),
             Text(
               _selectedDay != null
-                  ? 'На ${_formatDate(_selectedDay!)} нет праздников'
-                  : 'Выберите дату для просмотра праздников',
+                  ? 'На ${_formatDate(_selectedDay!)} нет событий'
+                  : 'Выберите дату для просмотра событий',
               style: TextStyle(
                 color: Colors.white.withAlpha((0.5 * 255).round()),
                 fontSize: 14,
@@ -1007,43 +1026,130 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withAlpha((0.3 * 255).round()),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.white.withAlpha((0.1 * 255).round()),
-          width: 1,
-        ),
-        ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+    return Column(
+      children: [
+        // Цитата дня для выбранной даты
+        if (quotes.isNotEmpty) ...[
+          _buildQuoteCard(quotes.first),
+          const SizedBox(height: 16),
+        ],
+        
+        // Праздники
+        if (holidays.isNotEmpty)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withAlpha((0.3 * 255).round()),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: Colors.white.withAlpha((0.1 * 255).round()),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.event,
-                  color: Colors.white.withAlpha((0.8 * 255).round()),
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _selectedDay != null
-                      ? 'Праздники ${_formatDate(_selectedDay!)}'
-                      : 'Праздники сегодня',
-                  style: GoogleFonts.merriweather(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.event,
+                        color: Colors.white.withAlpha((0.8 * 255).round()),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _selectedDay != null
+                            ? 'Праздники ${_formatDate(_selectedDay!)}'
+                            : 'Праздники сегодня',
+                        style: GoogleFonts.merriweather(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                ...holidays.map((holiday) => _buildHolidayCard(holiday)).toList(),
               ],
             ),
           ),
-          ...holidays.map((holiday) => _buildHolidayCard(holiday)).toList(),
-        ],
+      ],
+    );
+  }
+  
+  Widget _buildQuoteCard(DailyQuote dailyQuote) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withAlpha((0.08 * 255).round()),
+            Colors.white.withAlpha((0.04 * 255).round()),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: Colors.white.withAlpha((0.2 * 255).round()),
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showQuoteDetails(dailyQuote),
+          borderRadius: BorderRadius.circular(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.format_quote,
+                    color: Colors.white.withAlpha((0.7 * 255).round()),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Цитата дня',
+                    style: TextStyle(
+                      color: Colors.white.withAlpha((0.8 * 255).round()),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white.withAlpha((0.5 * 255).round()),
+                    size: 14,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '"${dailyQuote.quote.text}"',
+                style: GoogleFonts.merriweather(
+                  fontSize: 15,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.white.withAlpha((0.9 * 255).round()),
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '— ${dailyQuote.quote.author}',
+                style: TextStyle(
+                  color: Colors.white.withAlpha((0.7 * 255).round()),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

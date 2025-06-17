@@ -1154,8 +1154,6 @@ class _QuotePageState extends State<QuotePage>
 
   /// Адаптивный текст цитаты с автоматическим размером
   Widget _buildAdaptiveQuoteText(Quote quote, BoxConstraints constraints) {
-    final baseFontSize = _getAdaptiveFontSize(quote.text, constraints);
-    
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: constraints.maxWidth * 0.08, // 8% от ширины экрана
@@ -1169,21 +1167,65 @@ class _QuotePageState extends State<QuotePage>
           ),
         ),
       ),
-      child: Text(
-        '"${quote.text}"',
-        style: GoogleFonts.merriweather(
-          fontSize: baseFontSize,
-          height: _getAdaptiveLineHeight(constraints),
-          fontWeight: FontWeight.w300,
-          fontStyle: FontStyle.italic,
-          color: _textColor,
-          decoration: TextDecoration.none,
-        ),
-        textAlign: TextAlign.center,
-        maxLines: _getMaxLines(constraints),
-        overflow: TextOverflow.ellipsis,
+      child: LayoutBuilder(
+        builder: (context, textConstraints) {
+          return _buildAutoSizingText(quote.text, textConstraints, constraints);
+        },
       ),
     );
+  }
+
+  /// Создает текст с автоматическим подбором размера шрифта
+  Widget _buildAutoSizingText(String text, BoxConstraints textConstraints, BoxConstraints screenConstraints) {
+    // Начальный размер шрифта
+    double fontSize = _getAdaptiveFontSize(text, screenConstraints);
+    final minFontSize = screenConstraints.maxHeight < 600 ? 12.0 : 14.0;
+    final lineHeight = _getAdaptiveLineHeight(screenConstraints);
+    
+    // Максимальная высота для текста (оставляем место для автора и кнопок)
+    final maxTextHeight = screenConstraints.maxHeight * 0.45; // 45% от высоты экрана
+    
+    return _buildTextWithSize(text, fontSize, lineHeight, textConstraints, maxTextHeight, minFontSize);
+  }
+
+  /// Рекурсивно подбирает размер шрифта для помещения текста
+  Widget _buildTextWithSize(String text, double fontSize, double lineHeight, 
+      BoxConstraints constraints, double maxHeight, double minFontSize) {
+    
+    final textStyle = GoogleFonts.merriweather(
+      fontSize: fontSize,
+      height: lineHeight,
+      fontWeight: FontWeight.w300,
+      fontStyle: FontStyle.italic,
+      color: _textColor,
+      decoration: TextDecoration.none,
+    );
+
+    final textSpan = TextSpan(
+      text: '"$text"',
+      style: textStyle,
+    );
+
+    final textPainter = TextPainter(
+      text: textSpan,
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+      maxLines: null, // Убираем ограничение на количество строк
+    );
+
+    textPainter.layout(maxWidth: constraints.maxWidth);
+    
+    // Если текст помещае��ся или достигли минимального размера - возвращаем
+    if (textPainter.height <= maxHeight || fontSize <= minFontSize) {
+      return Text(
+        '"$text"',
+        style: textStyle,
+        textAlign: TextAlign.center,
+      );
+    }
+    
+    // Уменьшаем размер шрифта и пробуем снова
+    return _buildTextWithSize(text, fontSize - 1, lineHeight, constraints, maxHeight, minFontSize);
   }
 
   /// Вычисляет адаптивный размер шрифта
@@ -1220,13 +1262,7 @@ class _QuotePageState extends State<QuotePage>
     return 1.5;
   }
 
-  /// Получает максимальное количество строк
-  int _getMaxLines(BoxConstraints constraints) {
-    if (constraints.maxHeight < 600) return 6;
-    if (constraints.maxHeight < 700) return 8;
-    return 10;
-  }
-
+  
   /// Адаптивная атрибуция автора
   Widget _buildAdaptiveAttribution(Quote quote, BoxConstraints constraints) {
     final authorFontSize = constraints.maxHeight < 600 ? 16.0 : 18.0;
