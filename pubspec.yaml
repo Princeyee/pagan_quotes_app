@@ -84,8 +84,7 @@ flutter:
     - assets/config/book_sources.json
 
 #Аудиокниги
-    - assets/audiobooks/eliade_sacred_profane/chapter_01_part_01.mp3
-    - assets/audiobooks/eliade_sacred_profane/chapter_01_part_02.mp3
+
     - assets/config/audiobooks.json
     - assets/full_texts/greece/aristotle/metaphysics_raw.txt
     - assets/full_texts/greece/aristotle/metaphysics_cleaned.txt

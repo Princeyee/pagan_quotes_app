@@ -8,19 +8,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     
     <application
-        android:label="SACRAL"
+        android:label="Sacral"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true">
-        <!-- Добавляем мета-данные для Google Sign-In -->
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-        
-        <!-- Web Client ID для Google Sign-In -->
-        <meta-data
-            android:name="com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_WEB_CLIENT_ID"
-            android:value="358123091745-e0v8lr845svr3e6rt2bnrrmlckl8hstn.apps.googleusercontent.com" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -48,8 +48,20 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
     setState(() => _isLoading = true);
 
     try {
-      final chapterPath = widget.audiobook.chapters[_currentChapterIndex].filePath;
-      await _audioPlayer.setAsset(chapterPath);
+      final chapter = widget.audiobook.chapters[_currentChapterIndex];
+      final playableUrl = await _audiobookService.getPlayableUrl(chapter);
+      
+      if (playableUrl == null) {
+        throw Exception('Не удалось получить URL для воспроизведения');
+      }
+      
+      // Устанавливаем источник аудио
+      if (playableUrl.startsWith('http')) {
+        await _audioPlayer.setUrl(playableUrl);
+      } else {
+        // Для локальных файлов используем setFilePath
+        await _audioPlayer.setFilePath(playableUrl);
+      }
 
       // Восстановить позицию из сохраненного прогресса
       final progress = await _audiobookService.getProgress(widget.audiobook.id);
@@ -174,8 +186,20 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       });
 
       try {
-        final chapterPath = widget.audiobook.chapters[index].filePath;
-        await _audioPlayer.setAsset(chapterPath);
+        final chapter = widget.audiobook.chapters[index];
+        final playableUrl = await _audiobookService.getPlayableUrl(chapter);
+        
+        if (playableUrl == null) {
+          throw Exception('Не удалось получить URL для воспроизведения');
+        }
+        
+        // Устанавливаем источник аудио
+        if (playableUrl.startsWith('http')) {
+          await _audioPlayer.setUrl(playableUrl);
+        } else {
+          // Для локальных файлов используем setFilePath
+          await _audioPlayer.setFilePath(playableUrl);
+        }
 
         // Проверить сохраненный прогресс для новой главы
         final progress = await _audiobookService.getProgress(widget.audiobook.id);
@@ -277,9 +301,19 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   ),
                 ),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
                   child: Container(
-                    color: Colors.black.withAlpha((0.7 * 255).round()),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withAlpha((0.6 * 255).round()),
+                          Colors.black.withAlpha((0.8 * 255).round()),
+                          Colors.black.withAlpha((0.9 * 255).round()),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

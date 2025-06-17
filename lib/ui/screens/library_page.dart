@@ -8,6 +8,7 @@ import '../../services/text_file_service.dart';
 import '../../services/book_image_service.dart';
 import '../../utils/custom_cache.dart';
 import '../../services/audiobook_service.dart';
+import '../../models/audiobook.dart';
 import 'book_reader_page.dart';
 import 'audiobook_player_screen.dart';
 
@@ -498,23 +499,141 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
   
   void _openAudioVersion(BookSource book) async {
     try {
+      // Показываем индикатор загрузки
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.white),
+                SizedBox(height: 16),
+                Text(
+                  'Загрузка аудиокниги...',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
       final audiobookService = AudiobookService();
       final audiobooks = await audiobookService.getAudiobooks();
       
-      final audiobook = audiobooks.firstWhere(
-        (a) => a.id == book.id || a.title.toLowerCase() == book.title.toLowerCase(),
-        orElse: () => throw Exception('Аудиоверсия не найдена'),
-      );
+      // Закрываем индикатор загрузки
+      Navigator.of(context).pop();
       
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => AudiobookPlayerScreen(audiobook: audiobook),
+      // Ищем аудиокнигу по названию или автору
+      Audiobook? matchedAudiobook;
+      
+      for (final audiobook in audiobooks) {
+        // Проверяем точное совпадение названия
+        if (audiobook.title.toLowerCase().trim() == book.title.toLowerCase().trim()) {
+          matchedAudiobook = audiobook;
+          break;
+        }
+        
+        // Проверяем частичное совпадение названия
+        if (audiobook.title.toLowerCase().contains(book.title.toLowerCase()) ||
+            book.title.toLowerCase().contains(audiobook.title.toLowerCase())) {
+          matchedAudiobook = audiobook;
+          break;
+        }
+        
+        // Проверяем совпадение по автору
+        if (audiobook.title.toLowerCase().contains(book.author.toLowerCase()) ||
+            book.author.toLowerCase().contains(audiobook.title.toLowerCase())) {
+          matchedAudiobook = audiobook;
+          break;
+        }
+      }
+      
+      if (matchedAudiobook != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AudiobookPlayerScreen(audiobook: matchedAudiobook!),
+          ),
+        );
+      } else {
+        // Если точного совпадения нет, показываем список доступных аудиокниг
+        _showAudiobookSelectionDialog(audiobooks);
+      }
+    } catch (e) {
+      // Закрываем индикатор загрузки если он еще открыт
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка при загрузке аудиокниг: $e'),
+          backgroundColor: Colors.red,
         ),
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка при открытии аудиокниги: $e')),
-      );
     }
+  }
+
+  void _showAudiobookSelectionDialog(List<Audiobook> audiobooks) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Выберите аудиокнигу',
+          style: GoogleFonts.merriweather(color: Colors.white),
+        ),
+        content: Container(
+          width: double.maxFinite,
+          height: 300,
+          child: audiobooks.isEmpty
+              ? Center(
+                  child: Text(
+                    'Аудиокниги не найдены',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: audiobooks.length,
+                  itemBuilder: (context, index) {
+                    final audiobook = audiobooks[index];
+                    return ListTile(
+                      leading: Icon(Icons.audiotrack, color: Colors.white),
+                      title: Text(
+                        audiobook.title,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        '${audiobook.chapters.length} глав',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AudiobookPlayerScreen(audiobook: audiobook),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Отмена', style: TextStyle(color: Colors.white70)),
+          ),
+        ],
+      ),
+    );
   }
 }

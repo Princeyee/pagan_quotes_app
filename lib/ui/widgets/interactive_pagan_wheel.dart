@@ -307,28 +307,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
         Container(
           height: 380,
           width: double.infinity,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: const Alignment(0, 0.6),
-                      radius: 1.5,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withAlpha((0.1 * 255).round()),
-                        Colors.black.withAlpha((0.3 * 255).round()),
-                        Colors.black.withAlpha((0.5 * 255).round()),
-                      ],
-                      stops: const [0.0, 0.4, 0.7, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-              
-              // Основное колесо
-              ClipRect(
+          child: ClipRect(
                 child: Stack(
                   children: [
                     Positioned(
@@ -416,8 +395,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                   ],
                 ),
               ),
-            ],
-          ),
         ),
         
         // Информация о месяце

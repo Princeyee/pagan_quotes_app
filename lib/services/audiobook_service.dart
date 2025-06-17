@@ -1,204 +1,79 @@
-
 import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:googleapis/drive/v3.dart' as drive;
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
-import 'google_drive_service_fixed.dart';
+import 'public_google_drive_service.dart';
 
 class AudiobookService {
   static const String _progressKey = 'audiobook_progress';
   static const String _favoritesKey = 'favorite_audiobooks';
   static const String _offlineAudiobooksKey = 'offline_audiobooks';
   
-  final GoogleDriveServiceFixed _driveService = GoogleDriveServiceFixed();
+  final PublicGoogleDriveService _driveService = PublicGoogleDriveService();
 
   Future<List<Audiobook>> getAudiobooks() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     final isOnline = connectivityResult != ConnectivityResult.none;
 
     try {
-      // Всегда загружаем локальные аудиокниги
-      final localAudiobooks = await _getLocalAudiobooks();
-      
       if (isOnline) {
-        // Онлайн режим - пытаемся загрузить из Google Drive
-        print('Устройство онлайн, пытаемся загрузить книги из Google Drive');
+        // Онлайн режим - загружаем только из Google Drive
+        final onlineAudiobooks = await _getOnlineAudiobooks();
         
-        try {
-          final onlineAudiobooks = await _getOnlineAudiobooks();
-          
-          if (onlineAudiobooks.isNotEmpty) {
-            print('Загружено ${onlineAudiobooks.length} книг из Google Drive');
-            
-            // Объединяем и сохраняем для оффлайн режима
-            final allAudiobooks = [...localAudiobooks, ...onlineAudiobooks];
-            await _saveOfflineAudiobooks(allAudiobooks);
-            
-            return allAudiobooks;
-          } else {
-            print('Не удалось загрузить книги из Google Drive');
-          }
-        } catch (driveError) {
-          print('Ошибка при загрузке книг из Google Drive: $driveError');
+        if (onlineAudiobooks.isNotEmpty) {
+          // Сохраняем для оффлайн режима
+          await _saveOfflineAudiobooks(onlineAudiobooks);
+          return onlineAudiobooks;
+        } else {
+          // Возвращаем кеш если есть
+          return await _getOfflineAudiobooks();
         }
-      }
-      
-      // Если мы оффлайн или не удалось загрузить из Google Drive
-      if (localAudiobooks.isNotEmpty) {
-        return localAudiobooks;
       } else {
-        // Пробуем загрузить из кэша
+        // Оффлайн режим - используем только кеш
         return await _getOfflineAudiobooks();
       }
     } catch (e) {
-      print('Общая ошибка при загрузке аудиокниг: $e');
-      // Fallback на оффлайн данные
+      // Fallback на кешированные данные
       return await _getOfflineAudiobooks();
     }
   }
 
-  // В методе _getLocalAudiobooks() нужно изменить логику:
-
-Future<List<Audiobook>> _getLocalAudiobooks() async {
-  try {
-    final String configString = await rootBundle.loadString('assets/config/audiobooks.json');
-    final Map<String, dynamic> config = json.decode(configString);
-    
-    final List<dynamic> audiobooksJson = config['audiobooks'] ?? [];
-    final List<Audiobook> audiobooks = [];
-    
-    for (final json in audiobooksJson) {
-      final audiobook = Audiobook.fromJson(json);
-      
-      // Если coverPath пустой или это тема (не URL и не путь к файлу)
-      String finalCoverPath = audiobook.coverPath;
-      
-      if (audiobook.coverPath.isEmpty) {
-        // Если пустой, используем 'philosophy' по умолчанию
-        finalCoverPath = await BookImageService.getStableBookImage(
-          audiobook.id, 
-          'philosophy'
-        );
-      } else if (!audiobook.coverPath.startsWith('http') && 
-                 !audiobook.coverPath.startsWith('assets/')) {
-        // Если это тема (например "pagan", "nordic"), используем её
-        finalCoverPath = await BookImageService.getStableBookImage(
-          audiobook.id, 
-          audiobook.coverPath  // ← Используем тему из конфигурации
-        );
-      }
-      // Если это URL или путь к файлу - оставляем как есть
-      
-      final updatedAudiobook = Audiobook(
-        id: audiobook.id,
-        title: audiobook.title,
-        author: audiobook.author,
-        coverPath: finalCoverPath,  // ← Обновленный путь
-        chapters: audiobook.chapters,
-        totalDuration: audiobook.totalDuration,
-        description: audiobook.description,
-      );
-      audiobooks.add(updatedAudiobook);
-    }
-    
-    return audiobooks;
-  } catch (e) {
-    return await _scanAudiobookDirectory();
-  }
-}
-
   Future<List<Audiobook>> _getOnlineAudiobooks() async {
     try {
-      // Инициализируем Google Drive API и проверяем успешность авторизации
+      // Инициализируем публичный Google Drive сервис
       final isInitialized = await _driveService.initialize();
       if (!isInitialized) {
-        print('Не удалось авторизоваться в Google Drive');
         return [];
       }
       
-      final driveFiles = await _driveService.getAudiobookFiles();
-      if (driveFiles.isEmpty) {
-        print('Не найдены файлы в Google Drive');
+      // Получаем структуру папок с аудиофайлами
+      final folderStructure = await _driveService.getAudiobooksByFolders();
+      if (folderStructure.isEmpty) {
         return [];
       }
       
       final List<Audiobook> audiobooks = [];
       
-      // Группируем файлы по папкам (аудиокнигам)
-      final Map<String, List<dynamic>> bookFolders = {};
-      
-      // Сначала находим все папки
-      for (final file in driveFiles) {
-        if (file.mimeType == 'application/vnd.google-apps.folder') {
-          bookFolders[file.id!] = []; // Используем ID папки вместо имени
-          print('Найдена папка: ${file.name} (${file.id})');
-        }
-      }
-      
-      // Если папок нет, создаем виртуальную папку для всех аудиофайлов
-      if (bookFolders.isEmpty) {
-        bookFolders['root'] = [];
-      }
-      
-      // Распределяем аудиофайлы по папкам
-      for (final file in driveFiles) {
-        if (file.mimeType?.contains('audio') == true) {
-          if (file.parents != null && file.parents!.isNotEmpty) {
-            final parentId = file.parents!.first;
-            if (bookFolders.containsKey(parentId)) {
-              bookFolders[parentId]!.add(file);
-              print('Добавлен аудиофайл ${file.name} в папку $parentId');
-            } else {
-              // Если родительская папка не найдена, добавляем в корневую
-              bookFolders['root']?.add(file);
-              print('Добавлен аудиофайл ${file.name} в корневую папку');
-            }
-          } else {
-            // Если нет информации о родителе, добавляем в корневую
-            bookFolders['root']?.add(file);
-            print('Добавлен аудиофайл ${file.name} в корневую папку (нет родителя)');
-          }
-        }
-      }
-      
-      // Создаем аудиокниги из найденных папок
-      for (final entry in bookFolders.entries) {
-        final folderId = entry.key;
+      // Создаем аудиокниги из папок
+      for (final entry in folderStructure.entries) {
+        final folderName = entry.key;
         final files = entry.value;
         
         if (files.isEmpty) continue;
         
-        // Находим имя папки по ID или используем имя первого файла
-        String bookTitle;
-        if (folderId == 'root') {
-          // Для корневой папки используем общее название
-          bookTitle = 'Аудиокниги';
-        } else {
-          // Для обычных папок ищем имя папки
-          final folder = driveFiles.firstWhere(
-            (file) => file.id == folderId, 
-            orElse: () => drive.File()..name = 'Аудиокнига'
-          );
-          bookTitle = folder.name ?? 'Аудиокнига';
-        }
-        
-        // Сортируем файлы по имени
-        files.sort((a, b) => (a.name ?? '').compareTo(b.name ?? ''));
-        
         final chapters = <AudiobookChapter>[];
         for (int i = 0; i < files.length; i++) {
           final file = files[i];
-          final chapterTitle = _formatChapterTitle(file.name ?? '', i + 1);
+          final fileName = file['name'] as String;
+          final chapterTitle = _formatChapterTitle(fileName, i + 1);
           
           chapters.add(AudiobookChapter(
             title: chapterTitle,
             filePath: '', // Для стриминга не используется
             duration: const Duration(minutes: 30), // Примерная длительность
             chapterNumber: i + 1,
-            driveFileId: file.id,
+            driveFileId: file['id'] as String,
             isStreamable: true,
           ));
         }
@@ -207,24 +82,21 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
           milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
         );
         
-        final coverPath = await BookImageService.getStableBookImage(bookTitle, 'pagan');
+        final coverPath = await BookImageService.getStableBookImage(folderName, 'pagan');
         
         audiobooks.add(Audiobook(
-          id: 'drive_$folderId',
-          title: _formatBookTitle(bookTitle),
-          author: 'Google Drive',
+          id: 'drive_${folderName.replaceAll(' ', '_')}',
+          title: _formatBookTitle(folderName),
+          author: 'Аудиокнига',
           coverPath: coverPath,
           chapters: chapters,
           totalDuration: totalDuration,
           description: 'Аудиокнига из Google Drive',
         ));
-        
-        print('Добавлена аудиокнига: $bookTitle с ${chapters.length} главами');
       }
       
       return audiobooks;
     } catch (e) {
-      print('Ошибка загрузки аудиокниг из Google Drive: $e');
       return [];
     }
   }
@@ -235,7 +107,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       final audiobooksJson = audiobooks.map((book) => book.toJson()).toList();
       await prefs.setString(_offlineAudiobooksKey, json.encode(audiobooksJson));
     } catch (e) {
-      print('Ошибка сохранения оффлайн аудиокниг: $e');
+      // Игнорируем ошибки сохранения
     }
   }
 
@@ -249,11 +121,10 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
         return audiobooksJson.map((json) => Audiobook.fromJson(json)).toList();
       }
     } catch (e) {
-      print('Ошибка загрузки оффлайн аудиокниг: $e');
+      // Игнорируем ошибки загрузки
     }
     
-    // Fallback на локальные аудиокниги
-    return await _getLocalAudiobooks();
+    return [];
   }
 
   Future<String?> getPlayableUrl(AudiobookChapter chapter) async {
@@ -269,124 +140,50 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       // Если онлайн, получаем стриминговый URL
       final connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult != ConnectivityResult.none) {
-        return await _driveService.getFileStreamUrl(chapter.driveFileId!);
+        return _driveService.getFileDownloadUrl(chapter.driveFileId!);
       }
       
       return null;
-    } else {
-      // Локальный файл
-      return chapter.filePath;
-    }
-  }
-
-  Future<List<Audiobook>> _scanAudiobookDirectory() async {
-    final List<Audiobook> audiobooks = [];
-    
-    try {
-      // Получаем список аудиокниг из assets
-      final manifestContent = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifestMap = json.decode(manifestContent);
-      
-      // Фильтруем файлы аудиокниг
-      final audiobookFiles = manifestMap.keys
-          .where((String key) => key.startsWith('assets/audiobooks/'))
-          .toList();
-      
-      // Группируем по папкам книг
-      final Map<String, List<String>> bookFolders = {};
-      
-      for (final file in audiobookFiles) {
-        final parts = file.split('/');
-        if (parts.length >= 4) {
-          final bookFolder = parts[2]; // assets/audiobooks/[book_name]/...
-          if (!bookFolders.containsKey(bookFolder)) {
-            bookFolders[bookFolder] = [];
-          }
-          bookFolders[bookFolder]!.add(file);
-        }
-      }
-      
-      // Создаем аудиокниги из найденных папок
-      for (final entry in bookFolders.entries) {
-        final bookName = entry.key;
-        final files = entry.value;
-        
-        // Ищем обложку или используем BookImageService
-        String coverPath;
-        final localCoverFile = files.firstWhere(
-          (file) => file.contains('cover.') && 
-                   (file.endsWith('.jpg') || file.endsWith('.png')),
-          orElse: () => '',
-        );
-        
-        if (localCoverFile.isNotEmpty) {
-          coverPath = localCoverFile;
-        } else {
-          // Используем BookImageService для генерации обложки
-          coverPath = await BookImageService.getStableBookImage(bookName, 'pagan');
-        }
-        
-        // Ищем аудиофайлы
-        final audioFiles = files
-            .where((file) => file.endsWith('.mp3') || file.endsWith('.m4a'))
-            .toList()
-          ..sort();
-        
-        if (audioFiles.isNotEmpty) {
-          final chapters = <AudiobookChapter>[];
-          
-          for (int i = 0; i < audioFiles.length; i++) {
-            final file = audioFiles[i];
-            final fileName = file.split('/').last;
-            final chapterTitle = _formatChapterTitle(fileName, i + 1);
-            
-            chapters.add(AudiobookChapter(
-              title: chapterTitle,
-              filePath: file,
-              duration: const Duration(minutes: 30), // Примерная длительность
-              chapterNumber: i + 1,
-            ));
-          }
-          
-          final totalDuration = Duration(
-            milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
-          );
-          
-          audiobooks.add(Audiobook(
-            id: bookName,
-            title: _formatBookTitle(bookName),
-            author: 'Неизвестный автор',
-            coverPath: coverPath,
-            chapters: chapters,
-            totalDuration: totalDuration,
-          ));
-        }
-      }
-      
-    } catch (e) {
-      print('Ошибка при сканировании аудиокниг: $e');
     }
     
-    return audiobooks;
+    return null; // Убираем поддержку локальных файлов
   }
 
   String _formatBookTitle(String folderName) {
-    return folderName
+    // Убираем расширения файлов и лишние символы
+    String cleanName = folderName
+        .replaceAll(RegExp(r'\.(mp3|m4a|wav)$', caseSensitive: false), '')
         .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .trim();
+    
+    // Капитализируем каждое слово
+    return cleanName
         .split(' ')
-        .map((word) => word.isNotEmpty 
-            ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-            : word)
+        .where((word) => word.isNotEmpty)
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
         .join(' ');
   }
 
   String _formatChapterTitle(String fileName, int chapterNumber) {
     final nameWithoutExtension = fileName.split('.').first;
     
-    // Если в имени файла есть "chapter" или "глава", используем как есть
-    if (nameWithoutExtension.toLowerCase().contains('chapter') ||
-        nameWithoutExtension.toLowerCase().contains('глава')) {
-      return _formatBookTitle(nameWithoutExtension);
+    // Очищаем имя файла от лишних символов
+    String cleanName = nameWithoutExtension
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .trim();
+    
+    // Если в имени файла есть "chapter" или "глава", использ��ем как есть
+    if (cleanName.toLowerCase().contains('chapter') ||
+        cleanName.toLowerCase().contains('глава') ||
+        cleanName.toLowerCase().contains('часть')) {
+      return _formatBookTitle(cleanName);
+    }
+    
+    // Если имя файла содержательное (больше 3 символов), используем его
+    if (cleanName.length > 3 && !RegExp(r'^\d+$').hasMatch(cleanName)) {
+      return _formatBookTitle(cleanName);
     }
     
     // Иначе добавляем номер главы
@@ -409,7 +206,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       
       await prefs.setString(_progressKey, json.encode(progressMap));
     } catch (e) {
-      print('Ошибка при сохранении прогресса: $e');
+      // Игнорируем ошибки сохранения прогресса
     }
   }
 
@@ -422,7 +219,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
         return AudiobookProgress.fromJson(progressJson);
       }
     } catch (e) {
-      print('Ошибка при загрузке прогресса: $e');
+      // Игнорируем ошибки загрузки прогресса
     }
     
     return null;
@@ -437,7 +234,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
         return Map<String, dynamic>.from(json.decode(progressString));
       }
     } catch (e) {
-      print('Ошибка при загрузке карты прогресса: $e');
+      // Игнорируем ошибки загрузки карты прогресса
     }
     
     return {};
@@ -453,7 +250,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
         await prefs.setStringList(_favoritesKey, favorites);
       }
     } catch (e) {
-      print('Ошибка при добавлении в избранное: $e');
+      // Игнорируем ошибки добавления в избранное
     }
   }
 
@@ -465,7 +262,7 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       favorites.remove(audiobookId);
       await prefs.setStringList(_favoritesKey, favorites);
     } catch (e) {
-      print('Ошибка при удалении из избранного: $e');
+      // Игнорируем ошибки удаления из избранного
     }
   }
 
@@ -474,7 +271,6 @@ Future<List<Audiobook>> _getLocalAudiobooks() async {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getStringList(_favoritesKey) ?? [];
     } catch (e) {
-      print('Ошибка при загрузке избранного: $e');
       return [];
     }
   }

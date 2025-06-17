@@ -22,10 +22,8 @@ class _NavDrawerState extends State<NavDrawer>
     with TickerProviderStateMixin {
   
   late AnimationController _slideController;
-  late AnimationController _fadeController;
   
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -33,13 +31,7 @@ class _NavDrawerState extends State<NavDrawer>
     
     // Контроллер для выезда drawer'а
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 350),
-      vsync: this,
-    );
-    
-    // Контроллер для появления элементов
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 250),
       vsync: this,
     );
 
@@ -49,32 +41,16 @@ class _NavDrawerState extends State<NavDrawer>
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _slideController,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOut,
     ));
 
-    // Анимация появления элементов
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Запуск анимаций последовательно
-    _startAnimations();
-  }
-
-  void _startAnimations() async {
+    // Запуск анимации
     _slideController.forward();
-    await Future.delayed(const Duration(milliseconds: 150));
-    _fadeController.forward();
   }
 
   @override
   void dispose() {
     _slideController.dispose();
-    _fadeController.dispose();
     super.dispose();
   }
 
@@ -111,268 +87,203 @@ class _NavDrawerState extends State<NavDrawer>
               child: Column(
                 children: [
                   // Заголовок с PNG иконкой
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Container(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        children: [
-                          // Логотип - PNG иконка в круге
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withAlpha((0.15 * 255).round()),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha((0.4 * 255).round()),
-                                  blurRadius: 20,
-                                  spreadRadius: 2,
-                                ),
-                              ],
+                  Container(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        // Логотип - PNG иконка в круге
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withAlpha((0.15 * 255).round()),
+                              width: 1,
                             ),
-                            child: ClipOval(
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withAlpha((0.03 * 255).round()),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        'assets/images/rune_icon.png',
+                            color: Colors.black.withAlpha((0.3 * 255).round()),
+                          ),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/rune_icon.png',
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                // Fallback если первая иконка не найдена
+                                return ClipOval(
+                                  child: Image.asset(
+                                    'assets/images/RuneIcon.small.png',
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      // Fallback на простую иконку если нет PNG
+                                      return Container(
                                         width: 60,
                                         height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          // Fallback если первая иконка не найдена
-                                          return ClipOval(
-                                            child: Image.asset(
-                                              'assets/images/RuneIcon.small.png',
-                                              width: 60,
-                                              height: 60,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                // Fallback на простую иконку если нет PNG
-                                                return Container(
-                                                  width: 60,
-                                                  height: 60,
-                                                  decoration: const BoxDecoration(
-                                                    color: Colors.transparent,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Icon(
-                                                    Icons.account_tree,
-                                                    color: Colors.white.withAlpha((0.8 * 255).round()),
-                                                    size: 30,
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.transparent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.account_tree,
+                                          color: Colors.white.withAlpha((0.8 * 255).round()),
+                                          size: 30,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.3),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: _fadeController,
-                              curve: Curves.easeOut,
-                            )),
-                            child: Text(
-                              'SACRAL',
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.white.withAlpha((0.9 * 255).round()),
-                                fontWeight: FontWeight.w200,
-                                letterSpacing: 4,
-                                fontFamily: 'serif',
-                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'SACRAL',
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Colors.white.withAlpha((0.9 * 255).round()),
+                            fontWeight: FontWeight.w200,
+                            letterSpacing: 4,
+                            fontFamily: 'serif',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 80,
+                          height: 1,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.white.withAlpha((0.2 * 255).round()),
+                                Colors.transparent,
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 600),
-                            width: _fadeAnimation.value * 80,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Пункты меню
+                  Expanded(
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.auto_stories,
+                          label: 'Цитата дня',
+                          onTap: () {
+                            _closeDrawer(context);
+                          },
+                        ),
+
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.calendar_month,
+                          label: 'Календарь',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage(const CalendarPage());
+                          },
+                        ),
+                        
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.bookmark,
+                          label: 'Избранное',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage(const FavoritesPage());
+                          },
+                        ),
+                        
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.edit_note,
+                          label: 'Заметки',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage(const NotesPage());
+                          },
+                        ),
+                        
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.library_books,
+                          label: 'Библиотека',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage(const LibraryPage());
+                          },
+                        ),
+                        
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.music_note,
+                          label: 'Аудио',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage( AudioLibraryPage());
+                          },
+                        ),
+                        
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.palette_outlined,
+                          label: 'Темы',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage(const ThemeSelectorPage());
+                          },
+                        ),
+
+                        // Разделитель
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                          child: Container(
                             height: 1,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
                                   Colors.transparent,
-                                  Colors.white.withAlpha((0.2 * 255).round()),
+                                  Colors.white.withAlpha((0.08 * 255).round()),
                                   Colors.transparent,
                                 ],
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  // Пункты меню с улучшенным скроллингом
-                  Expanded(
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Scrollbar(
-                        thumbVisibility: false,
-                        child: ListView(
-                          // Улучшенная физика для 60fps плавности
-                          physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
-                          ),
-                          padding: EdgeInsets.zero,
-                          children: [
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.auto_stories,
-                              label: 'Цитата дня',
-                              delay: 0,
-                              onTap: () {
-                                _closeDrawer(context);
-                              },
-                            ),
-
-                            // НОВЫЙ ПУНКТ МЕНЮ - КАЛЕНДАРЬ
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.calendar_month,
-                              label: 'Календарь',
-                              delay: 25,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage(const CalendarPage());
-                              },
-                            ),
-                            
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.bookmark,
-                              label: 'Избранное',
-                              delay: 50,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage(const FavoritesPage());
-                              },
-                            ),
-                            
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.edit_note,
-                              label: 'Заметки',
-                              delay: 75,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage(const NotesPage());
-                              },
-                            ),
-                            
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.library_books,
-                              label: 'Библиотека',
-                              delay: 100,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage(const LibraryPage());
-                              },
-                            ),
-                            
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.music_note,
-                              label: 'Аудио',
-                              delay: 125,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage( AudioLibraryPage());
-                              },
-                            ),
-                            
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.palette_outlined,
-                              label: 'Темы',
-                              delay: 150,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage(const ThemeSelectorPage());
-                              },
-                            ),
-
-                            // Элегантный разделитель
-                            TweenAnimationBuilder<double>(
-                              duration: const Duration(milliseconds: 500),
-                              tween: Tween(begin: 0.0, end: 1.0),
-                              builder: (context, value, child) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                                  child: Container(
-                                    height: 1,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.white.withAlpha(((0.08 * value) * 255).round()),
-                                          Colors.transparent,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            
-                            _buildAnimatedMenuItem(
-                              context,
-                              icon: Icons.info_outline,
-                              label: 'О приложении',
-                              delay: 175,
-                              onTap: () {
-                                _closeDrawer(context);
-                                _navigateToPage(const AboutPage());
-                              },
-                            ),
-                          ],
                         ),
-                      ),
+                        
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.info_outline,
+                          label: 'О приложении',
+                          onTap: () {
+                            _closeDrawer(context);
+                            _navigateToPage(const AboutPage());
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   
                   // Футер
-                  SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.5),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _fadeController,
-                      curve: Curves.easeOut,
-                    )),
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        'Возрождение близко',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withAlpha((0.25 * 255).round()),
-                          fontStyle: FontStyle.italic,
-                          letterSpacing: 1,
-                          fontFamily: 'serif',
-                        ),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Возрождение близко',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withAlpha((0.25 * 255).round()),
+                        fontStyle: FontStyle.italic,
+                        letterSpacing: 1,
+                        fontFamily: 'serif',
                       ),
                     ),
                   ),
@@ -385,114 +296,79 @@ class _NavDrawerState extends State<NavDrawer>
     );
   }
 
-  Widget _buildAnimatedMenuItem(
+  Widget _buildMenuItem(
     BuildContext context, {
     required IconData icon,
     required String label,
-    required int delay,
     required VoidCallback onTap,
   }) {
-    return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 400 + delay),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(30 * (1 - value), 0),
-          child: Opacity(
-            opacity: value,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(15),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(15),
-                  onTap: onTap,
-                  splashColor: Colors.white.withAlpha((0.05 * 255).round()),
-                  highlightColor: Colors.white.withAlpha((0.02 * 255).round()),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          color: Colors.black.withAlpha((0.15 * 255).round()),
-                          border: Border.all(
-                            color: Colors.white.withAlpha((0.08 * 255).round()),
-                            width: 0.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha((0.25 * 255).round()),
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withAlpha((0.05 * 255).round()),
-                              blurRadius: 5,
-                              spreadRadius: -1,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            // Иконка
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withAlpha((0.05 * 255).round()),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: Colors.white.withAlpha((0.08 * 255).round()),
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: Icon(
-                                icon,
-                                color: Colors.white.withAlpha((0.8 * 255).round()),
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            
-                            // Текст
-                            Expanded(
-                              child: Text(
-                                label,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white.withAlpha((0.8 * 255).round()),
-                                  fontWeight: FontWeight.w300,
-                                  letterSpacing: 0.5,
-                                  fontFamily: 'serif',
-                                ),
-                              ),
-                            ),
-                            
-                            // Стрелка
-                            Icon(
-                              Icons.chevron_right,
-                              color: Colors.white.withAlpha((0.3 * 255).round()),
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(15),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: onTap,
+          splashColor: Colors.white.withAlpha((0.05 * 255).round()),
+          highlightColor: Colors.white.withAlpha((0.02 * 255).round()),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.black.withAlpha((0.15 * 255).round()),
+              border: Border.all(
+                color: Colors.white.withAlpha((0.08 * 255).round()),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Иконка
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha((0.05 * 255).round()),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withAlpha((0.08 * 255).round()),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white.withAlpha((0.8 * 255).round()),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                
+                // Текст
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withAlpha((0.8 * 255).round()),
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 0.5,
+                      fontFamily: 'serif',
                     ),
                   ),
                 ),
-              ),
+                
+                // Стрелка
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.white.withAlpha((0.3 * 255).round()),
+                  size: 18,
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
