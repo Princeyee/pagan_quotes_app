@@ -136,14 +136,17 @@ class _FavoritesPageState extends State<FavoritesPage> {
           SafeArea(
             child: Stack(
               children: [
-                GlassBackground(
-                  child: Container(
-                    margin: const EdgeInsets.all(12),
-                    child: _loading
-                      ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                      : _favorites.isEmpty
-                          ? _buildEmptyState()
-                          : _buildFavoritesList(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: GlassBackground(
+                    child: Container(
+                      margin: const EdgeInsets.all(12),
+                      child: _loading
+                        ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                        : _favorites.isEmpty
+                            ? _buildEmptyState()
+                            : _buildFavoritesList(),
+                    ),
                   ),
                 ),
                 if (canPop)

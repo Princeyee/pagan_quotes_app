@@ -112,10 +112,13 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
           SafeArea(
             child: Stack(
               children: [
-                GlassBackground(
-              child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                    : _buildLibraryContent(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: GlassBackground(
+                    child: _isLoading
+                      ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                      : _buildLibraryContent(),
+                  ),
                 ),
                 if (canPop)
                   Positioned(

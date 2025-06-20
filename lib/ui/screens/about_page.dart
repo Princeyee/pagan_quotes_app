@@ -70,69 +70,12 @@ class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMix
           SafeArea(
             child: Stack(
               children: [
-                FadeTransition(
-                  opacity: _fadeAnim,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          ' Sacral',
-                          style: GoogleFonts.merriweather(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Цитаты, вдохновлённые духом, природой и мудростью времени.',
-                          style: GoogleFonts.merriweather(
-                            fontSize: 16,
-                            height: 1.6,
-                            color: Colors.white70,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 28),
-                        Text(
-                          'Этот проект создан со стремлением вернуть ощущение священного в повседневность.'
-                          'Для тех кто в силу обстоятель пока не может, или не хочет уезжать из городов, и отвергать технологии. Это приложение поможет если не начать с нуля, то постараться оседлать тигра',
-                          style: GoogleFonts.merriweather(
-                            fontSize: 15,
-                            height: 1.6,
-                            color: Colors.white60,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 36),
-                        ElevatedButton.icon(
-                          onPressed: _launchSupport,
-                          icon: const Icon(Icons.favorite_border),
-                          label: const Text('Поддержать проект'),
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: Colors.deepOrangeAccent,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                            textStyle: const TextStyle(fontSize: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Спасибо за интерес к Sacral ✨',
-                          style: GoogleFonts.merriweather(
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.white38,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: GlassBackground(
+                    child: Container(
+                      margin: const EdgeInsets.all(12),
+                      child: _buildAboutContent(),
                     ),
                   ),
                 ),
@@ -157,6 +100,72 @@ class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMix
                   ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            ' Sacral',
+            style: GoogleFonts.merriweather(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Цитаты, вдохновлённые духом, природой и мудростью времени.',
+            style: GoogleFonts.merriweather(
+              fontSize: 16,
+              height: 1.6,
+              color: Colors.white70,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 28),
+          Text(
+            'Этот проект создан со стремлением вернуть ощущение священного в повседневность.'
+            'Для тех кто в силу обстоятель пока не может, или не хочет уезжать из городов, и отвергать технологии. Это приложение поможет если не начать с нуля, то постараться оседлать тигра',
+            style: GoogleFonts.merriweather(
+              fontSize: 15,
+              height: 1.6,
+              color: Colors.white60,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 36),
+          ElevatedButton.icon(
+            onPressed: _launchSupport,
+            icon: const Icon(Icons.favorite_border),
+            label: const Text('Поддержать проект'),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.deepOrangeAccent,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              textStyle: const TextStyle(fontSize: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Спасибо за интерес к Sacral ✨',
+            style: GoogleFonts.merriweather(
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+              color: Colors.white38,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

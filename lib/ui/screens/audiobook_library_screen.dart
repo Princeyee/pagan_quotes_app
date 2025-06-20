@@ -70,92 +70,94 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
           SafeArea(
             child: Stack(
               children: [
-                GlassBackground(
-                  child: _isLoading
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
-                        ),
-                      )
-                    : _audiobooks.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.audiotrack,
-                                  size: 80,
-                                  color: Colors.grey[600],
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  'Нет доступных аудиокниг',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Добавьте аудиофайлы в папку Google Drive',
-                                  style: TextStyle(
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: GlassBackground(
+                    child: _isLoading
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                          ),
+                        )
+                      : _audiobooks.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.audiotrack,
+                                    size: 80,
                                     color: Colors.grey[600],
-                                    fontSize: 14,
                                   ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _loadAudiobooks,
-                            child: GridView.builder(
-                              padding: EdgeInsets.all(16),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                                childAspectRatio: 0.7,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
+                                  SizedBox(height: 20),
+                                  Text(
+                                    'Нет доступных аудиокниг',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Добавьте аудиофайлы в папку Google Drive',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
-                              itemCount: _audiobooks.length,
-                              itemBuilder: (context, index) {
-                                final audiobook = _audiobooks[index];
-                                return AudiobookCard(
-                                  audiobook: audiobook,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AudiobookPlayerScreen(
-                                          audiobook: audiobook,
+                            )
+                          : RefreshIndicator(
+                              onRefresh: _loadAudiobooks,
+                              child: GridView.builder(
+                                padding: EdgeInsets.all(16),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                                  childAspectRatio: 0.7,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                ),
+                                itemCount: _audiobooks.length,
+                                itemBuilder: (context, index) {
+                                  final audiobook = _audiobooks[index];
+                                  return AudiobookCard(
+                                    audiobook: audiobook,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AudiobookPlayerScreen(
+                                            audiobook: audiobook,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+                  ),
                 ),
-                if (canPop)
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    child: ClipOval(
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Material(
-                          color: Colors.black.withOpacity(0.25),
-                          shape: const CircleBorder(),
-                          child: IconButton(
-                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            tooltip: 'Назад',
-                          ),
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: ClipOval(
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Material(
+                        color: Colors.black.withOpacity(0.25),
+                        shape: const CircleBorder(),
+                        child: IconButton(
+                          icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          tooltip: 'Назад',
                         ),
                       ),
                     ),
                   ),
+                ),
               ],
             ),
           ),

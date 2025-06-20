@@ -304,23 +304,48 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
     return Column(
       children: [
         // Колесо с эффектами
-        Container(
-          height: 380,
-          width: double.infinity,
-          child: ClipRect(
-                child: Stack(
-                  children: [
-                    Positioned(
-                      bottom: -80,
-                      left: -50,
-                      right: -50,
-                      child: Stack(
-                        children: [
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 600),
-                            opacity: _isLoading ? 0.3 : 1.0,
-                            child: AnimatedBuilder(
-                              animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTapDown: _handleTap,
+          child: Container(
+            height: 380,
+            width: double.infinity,
+            child: ClipRect(
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        bottom: -80,
+                        left: -50,
+                        right: -50,
+                        child: Stack(
+                          children: [
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 600),
+                              opacity: _isLoading ? 0.3 : 1.0,
+                              child: AnimatedBuilder(
+                                animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
+                                builder: (context, child) {
+                                  final currentRotation = _rotationController.isAnimating 
+                                      ? _rotationAnimation.value 
+                                      : _currentRotation;
+                                  
+                                  return Transform.rotate(
+                                    angle: currentRotation,
+                                    child: CustomPaint(
+                                      size: const Size(650, 650),
+                                      painter: EnhancedWheelPainter(
+                                        months: _months,
+                                        selectedMonth: _selectedMonth - 1,
+                                        glowIntensity: _glowAnimation.value,
+                                        shimmerProgress: _shimmerAnimation.value,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            AnimatedBuilder(
+                              animation: _rotationAnimation,
                               builder: (context, child) {
                                 final currentRotation = _rotationController.isAnimating 
                                     ? _rotationAnimation.value 
@@ -328,43 +353,22 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                 
                                 return Transform.rotate(
                                   angle: currentRotation,
-                                  child: CustomPaint(
-                                    size: const Size(650, 650),
-                                    painter: EnhancedWheelPainter(
-                                      months: _months,
-                                      selectedMonth: _selectedMonth - 1,
-                                      glowIntensity: _glowAnimation.value,
-                                      shimmerProgress: _shimmerAnimation.value,
-                                    ),
-                                  ),
+                                  child: _buildCenterElement(),
                                 );
                               },
                             ),
-                          ),
-                          AnimatedBuilder(
-                            animation: _rotationAnimation,
-                            builder: (context, child) {
-                              final currentRotation = _rotationController.isAnimating 
-                                  ? _rotationAnimation.value 
-                                  : _currentRotation;
-                              
-                              return Transform.rotate(
-                                angle: currentRotation,
-                                child: _buildCenterElement(),
-                              );
-                            },
-                          ),
-                          if (!_isLoading)
-                            _buildDecorativeElements(),
-                        ],
+                            if (!_isLoading)
+                              _buildDecorativeElements(),
+                          ],
+                        ),
                       ),
-                    ),
-                    _buildTopGradient(),
-                    if (!_isLoading)
-                      _buildMonthIndicator(),
-                  ],
+                      _buildTopGradient(),
+                      if (!_isLoading)
+                        _buildMonthIndicator(),
+                    ],
+                  ),
                 ),
-              ),
+          ),
         ),
         // Список праздников месяца убран
       ],

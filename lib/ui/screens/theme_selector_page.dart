@@ -77,25 +77,28 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
           SafeArea(
             child: Stack(
               children: [
-                GlassBackground(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: allThemes.length,
-            itemBuilder: (context, index) {
-              final theme = allThemes[index];
-              final isSelected = _enabledThemes.contains(theme.id);
-              final isExpanded = _expandedTheme?.id == theme.id;
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: GlassBackground(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: allThemes.length,
+                      itemBuilder: (context, index) {
+                        final theme = allThemes[index];
+                        final isSelected = _enabledThemes.contains(theme.id);
+                        final isExpanded = _expandedTheme?.id == theme.id;
 
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: isSelected ? Colors.white10 : Colors.white12,
-                ),
-                        child: _buildThemeTile(theme, isSelected, isExpanded),
-                      );
-                    },
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: isSelected ? Colors.white10 : Colors.white12,
+                          ),
+                          child: _buildThemeTile(theme, isSelected, isExpanded),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 if (canPop)

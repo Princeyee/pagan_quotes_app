@@ -176,17 +176,20 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
           SafeArea(
             child: Stack(
               children: [
-                Column(
-                  children: [
-                    GlassBackground(
-              child: Container(
-                margin: const EdgeInsets.all(12),
-                child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                          : _buildNotesList(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: Column(
+                    children: [
+                      GlassBackground(
+                        child: Container(
+                          margin: const EdgeInsets.all(12),
+                          child: _isLoading
+                            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                            : _buildNotesList(),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 if (Navigator.of(context).canPop())
                   Positioned(

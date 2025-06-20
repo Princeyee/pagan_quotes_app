@@ -12,7 +12,7 @@ import '../../services/calendar_quote_service.dart';
 import '../../utils/custom_cache.dart';
 import '../widgets/calendar_quote_modal.dart';
 import '../widgets/holiday_info_modal.dart';
-import '../widgets/interactive_pagan_wheel.dart';
+import '../widgets/interactive_pagan_wheel.dart' show InteractivePaganWheel, _InteractivePaganWheelState;
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
