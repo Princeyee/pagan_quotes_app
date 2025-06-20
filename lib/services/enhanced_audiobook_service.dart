@@ -105,77 +105,37 @@ class EnhancedAudiobookService {
     }
   }
 
-  // УЛУЧШЕННЫЙ МЕТОД ПОЛУЧЕНИЯ URL С КЕШИРОВАНИЕМ И ПРОГРЕССИВНОЙ ЗАГРУЗКОЙ
+  // УПРОЩЕННЫЙ И НАДЕЖНЫЙ МЕТОД ПОЛУ��ЕНИЯ URL
   Future<String?> getPlayableUrl(AudiobookChapter chapter) async {
     if (chapter.isStreamable && chapter.driveFileId != null) {
       final fileName = '${chapter.driveFileId}.mp3';
       
       print('🔍 Поиск файла: $fileName');
       
-      // 1. Проверяем полностью загруженный кеш
-      final cachedPath = await _driveService.getCachedFilePath(fileName);
-      if (cachedPath != null && await File(cachedPath).exists()) {
-        print('✅ Файл найден в полном кеше: $cachedPath');
-        return cachedPath;
-      }
-      
-      // 2. Проверяем предзагруженные файлы в памяти
-      if (_preloadedFiles.containsKey(chapter.driveFileId)) {
-        final preloadedPath = _preloadedFiles[chapter.driveFileId]!;
-        if (await File(preloadedPath).exists()) {
-          print('✅ Файл найден в предзагрузке (память): $preloadedPath');
-          return preloadedPath;
-        } else {
-          // Файл был удален, убираем из кеша
-          _preloadedFiles.remove(chapter.driveFileId);
-          await _savePreloadedChapters();
-        }
-      }
-      
-      // 3. Проверяем прогрессивную загрузку
-      final progressivePath = await _driveService.getPartialFilePath(chapter.driveFileId!);
-      if (progressivePath != null && await File(progressivePath).exists()) {
-        final isPlayable = await _driveService.isFilePlayable(chapter.driveFileId!);
-        if (isPlayable) {
-          print('✅ Файл найден в прогрессивной загрузке: $progressivePath');
-          _preloadedFiles[chapter.driveFileId!] = progressivePath;
-          await _savePreloadedChapters();
-          return progressivePath;
-        }
-      }
-      
-      // 4. Если онлайн, начинаем прогрессивную загрузку
-      final connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        print('🔄 Начинаем прогрессивную загрузку файла: $fileName');
-        
-        try {
-          // Используем прогрессивную загрузку вместо обычной предзагрузки
-          final progressiveUrl = await _driveService.startProgressiveDownload(
-            chapter.driveFileId!,
-            fileName,
-          );
-          
-          if (progressiveUrl != null) {
-            // Получаем реальный путь к файлу для кеширования
-            final realPath = await _driveService.getPartialFilePath(chapter.driveFileId!);
-            if (realPath != null) {
-              _preloadedFiles[chapter.driveFileId!] = realPath;
-              await _savePreloadedChapters();
-            }
-            print('✅ Файл добавлен в прогрессивную загрузку: $progressiveUrl');
-            return progressiveUrl;
-          }
-        } catch (e) {
-          print('❌ Ошибка прогрессивной загрузки: $e');
+      try {
+        // 1. Проверяем полностью загруженный кеш
+        final cachedPath = await _driveService.getCachedFilePath(fileName);
+        if (cachedPath != null && await File(cachedPath).exists()) {
+          print('✅ Файл найден в полном кеше: $cachedPath');
+          return cachedPath;
         }
         
-        // Если прогрессивная загрузка не удалась, возвращаем стриминговый URL
-        print('🌐 Используем стриминг: ${chapter.driveFileId}');
-        return _driveService.getFileDownloadUrl(chapter.driveFileId!);
+        // 2. Проверяем интернет соединение
+        final connectivityResult = await Connectivity().checkConnectivity();
+        if (connectivityResult == ConnectivityResult.none) {
+          print('❌ Нет интернет соединения');
+          return null;
+        }
+        
+        // 3. Возвращаем прямую ссылку на Google Drive
+        final directUrl = _driveService.getFileDownloadUrl(chapter.driveFileId!);
+        print('🌐 Используем прямую ссылку: $directUrl');
+        return directUrl;
+        
+      } catch (e) {
+        print('❌ Ошибка получения URL: $e');
+        return null;
       }
-      
-      return null;
     }
     
     return null;

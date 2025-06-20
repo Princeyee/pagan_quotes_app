@@ -192,8 +192,9 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
                 icon: Icon(isSelected ? Icons.check_circle : Icons.add_circle_outline),
                 label: Text(isSelected ? 'Отключить тему' : 'Включить тему'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isSelected ? Colors.redAccent : Colors.green,
+                  backgroundColor: isSelected ? Colors.white.withOpacity(0.1) : Colors.green,
                   foregroundColor: Colors.white,
+                  side: isSelected ? BorderSide(color: Colors.white.withOpacity(0.3), width: 1) : null,
                 ),
                 onPressed: () async {
                   await _toggleTheme(theme.id);
@@ -207,34 +208,20 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
                 const Divider(color: Colors.white30, thickness: 1),
                 const SizedBox(height: 16),
                 
-                // Заголовок секции авторов
-                Row(
-                  children: [
-                    const Icon(Icons.person, color: Colors.white70, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Авторы для цитат:',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    // Кнопки "Все" / "Никого"
-                    _buildAuthorControlButtons(theme),
-                  ],
+                // Простой заголовок
+                const Text(
+                  'Выберите автора:',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                
-                const SizedBox(height: 12),
-                
-                // Список авторов с чекбоксами
-                _buildAuthorsList(theme),
                 
                 const SizedBox(height: 8),
                 
-                // Статистика выбранных авторов
-                _buildAuthorStats(theme),
+                // Список авторов с чекбоксами
+                _buildAuthorsList(theme),
               ],
             ],
           ),
@@ -243,59 +230,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
     );
   }
 
-  Widget _buildAuthorControlButtons(ThemeInfo theme) {
-    final themeAuthors = theme.authors;
-    final authorsWithQuotes = themeAuthors.where((author) => (_authorsWithQuotes[author] ?? 0) > 0).toList();
-    final selectedThemeAuthors = themeAuthors.where((author) => _selectedAuthors.contains(author)).toList();
-    final allWithQuotesSelected = authorsWithQuotes.every((author) => _selectedAuthors.contains(author));
-    final noneSelected = selectedThemeAuthors.isEmpty;
-    
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Кнопка "С цитатами" (выбирает только авторов с цитатами)
-        TextButton(
-          onPressed: allWithQuotesSelected ? null : () async {
-            await ThemeService.selectAuthorsWithQuotesForTheme(theme.id);
-            await _loadSelectedAuthors();
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: allWithQuotesSelected ? Colors.white38 : Colors.greenAccent,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          ),
-          child: Text(
-            'С цитатами',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: allWithQuotesSelected ? FontWeight.normal : FontWeight.bold,
-            ),
-          ),
-        ),
-        
-        const Text('|', style: TextStyle(color: Colors.white38)),
-        
-        // Кнопка "Никого"
-        TextButton(
-          onPressed: noneSelected ? null : () async {
-            await ThemeService.deselectAllAuthorsForTheme(theme.id);
-            await _loadSelectedAuthors();
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: noneSelected ? Colors.white38 : Colors.redAccent,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          ),
-          child: Text(
-            'Никого',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: noneSelected ? FontWeight.normal : FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
+  
   Widget _buildAuthorsList(ThemeInfo theme) {
     return Wrap(
       spacing: 8,
@@ -306,53 +241,13 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
         final hasQuotes = quotesCount > 0;
         
         return FilterChip(
-          label: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                author,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : (hasQuotes ? Colors.white70 : Colors.white38),
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-              if (hasQuotes) ...[
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withOpacity(0.2) : Colors.greenAccent.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '$quotesCount',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.greenAccent,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ] else ...[
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'В разработке',
-                    style: TextStyle(
-                      color: Colors.orange,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+          label: Text(
+            author,
+            style: TextStyle(
+              color: isSelected ? Colors.white : (hasQuotes ? Colors.white70 : Colors.white38),
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
           selected: isSelected,
           onSelected: hasQuotes ? (selected) async {
@@ -361,14 +256,14 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
           } : null, // Отключаем выбор для авторов без цитат
           backgroundColor: hasQuotes 
               ? Colors.white.withOpacity(0.1) 
-              : Colors.red.withOpacity(0.05),
+              : Colors.grey.withOpacity(0.1),
           selectedColor: Colors.greenAccent.withOpacity(0.3),
-          disabledColor: Colors.red.withOpacity(0.1),
+          disabledColor: Colors.grey.withOpacity(0.1),
           checkmarkColor: Colors.white,
           side: BorderSide(
             color: isSelected 
                 ? Colors.greenAccent 
-                : (hasQuotes ? Colors.white30 : Colors.red.withOpacity(0.3)),
+                : (hasQuotes ? Colors.white30 : Colors.grey.withOpacity(0.4)),
             width: 1,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -377,41 +272,7 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
     );
   }
 
-  Widget _buildAuthorStats(ThemeInfo theme) {
-    final themeAuthors = theme.authors;
-    final selectedThemeAuthors = themeAuthors.where((author) => _selectedAuthors.contains(author)).toList();
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            selectedThemeAuthors.isEmpty ? Icons.warning_amber : Icons.check_circle_outline,
-            color: selectedThemeAuthors.isEmpty ? Colors.orange : Colors.greenAccent,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            selectedThemeAuthors.isEmpty 
-                ? 'Авторы не выбраны - цитаты не будут показываться'
-                : 'Выбрано ${selectedThemeAuthors.length} из ${themeAuthors.length} авторов',
-            style: TextStyle(
-              color: selectedThemeAuthors.isEmpty ? Colors.orange : Colors.white70,
-              fontSize: 12,
-              fontStyle: selectedThemeAuthors.isEmpty ? FontStyle.italic : FontStyle.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   Widget _buildThemeTile(ThemeInfo theme, bool isSelected, bool isExpanded) {
     return InkWell(
       onTap: () async {

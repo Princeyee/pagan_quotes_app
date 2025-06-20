@@ -36,35 +36,55 @@ class PublicGoogleDriveService {
       _lastError = '';
       _isInitialized = false;
       
+      print('🔧 Инициализация Google Drive сервиса...');
+      
       // Загружаем кеш
       await _loadFilesCache();
       
       // Запускаем локальный сервер
-      await _localServer.start();
+      final serverStarted = await _localServer.start();
+      if (!serverStarted) {
+        print('❌ Не удалось запустить локальный сервер');
+        _lastError = 'Не удалось запустить локальный сервер';
+      } else {
+        print('✅ Локальный сервер запущен на порту ${_localServer.port}');
+      }
       
       // Проверяем доступ к API
       if (await isOnline()) {
+        print('🌐 Проверяем доступ к Google Drive API...');
         final testUrl = 'https://www.googleapis.com/drive/v3/files/$_folderId?key=$_apiKey';
         
         try {
           final response = await _dio.get(testUrl);
           if (response.statusCode == 200) {
+            print('✅ Google Drive API доступен');
             _isInitialized = true;
             return true;
+          } else {
+            print('❌ Google Drive API недоступен: ${response.statusCode}');
+            _lastError = 'Google Drive API недоступен: ${response.statusCode}';
           }
         } catch (e) {
+          print('❌ Ошибка доступа к Google Drive API: $e');
           _lastError = 'Ошибка доступа к Google Drive API: $e';
         }
+      } else {
+        print('❌ Нет интернет соединения');
+        _lastError = 'Нет интернет соединения';
       }
       
       // Если есть кеш, считаем что инициализация успешна
       if (_cachedFiles != null && _cachedFiles!.isNotEmpty) {
+        print('✅ Используем кешированные данные');
         _isInitialized = true;
         return true;
       }
       
+      print('❌ Инициализация не удалась');
       return false;
     } catch (e) {
+      print('❌ Критическая ошибка инициализации: $e');
       _lastError = 'Ошибка инициализации: $e';
       return false;
     }
