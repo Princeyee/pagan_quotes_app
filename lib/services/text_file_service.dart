@@ -123,8 +123,8 @@ class TextFileService {
       ),
       BookSource(
         id: 'elder_edda',
-        title: 'Старшая Эдда',
-        author: 'Мифопоэтика',
+        title: 'Мифопоэтика',
+        author: 'Старшая эдда',
         category: 'nordic',
         language: 'ru',
         cleanedFilePath: 'assets/full_texts/nordic/folk/elder_edda_cleaned.txt',
