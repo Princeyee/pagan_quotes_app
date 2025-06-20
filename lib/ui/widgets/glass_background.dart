@@ -90,7 +90,7 @@ class _GlassBackgroundState extends State<GlassBackground> {
           
         // Размытие и затемнение
         ClipRRect(
-          borderRadius: widget.borderRadius ?? BorderRadius.zero,
+          borderRadius: BorderRadius.zero,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: widget.blurAmount, sigmaY: widget.blurAmount),
             child: Container(
@@ -106,7 +106,7 @@ class _GlassBackgroundState extends State<GlassBackground> {
                     (widget.tintColor ?? Colors.black).withAlpha((widget.opacity * 255).round()),
                   ],
                 ),
-                borderRadius: widget.borderRadius,
+                borderRadius: BorderRadius.zero,
                 border: widget.border ?? Border.all(
                   color: Colors.white.withAlpha((0.12 * 255).round()),
                   width: 0.5,

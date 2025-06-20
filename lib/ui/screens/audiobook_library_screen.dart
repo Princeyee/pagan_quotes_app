@@ -55,26 +55,6 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          'Аудиокниги',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _loadAudiobooks,
-            tooltip: 'Обновить библиотеку',
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -84,7 +64,6 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
         ),
         child: SafeArea(
           child: GlassBackground(
-            borderRadius: BorderRadius.circular(20),
             child: _isLoading
               ? Center(
                   child: CircularProgressIndicator(
