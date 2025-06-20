@@ -14,6 +14,8 @@ class ThemeSelectorPage extends StatefulWidget {
 
 class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   late List<String> _enabledThemes;
+  Set<String> _selectedAuthors = {};
+  Map<String, int> _authorsWithQuotes = {};
   ThemeInfo? _expandedTheme;
   final SoundManager _soundManager = SoundManager();
   String? _currentPlayingTheme;
@@ -22,11 +24,23 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
   void initState() {
     super.initState();
     _loadEnabledThemes();
+    _loadSelectedAuthors();
+    _loadAuthorsWithQuotes();
   }
 
   Future<void> _loadEnabledThemes() async {
     final enabled = await ThemeService.getEnabledThemes();
     setState(() => _enabledThemes = enabled);
+  }
+
+  Future<void> _loadSelectedAuthors() async {
+    final selected = await ThemeService.getSelectedAuthors();
+    setState(() => _selectedAuthors = selected);
+  }
+
+  Future<void> _loadAuthorsWithQuotes() async {
+    final authorsWithQuotes = await ThemeService.getAuthorsWithQuotes();
+    setState(() => _authorsWithQuotes = authorsWithQuotes);
   }
 
   Future<void> _toggleTheme(String themeId) async {
@@ -172,6 +186,8 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
               Text(theme.description,
                   textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, height: 1.4)),
               const SizedBox(height: 20),
+              
+              // Кнопка включения/отключения темы
               ElevatedButton.icon(
                 icon: Icon(isSelected ? Icons.check_circle : Icons.add_circle_outline),
                 label: Text(isSelected ? 'Отключить тему' : 'Включить тему'),
@@ -179,12 +195,220 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
                   backgroundColor: isSelected ? Colors.redAccent : Colors.green,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () => _toggleTheme(theme.id),
+                onPressed: () async {
+                  await _toggleTheme(theme.id);
+                  await _loadSelectedAuthors(); // Обновляем авторов после изменения темы
+                },
               ),
+              
+              // НОВАЯ СЕКЦИЯ: Выбор авторов (показывается только для включенных тем)
+              if (isSelected) ...[
+                const SizedBox(height: 20),
+                const Divider(color: Colors.white30, thickness: 1),
+                const SizedBox(height: 16),
+                
+                // Заголовок секции авторов
+                Row(
+                  children: [
+                    const Icon(Icons.person, color: Colors.white70, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Авторы для цитат:',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Кнопки "Все" / "Никого"
+                    _buildAuthorControlButtons(theme),
+                  ],
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Список авторов с чекбоксами
+                _buildAuthorsList(theme),
+                
+                const SizedBox(height: 8),
+                
+                // Статистика выбранных авторов
+                _buildAuthorStats(theme),
+              ],
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAuthorControlButtons(ThemeInfo theme) {
+    final themeAuthors = theme.authors;
+    final authorsWithQuotes = themeAuthors.where((author) => (_authorsWithQuotes[author] ?? 0) > 0).toList();
+    final selectedThemeAuthors = themeAuthors.where((author) => _selectedAuthors.contains(author)).toList();
+    final allWithQuotesSelected = authorsWithQuotes.every((author) => _selectedAuthors.contains(author));
+    final noneSelected = selectedThemeAuthors.isEmpty;
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Кнопка "С цитатами" (выбирает только авторов с цитатами)
+        TextButton(
+          onPressed: allWithQuotesSelected ? null : () async {
+            await ThemeService.selectAuthorsWithQuotesForTheme(theme.id);
+            await _loadSelectedAuthors();
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: allWithQuotesSelected ? Colors.white38 : Colors.greenAccent,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          ),
+          child: Text(
+            'С цитатами',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: allWithQuotesSelected ? FontWeight.normal : FontWeight.bold,
+            ),
+          ),
+        ),
+        
+        const Text('|', style: TextStyle(color: Colors.white38)),
+        
+        // Кнопка "Никого"
+        TextButton(
+          onPressed: noneSelected ? null : () async {
+            await ThemeService.deselectAllAuthorsForTheme(theme.id);
+            await _loadSelectedAuthors();
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: noneSelected ? Colors.white38 : Colors.redAccent,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          ),
+          child: Text(
+            'Никого',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: noneSelected ? FontWeight.normal : FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAuthorsList(ThemeInfo theme) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: theme.authors.map((author) {
+        final isSelected = _selectedAuthors.contains(author);
+        final quotesCount = _authorsWithQuotes[author] ?? 0;
+        final hasQuotes = quotesCount > 0;
+        
+        return FilterChip(
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                author,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : (hasQuotes ? Colors.white70 : Colors.white38),
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+              if (hasQuotes) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white.withOpacity(0.2) : Colors.greenAccent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$quotesCount',
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.greenAccent,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'В разработке',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          selected: isSelected,
+          onSelected: hasQuotes ? (selected) async {
+            await ThemeService.toggleAuthor(author);
+            await _loadSelectedAuthors();
+          } : null, // Отключаем выбор для авторов без цитат
+          backgroundColor: hasQuotes 
+              ? Colors.white.withOpacity(0.1) 
+              : Colors.red.withOpacity(0.05),
+          selectedColor: Colors.greenAccent.withOpacity(0.3),
+          disabledColor: Colors.red.withOpacity(0.1),
+          checkmarkColor: Colors.white,
+          side: BorderSide(
+            color: isSelected 
+                ? Colors.greenAccent 
+                : (hasQuotes ? Colors.white30 : Colors.red.withOpacity(0.3)),
+            width: 1,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildAuthorStats(ThemeInfo theme) {
+    final themeAuthors = theme.authors;
+    final selectedThemeAuthors = themeAuthors.where((author) => _selectedAuthors.contains(author)).toList();
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            selectedThemeAuthors.isEmpty ? Icons.warning_amber : Icons.check_circle_outline,
+            color: selectedThemeAuthors.isEmpty ? Colors.orange : Colors.greenAccent,
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            selectedThemeAuthors.isEmpty 
+                ? 'Авторы не выбраны - цитаты не будут показываться'
+                : 'Выбрано ${selectedThemeAuthors.length} из ${themeAuthors.length} авторов',
+            style: TextStyle(
+              color: selectedThemeAuthors.isEmpty ? Colors.orange : Colors.white70,
+              fontSize: 12,
+              fontStyle: selectedThemeAuthors.isEmpty ? FontStyle.italic : FontStyle.normal,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

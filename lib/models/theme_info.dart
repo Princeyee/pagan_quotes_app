@@ -28,7 +28,7 @@ final List<ThemeInfo> allThemes = [
     id: "nordic",
     name: "Север",
     image: "assets/images/nordic.jpg",
-    authors: ["Эдды", "Песнь о Нибелунгах", "Беовульф"],
+    authors: ["Мифопоэтика", "Песнь о Нибелунгах", "Беовульф"],
     description: "Скандинавская мудрость, мифы и эпос викингов.",
   ),
   ThemeInfo(
@@ -42,7 +42,7 @@ final List<ThemeInfo> allThemes = [
     id: "pagan",
     name: "Язычество",
     image: "assets/images/pagan.jpg",
-    authors: ["Эвола", "Элиаде", "Ален де Бенуа", "Askr Svarte (Евгений Ничкасов)"],
+    authors: ["Эвола", "Элиаде", "Ален де Бенуа", "Askr Svarte"],
     description: "Архаические традиции, мифология и символизм.",
   ),
 ];

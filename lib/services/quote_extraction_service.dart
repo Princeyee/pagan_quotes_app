@@ -105,42 +105,72 @@ class QuoteExtractionService {
     return curatedQuotes;
   }
 
-  /// ИСПРАВЛЕННАЯ генерация ежедневной цитаты - учитывает выбранные темы
+  /// НОВЫЙ МЕТОД: Получить отфильтрованные цитаты по темам и авторам
+  Future<List<Quote>> getFilteredQuotes() async {
+    final curated = await loadCuratedQuotes();
+    final enabledThemes = await ThemeService.getEnabledThemes();
+    final selectedAuthors = await ThemeService.getSelectedAuthors();
+    
+    print('🎯 Фильтруем цитаты: темы=$enabledThemes, авторы=$selectedAuthors');
+    
+    final filteredQuotes = <Quote>[];
+    
+    for (final themeId in enabledThemes) {
+      if (curated.containsKey(themeId)) {
+        for (final curatedQuote in curated[themeId]!) {
+          // Фильтруем по авторам если они выбраны
+          if (selectedAuthors.isEmpty || selectedAuthors.contains(curatedQuote.author)) {
+            filteredQuotes.add(curatedQuote.toQuote());
+          }
+        }
+      }
+    }
+    
+    print('✅ Найдено ${filteredQuotes.length} отфильтрованных цитат');
+    return filteredQuotes;
+  }
+
+  /// ОБНОВЛЕННАЯ генерация ежедневной цитаты - учитывает выбранные темы И авторов
   Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
     date ??= DateTime.now();
 
     try {
       print('🎭 Генерируем цитату на ${date.toString().split(' ')[0]}');
 
-      // ПОЛУЧАЕМ ВКЛЮЧЕННЫЕ ТЕМЫ
-      final enabledThemes = await ThemeService.getEnabledThemes();
-      print('🎯 Включенные темы: $enabledThemes');
+      // ПОЛУЧАЕМ ОТФИЛЬТРОВАННЫЕ ЦИТАТЫ
+      final filteredQuotes = await getFilteredQuotes();
 
-      // Загружаем отобранные цитаты
-      final curated = await loadCuratedQuotes();
-
-      if (curated.isEmpty) {
-        print('❌ Нет отобранных цитат! Запустите quote_curator.dart');
+      if (filteredQuotes.isEmpty) {
+        print('❌ Нет цитат после фильтрации! Проверьте настройки тем и авторов');
+        
+        // Fallback - берем любые доступные цитаты
+        final curated = await loadCuratedQuotes();
+        if (curated.isNotEmpty) {
+          final allQuotes = <Quote>[];
+          for (final categoryQuotes in curated.values) {
+            allQuotes.addAll(categoryQuotes.map((q) => q.toQuote()));
+          }
+          
+          if (allQuotes.isNotEmpty) {
+            final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
+            final dayRandom = Random(daysSinceEpoch);
+            final selectedQuote = allQuotes[dayRandom.nextInt(allQuotes.length)];
+            
+            print('🔄 Fallback: выбрана случайная цитата');
+            return DailyQuote(quote: selectedQuote, date: date);
+          }
+        }
+        
         return null;
       }
 
-      // ФИЛЬТРУЕМ ТОЛЬКО ПО ВКЛЮЧЕННЫМ ТЕМАМ
-      final filteredCurated = <String, List<CuratedQuote>>{};
-      for (final theme in enabledThemes) {
-        if (curated.containsKey(theme)) {
-          filteredCurated[theme] = curated[theme]!;
-        }
+      // Группируем по категориям для равномерного распределения
+      final quotesByCategory = <String, List<Quote>>{};
+      for (final quote in filteredQuotes) {
+        quotesByCategory.putIfAbsent(quote.category, () => []).add(quote);
       }
 
-      if (filteredCurated.isEmpty) {
-        print('❌ Нет цитат для включенных тем: $enabledThemes');
-        // Fallback - берем первую доступную тему
-        final firstAvailable = curated.keys.first;
-        filteredCurated[firstAvailable] = curated[firstAvailable]!;
-        print('🔄 Fallback на тему: $firstAvailable');
-      }
-
-      final categories = filteredCurated.keys.toList();
+      final categories = quotesByCategory.keys.toList();
       print('📂 Доступные категории после фильтрации: $categories');
 
       // Выбираем категорию по дню (чередование)
@@ -151,7 +181,7 @@ class QuoteExtractionService {
       print('🎯 День $daysSinceEpoch -> Категория: $selectedCategory');
 
       // Получаем цитаты для выбранной категории
-      final categoryQuotes = filteredCurated[selectedCategory]!;
+      final categoryQuotes = quotesByCategory[selectedCategory]!;
 
       // Выбираем цитату с воспроизводимостью внутри дня
       final dayRandom = Random(daysSinceEpoch + selectedCategory.hashCode);
@@ -160,7 +190,7 @@ class QuoteExtractionService {
       print('📜 Выбрана: ${selectedQuote.author} - "${selectedQuote.text.substring(0, min(50, selectedQuote.text.length))}..."');
 
       return DailyQuote(
-        quote: selectedQuote.toQuote(),
+        quote: selectedQuote,
         date: date,
       );
 

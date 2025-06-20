@@ -55,56 +55,57 @@ class CalendarQuoteService {
   /// Генерирует детерминированную цитату для указанной даты
   Future<Quote?> _generateDeterministicQuote(DateTime date) async {
     try {
-      // Загружаем отобранные цитаты - ИСПОЛЬЗУЕМ ПУБЛИЧНЫЙ МЕТОД
-      final curated = await _quoteService.loadCuratedQuotes();
+      // ИСПОЛЬЗУЕМ НОВЫЙ МЕТОД ФИЛЬТРАЦИИ
+      final filteredQuotes = await _quoteService.getFilteredQuotes();
       
-      if (curated.isEmpty) {
-        print('No curated quotes available');
+      if (filteredQuotes.isEmpty) {
+        print('❌ Нет цитат после фильтрации для даты $date');
+        
+        // Fallback - используем любые доступные цитаты
+        final curated = await _quoteService.loadCuratedQuotes();
+        if (curated.isNotEmpty) {
+          final allQuotes = <Quote>[];
+          for (final categoryQuotes in curated.values) {
+            allQuotes.addAll(categoryQuotes.map((q) => q.toQuote()));
+          }
+          
+          if (allQuotes.isNotEmpty) {
+            final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
+            final random = Random(daysSinceEpoch);
+            return allQuotes[random.nextInt(allQuotes.length)];
+          }
+        }
+        
         return null;
       }
 
-      // ПОЛУЧАЕМ АКТИВНЫЕ ТЕМЫ
-      final enabledThemes = await ThemeService.getEnabledThemes();
-      print('🎯 Активные темы: $enabledThemes');
+      print('✅ Найдено ${filteredQuotes.length} отфильтрованных цитат для даты $date');
       
-      // ФИЛЬТРУЕМ КАТЕГОРИИ ПО АКТИВНЫМ ТЕМАМ
-      final allCategories = curated.keys.toList();
-      final enabledCategories = allCategories.where((category) => 
-        enabledThemes.contains(category)
-      ).toList();
-      
-      if (enabledCategories.isEmpty) {
-        print('❌ Нет активных категорий, используем все');
-        // Fallback - используем все категории если нет активных
-        final categories = allCategories;
-        final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
-        final categoryIndex = daysSinceEpoch % categories.length;
-        final selectedCategory = categories[categoryIndex];
-        final categoryQuotes = curated[selectedCategory]!;
-        final random = Random(daysSinceEpoch + selectedCategory.hashCode);
-        final selectedQuote = categoryQuotes[random.nextInt(categoryQuotes.length)];
-        return selectedQuote.toQuote();
+      // Группируем по категориям для равномерного распределения
+      final quotesByCategory = <String, List<Quote>>{};
+      for (final quote in filteredQuotes) {
+        quotesByCategory.putIfAbsent(quote.category, () => []).add(quote);
       }
-      
-      print('✅ Доступные категории: $enabledCategories');
+
+      final categories = quotesByCategory.keys.toList();
       
       // Используем дату как сид для воспроизводимости
       final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
       
-      // Выбираем категорию детерминированно ИЗ АКТИВНЫХ
-      final categoryIndex = daysSinceEpoch % enabledCategories.length;
-      final selectedCategory = enabledCategories[categoryIndex];
+      // Выбираем категорию детерминированно
+      final categoryIndex = daysSinceEpoch % categories.length;
+      final selectedCategory = categories[categoryIndex];
       
       print('🎲 Выбрана категория: $selectedCategory для даты ${date.day}.${date.month}.${date.year}');
       
       // Получаем цитаты для выбранной категории
-      final categoryQuotes = curated[selectedCategory]!;
+      final categoryQuotes = quotesByCategory[selectedCategory]!;
       
       // Выбираем цитату детерминированно
       final random = Random(daysSinceEpoch + selectedCategory.hashCode);
       final selectedQuote = categoryQuotes[random.nextInt(categoryQuotes.length)];
       
-      return selectedQuote.toQuote();
+      return selectedQuote;
       
     } catch (e) {
       print('Error generating deterministic quote: $e');
