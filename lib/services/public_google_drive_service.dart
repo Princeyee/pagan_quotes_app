@@ -222,6 +222,18 @@ class PublicGoogleDriveService {
   /// Начать прогрессивную загрузку файла
   Future<String?> startProgressiveDownload(String fileId, String fileName, {Function(DownloadProgress)? onProgress}) async {
     try {
+      // Сначала проверяем, не загружается ли уже этот файл
+      final existingPath = await _progressiveDownloadService.getPartialFilePath(fileId);
+      if (existingPath != null && await File(existingPath).exists()) {
+        final isPlayable = await _progressiveDownloadService.isPlayable(fileId);
+        if (isPlayable) {
+          // Файл уже частично загружен и готов к воспроизведению
+          final serverUrl = _localServer.registerFile(fileId, existingPath);
+          print('🎵 Используем частично загруженный файл: $serverUrl');
+          return serverUrl;
+        }
+      }
+      
       final downloadUrl = getFileDownloadUrl(fileId);
       
       // Подписываемся на прогресс загрузки
@@ -229,11 +241,12 @@ class PublicGoogleDriveService {
         _progressiveDownloadService.getProgressStream(fileId).listen(onProgress);
       }
       
-      // Начинаем загрузку
+      // Начинаем загрузку (или продолжае�� существующую)
       final filePath = await _progressiveDownloadService.startProgressiveDownload(
         fileId: fileId,
         downloadUrl: downloadUrl,
         fileName: fileName,
+        resumeIfExists: true, // Важно: продолжаем загрузку если файл существует
       );
       
       if (filePath != null) {

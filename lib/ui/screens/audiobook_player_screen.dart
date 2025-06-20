@@ -667,47 +667,52 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          // Progress Bar
-          Column(
-            children: [
-              Row(
-                children: [
+          // Красивая анимация загрузки
+          if (_isLoading) ...[
+            _buildLoadingAnimation(theme),
+            const SizedBox(height: 24),
+          ] else ...[
+            // Progress Bar (показывается только когда файл готов)
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      _formatDuration(_currentPosition),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    Expanded(
+                      child: Slider(
+                        value: _totalDuration.inMilliseconds > 0
+                            ? _currentPosition.inMilliseconds.toDouble()
+                            : 0.0,
+                        max: _totalDuration.inMilliseconds.toDouble(),
+                        onChanged: (value) {
+                          _seek(Duration(milliseconds: value.toInt()));
+                        },
+                        activeColor: theme.primaryColor,
+                      ),
+                    ),
+                    Text(
+                      _formatDuration(_totalDuration),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+
+                // Sleep Timer Info
+                if (_sleepTimer != null)
                   Text(
-                    _formatDuration(_currentPosition),
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  Expanded(
-                    child: Slider(
-                      value: _totalDuration.inMilliseconds > 0
-                          ? _currentPosition.inMilliseconds.toDouble()
-                          : 0.0,
-                      max: _totalDuration.inMilliseconds.toDouble(),
-                      onChanged: (value) {
-                        _seek(Duration(milliseconds: value.toInt()));
-                      },
-                      activeColor: theme.primaryColor,
+                    'Таймер: ${_formatDuration(_sleepEndTime!.difference(DateTime.now()))}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.primaryColor,
                     ),
                   ),
-                  Text(
-                    _formatDuration(_totalDuration),
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-
-              // Sleep Timer Info
-              if (_sleepTimer != null)
-                Text(
-                  'Таймер: ${_formatDuration(_sleepEndTime!.difference(DateTime.now()))}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.primaryColor,
-                  ),
-                ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
 
           // Playback Controls
           Row(
@@ -717,87 +722,236 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
               IconButton(
                 icon: const Icon(Icons.skip_previous),
                 iconSize: 32,
-                onPressed: _currentChapterIndex > 0 ? _previousChapter : null,
+                onPressed: (_currentChapterIndex > 0 && !_isLoading) ? _previousChapter : null,
               ),
 
               // Rewind 30s
               IconButton(
                 icon: const Icon(Icons.replay_30),
                 iconSize: 28,
-                onPressed: () {
+                onPressed: !_isLoading ? () {
                   final newPosition = _currentPosition - const Duration(seconds: 30);
                   _seek(newPosition < Duration.zero ? Duration.zero : newPosition);
-                },
+                } : null,
               ),
 
               // Play/Pause
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha((0.7 * 255).round()), // Меняем цвет с белого на темный
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.primaryColor.withAlpha((0.4 * 255).round()),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(30),
-                    onTap: _isLoading ? null : _playPause,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      child: AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: _playPauseController,
-                        color: theme.primaryColor, // Меняем цвет иконки с белого на цвет темы
-                        size: 48,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              _buildPlayPauseButton(theme),
 
               // Forward 30s
               IconButton(
                 icon: const Icon(Icons.forward_30),
                 iconSize: 28,
-                onPressed: () {
+                onPressed: !_isLoading ? () {
                   final newPosition = _currentPosition + const Duration(seconds: 30);
                   _seek(newPosition > _totalDuration ? _totalDuration : newPosition);
-                },
+                } : null,
               ),
 
               // Next Chapter
               IconButton(
                 icon: const Icon(Icons.skip_next),
                 iconSize: 32,
-                onPressed: _currentChapterIndex < widget.audiobook.chapters.length - 1
+                onPressed: (_currentChapterIndex < widget.audiobook.chapters.length - 1 && !_isLoading)
                     ? _nextChapter
                     : null,
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          if (!_isLoading) ...[
+            const SizedBox(height: 16),
+            // Speed Control (показывается только когда файл готов)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Скорость: '),
+                Text(
+                  '${_playbackSpeed}x',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
-          // Speed Control
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildPlayPauseButton(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha((0.7 * 255).round()),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: theme.primaryColor.withAlpha((0.4 * 255).round()),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: _isLoading ? null : _playPause,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: _isLoading
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+                          backgroundColor: theme.primaryColor.withOpacity(0.2),
+                        ),
+                      ),
+                      Icon(Icons.music_note, color: theme.primaryColor.withOpacity(0.7), size: 28),
+                    ],
+                  )
+                : AnimatedIcon(
+                    icon: AnimatedIcons.play_pause,
+                    progress: _playPauseController,
+                    color: theme.primaryColor,
+                    size: 48,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingAnimation(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Анимированная иконка загрузки
+          Stack(
+            alignment: Alignment.center,
             children: [
-              const Text('Скорость: '),
-              Text(
-                '${_playbackSpeed}x',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.primaryColor,
+              // Внешний круг с анимацией
+              AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.primaryColor.withOpacity(0.3 + 0.3 * _waveController.value),
+                        width: 2,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              // Прогресс загрузки
+              SizedBox(
+                width: 70,
+                height: 70,
+                child: CircularProgressIndicator(
+                  strokeWidth: 4,
+                  valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+                  backgroundColor: theme.primaryColor.withOpacity(0.2),
                 ),
               ),
+              
+              // Иконка в центре
+              AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: 1.0 + 0.1 * _waveController.value,
+                    child: Icon(
+                      Icons.audiotrack,
+                      color: theme.primaryColor,
+                      size: 32,
+                    ),
+                  );
+                },
+              ),
             ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Текст загрузки
+          Text(
+            'Загрузка аудиокниги...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          Text(
+            'Подготовка к воспроизведению...',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Анимированный прогресс бар
+          Container(
+            width: double.infinity,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: AnimatedBuilder(
+              animation: _waveController,
+              builder: (context, child) {
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment(-1 + 2 * _waveController.value, 0),
+                      end: Alignment(-0.5 + 2 * _waveController.value, 0),
+                      colors: [
+                        Colors.transparent,
+                        theme.primaryColor.withOpacity(0.5),
+                        Colors.transparent,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),

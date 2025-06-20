@@ -10,7 +10,7 @@ import '../../utils/custom_cache.dart';
 import '../../services/audiobook_service.dart';
 import '../../models/audiobook.dart';
 import 'book_reader_page.dart';
-import 'audiobook_player_screen.dart';
+import 'enhanced_audiobook_player.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui';
 
@@ -588,7 +588,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
       if (matchedAudiobook != null) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => AudiobookPlayerScreen(audiobook: matchedAudiobook!),
+            builder: (context) => EnhancedAudiobookPlayer(audiobook: matchedAudiobook!),
           ),
         );
       } else {
@@ -648,7 +648,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => AudiobookPlayerScreen(audiobook: audiobook),
+                            builder: (context) => EnhancedAudiobookPlayer(audiobook: audiobook),
                           ),
                         );
                       },

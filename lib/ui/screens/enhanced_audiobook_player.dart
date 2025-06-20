@@ -49,6 +49,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   // Sleep timer
   Duration? _sleepTimer;
   DateTime? _sleepEndTime;
+  
+  // Background playback
+  bool _playInBackground = true;
 
   DownloadProgress? _downloadProgress;
   StreamSubscription<DownloadProgress>? _progressSub;
@@ -64,6 +67,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     _extractColorsFromCover();
     _audiobookService.initialize();
     _subscribeToDownloadProgress();
+    _initAudioSession();
   }
 
   void _initializeAnimations() {
@@ -80,6 +84,74 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     _chapterListController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
+    );
+  }
+
+  // Инициализация аудио сессии
+  Future<void> _initAudioSession() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(AudioSessionConfiguration.music());
+      // По умолчанию включаем фоновое воспроизведение
+      _setupBackgroundPlayback();
+    } catch (e) {
+      print('Ошибка инициализации аудио сессии: $e');
+    }
+  }
+
+  void _setupBackgroundPlayback() async {
+    try {
+      // Получаем экземпляр AudioSession
+      final session = await AudioSession.instance;
+      
+      if (_playInBackground) {
+        // Настраиваем сессию для фонового воспроизведения музыки
+        await session.configure(AudioSessionConfiguration(
+          avAudioSessionCategory: AVAudioSessionCategory.playback,
+          avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+          avAudioSessionMode: AVAudioSessionMode.defaultMode,
+          avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+          avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+          androidAudioAttributes: const AndroidAudioAttributes(
+            contentType: AndroidAudioContentType.music,
+            flags: AndroidAudioFlags.none,
+            usage: AndroidAudioUsage.media,
+          ),
+          androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+          androidWillPauseWhenDucked: true,
+        ));
+        
+        // Активируем сессию
+        await session.setActive(true);
+        print('Фоновое воспроизведение включено');
+      } else {
+        // При отключении фонового воспроизведения можно деактивировать сессию
+        await session.setActive(false);
+        print('Фоновое воспроизведение выключено');
+      }
+    } catch (e) {
+      print('Ошибка при настройке фонового воспроизведения: $e');
+    }
+  }
+
+  void _toggleBackgroundPlayback() {
+    setState(() {
+      _playInBackground = !_playInBackground;
+    });
+    
+    // Настраиваем фоновое воспроизведение
+    _setupBackgroundPlayback();
+    
+    // Показываем уведомление пользователю
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _playInBackground 
+              ? 'Фоновое воспроизведение включено' 
+              : 'Фоновое воспроизведение выключено'
+        ),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -126,13 +198,35 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     _progressSub?.cancel();
     final chapter = widget.audiobook.chapters[_currentChapterIndex];
     if (chapter.driveFileId != null) {
+      // Устанавливаем начальное состояние заг��узки
+      setState(() {
+        _downloadProgress = DownloadProgress(
+          fileId: chapter.driveFileId!,
+          downloadedBytes: 0,
+          totalBytes: 0,
+          percentage: 0.0,
+          status: ProgressiveDownloadStatus.downloading,
+        );
+      });
+      
       _progressSub = _driveService.getDownloadProgressStream(chapter.driveFileId!).listen((progress) {
         setState(() {
           _downloadProgress = progress;
         });
+        
         // Автостарт, если достигнут playable threshold
         if (!_isPlaying && progress.isPlayable && _isLoading) {
+          setState(() {
+            _isLoading = false;
+          });
           _audioPlayer.play();
+        }
+        
+        // Убираем состояние загрузки когда файл готов
+        if (progress.status == ProgressiveDownloadStatus.completed && _isLoading) {
+          setState(() {
+            _isLoading = false;
+          });
         }
       });
     }
@@ -142,27 +236,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     setState(() => _isLoading = true);
     _downloadProgress = null;
     _subscribeToDownloadProgress();
+    
     try {
       final chapter = widget.audiobook.chapters[_currentChapterIndex];
-      
-      // Показываем прогресс загрузки
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-              ),
-              SizedBox(width: 16),
-              Text('Подготовка аудио...'),
-            ],
-          ),
-          duration: Duration(seconds: 30),
-          backgroundColor: _dominantColor.withOpacity(0.9),
-        ),
-      );
       
       final playableUrl = await _audiobookService.getPlayableUrl(chapter);
       
@@ -186,16 +262,16 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       // Предзагружаем следующие главы
       _audiobookService.preloadNextChapters(widget.audiobook, _currentChapterIndex);
       
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      // НЕ убираем _isLoading здесь - это сделает подписка на прогресс
+      // когда файл станет playable или полностью загружен
       
-      // Если файл уже playable, автостарт
-      if (_downloadProgress?.isPlayable ?? true) {
+      // Если файл уже готов (из кеша), убираем з��грузку
+      if (playableUrl.startsWith('file://') || !playableUrl.startsWith('http')) {
+        setState(() => _isLoading = false);
         await _audioPlayer.play();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       _showError('Ошибка загрузки аудиофайла: $e');
-    } finally {
       setState(() => _isLoading = false);
     }
   }
@@ -279,30 +355,11 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
         _downloadProgress = null;
       });
       _subscribeToDownloadProgress();
+      
       try {
         final chapter = widget.audiobook.chapters[index];
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                ),
-                SizedBox(width: 16),
-                Text('Загрузка главы...'),
-              ],
-            ),
-            duration: Duration(seconds: 10),
-            backgroundColor: _dominantColor.withOpacity(0.9),
-          ),
-        );
-        
         final playableUrl = await _audiobookService.getPlayableUrl(chapter);
-        
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         
         if (playableUrl == null) {
           throw Exception('Не удалось получить URL для воспроизведения');
@@ -319,8 +376,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
           await _audioPlayer.seek(progress.position);
         }
         
-        // Если файл уже playable, автостарт
-        if (_downloadProgress?.isPlayable ?? true) {
+        // Если файл уже готов (из кеша), убираем загрузку
+        if (playableUrl.startsWith('file://') || !playableUrl.startsWith('http')) {
+          setState(() => _isLoading = false);
           await _audioPlayer.play();
         }
         
@@ -328,9 +386,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
         _audiobookService.preloadNextChapters(widget.audiobook, index);
         
       } catch (e) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         _showError('Ошибка загрузки главы: $e');
-      } finally {
         setState(() => _isLoading = false);
       }
     }
@@ -378,66 +434,80 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _gradientColors,
+      body: GestureDetector(
+        onVerticalDragEnd: (details) {
+          // Свайп вверх для показа списка глав
+          if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+            setState(() => _showChapterList = true);
+            _chapterListController.forward();
+          }
+          // Свайп вниз для скрытия списка глав
+          else if (details.primaryVelocity != null && details.primaryVelocity! > 0) {
+            setState(() => _showChapterList = false);
+            _chapterListController.reverse();
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: _gradientColors,
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            // Фоновое изображение с блюром
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: widget.audiobook.coverPath.startsWith('http')
-                        ? NetworkImage(widget.audiobook.coverPath) as ImageProvider
-                        : AssetImage(widget.audiobook.coverPath),
-                    fit: BoxFit.cover,
+          child: Stack(
+            children: [
+              // Фоновое изображение с блюром
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: widget.audiobook.coverPath.startsWith('http')
+                          ? NetworkImage(widget.audiobook.coverPath) as ImageProvider
+                          : AssetImage(widget.audiobook.coverPath),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          _dominantColor.withOpacity(0.7),
-                          _accentColor.withOpacity(0.8),
-                          _dominantColor.withOpacity(0.9),
-                        ],
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            _dominantColor.withOpacity(0.7),
+                            _accentColor.withOpacity(0.8),
+                            _dominantColor.withOpacity(0.9),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            
-            // Основной контент
-            SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    flex: 3,
-                    child: _buildCoverSection(),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: _buildControlsSection(),
-                  ),
-                ],
+              
+              // Основной контент
+              SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    Expanded(
+                      flex: 3,
+                      child: _buildCoverSection(),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: _buildControlsSection(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            
-            // Список глав с glass effect
-            _buildChapterList(),
-          ],
+              
+              // Список глав с glass effect
+              _buildChapterList(),
+            ],
+          ),
         ),
       ),
     );
@@ -490,9 +560,139 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
               }
             },
           ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: _handleMenuAction,
+            color: _dominantColor.withOpacity(0.9),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'speed', 
+                child: Row(
+                  children: [
+                    const Icon(Icons.speed, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Скорость', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'timer', 
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Таймер сна', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'background', 
+                child: Row(
+                  children: [
+                    Icon(
+                      _playInBackground ? Icons.music_note : Icons.music_off,
+                      color: Colors.white,
+                      size: 20
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _playInBackground ? 'Фоновое воспроизведение: Вкл' : 'Фоновое воспроизведение: Выкл',
+                      style: const TextStyle(color: Colors.white)
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'speed':
+        _showSpeedDialog();
+        break;
+      case 'timer':
+        _showSleepTimerDialog();
+        break;
+      case 'background':
+        _toggleBackgroundPlayback();
+        break;
+    }
+  }
+
+  void _showSleepTimerDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: _dominantColor.withOpacity(0.9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Таймер сна',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_sleepTimer != null)
+                ListTile(
+                  title: const Text(
+                    'Отключить таймер',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  leading: const Icon(Icons.timer_off, color: Colors.red),
+                  onTap: () {
+                    setState(() {
+                      _sleepTimer = null;
+                      _sleepEndTime = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ...[5, 10, 15, 30, 60].map((minutes) {
+                return ListTile(
+                  title: Text(
+                    '$minutes минут',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  leading: const Icon(Icons.timer, color: Colors.white),
+                  onTap: () {
+                    _setSleepTimer(Duration(minutes: minutes));
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _setSleepTimer(Duration duration) {
+    setState(() {
+      _sleepTimer = duration;
+      _sleepEndTime = DateTime.now().add(duration);
+    });
+
+    Future.delayed(duration, () {
+      if (mounted && _isPlaying) {
+        _audioPlayer.pause();
+        setState(() {
+          _sleepTimer = null;
+          _sleepEndTime = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Таймер сна сработал')),
+        );
+      }
+    });
   }
 
   Widget _buildCoverSection() {
@@ -588,7 +788,12 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   }
 
   Widget _buildControlsSection() {
-    final isBuffering = _isLoading || (_downloadProgress != null && !_downloadProgress!.isPlayable);
+    // Улучшенная логика определения состояния буферизации
+    final isBuffering = _isLoading || 
+                       (_downloadProgress == null && _isLoading) ||
+                       (_downloadProgress != null && 
+                        _downloadProgress!.status == ProgressiveDownloadStatus.downloading && 
+                        !_downloadProgress!.isPlayable);
     final isDownloading = _downloadProgress != null && _downloadProgress!.status == ProgressiveDownloadStatus.downloading;
     
     return Padding(
@@ -711,7 +916,11 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   }
 
   Widget _buildPlayPauseButton() {
-    final isBuffering = _isLoading || (_downloadProgress != null && !_downloadProgress!.isPlayable);
+    final isBuffering = _isLoading || 
+                       (_downloadProgress == null && _isLoading) ||
+                       (_downloadProgress != null && 
+                        _downloadProgress!.status == ProgressiveDownloadStatus.downloading && 
+                        !_downloadProgress!.isPlayable);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
@@ -1207,6 +1416,18 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     _playPauseController.dispose();
     _waveController.dispose();
     _chapterListController.dispose();
+    _releaseAudioResources();
     super.dispose();
+  }
+
+  // Метод для освобождения аудио ресурсов
+  Future<void> _releaseAudioResources() async {
+    try {
+      // Деактивируем аудио сессию при закрытии плеера
+      final session = await AudioSession.instance;
+      await session.setActive(false);
+    } catch (e) {
+      print('Ошибка при освобождении аудио ресурсов: $e');
+    }
   }
 }

@@ -3,7 +3,7 @@ import '../../models/audiobook.dart';
 import '../../services/audiobook_service.dart';
 import '../../ui/widgets/audiobook_card.dart';
 import '../widgets/glass_background.dart';
-import 'audiobook_player_screen.dart';
+import 'enhanced_audiobook_player.dart';
 import 'dart:ui' as ui;
 
 class AudiobookLibraryScreen extends StatefulWidget {
@@ -128,7 +128,7 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => AudiobookPlayerScreen(
+                                          builder: (context) => EnhancedAudiobookPlayer(
                                             audiobook: audiobook,
                                           ),
                                         ),

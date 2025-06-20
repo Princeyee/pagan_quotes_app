@@ -199,18 +199,20 @@ class EnhancedAudiobookService {
           if (cachedPath == null && !_preloadedFiles.containsKey(nextChapter.driveFileId)) {
             print('🔄 Предзагружаем следующую главу: ${nextChapter.title}');
             
-            // Запускаем предзагрузку в фоне
-            _driveService.preloadFile(
+            // Запускаем прогрессивную загрузку в фоне
+            _driveService.startProgressiveDownload(
               nextChapter.driveFileId!,
               fileName,
-              onProgress: (progress) {
-                print('📥 Предзагрузка "${nextChapter.title}": ${(progress * 100).toInt()}%');
-              },
-            ).then((preloadedPath) {
-              if (preloadedPath != null) {
-                _preloadedFiles[nextChapter.driveFileId!] = preloadedPath;
-                _savePreloadedChapters();
-                print('✅ Предзагружена глава: ${nextChapter.title}');
+            ).then((serverUrl) {
+              if (serverUrl != null) {
+                // Получаем реальный путь к файлу
+                _driveService.getPartialFilePath(nextChapter.driveFileId!).then((realPath) {
+                  if (realPath != null) {
+                    _preloadedFiles[nextChapter.driveFileId!] = realPath;
+                    _savePreloadedChapters();
+                    print('✅ Предзагружена глава: ${nextChapter.title}');
+                  }
+                });
               }
             }).catchError((e) {
               print('❌ Ошибка предзагрузки главы "${nextChapter.title}": $e');

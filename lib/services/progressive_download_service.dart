@@ -120,7 +120,13 @@ class ProgressiveDownloadService {
         throw Exception('Не удалось получить размер файла');
       }
 
-      // Создаем токен отмены
+      // Проверяем, не загружается ли уже этот файл
+      if (_cancelTokens.containsKey(fileId) && !_cancelTokens[fileId]!.isCancelled) {
+        print('🔄 Файл $fileId уже загружается, используем существующую загрузку');
+        return filePath;
+      }
+      
+      // Создаем токен отмены только если его еще нет
       final cancelToken = CancelToken();
       _cancelTokens[fileId] = cancelToken;
 

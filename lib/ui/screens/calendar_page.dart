@@ -393,36 +393,54 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           ],
         ),
       ),
-      child: _backgroundImageUrl != null
-          ? Stack(
-              children: [
-                // Фоновое изображение
-                Positioned.fill(
-                  child: CachedNetworkImage(
-                    imageUrl: _backgroundImageUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: const Color(0xFF1A1A2E),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFF1A1A2E),
-                    ),
-                  ),
+      child: Stack(
+        children: [
+          // Фоновое изображение (если есть)
+          if (_backgroundImageUrl != null) ...[
+            Positioned.fill(
+              child: CachedNetworkImage(
+                imageUrl: _backgroundImageUrl!,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: const Color(0xFF1A1A2E),
                 ),
-                // Блюр и затемнение
-                Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      color: Colors.black.withAlpha((0.6 * 255).round()),
-                    ),
-                  ),
+                errorWidget: (context, url, error) => Container(
+                  color: const Color(0xFF1A1A2E),
                 ),
-                // Контент
-                _buildScrollableContent(),
-              ],
-            )
-          : _buildScrollableContent(),
+              ),
+            ),
+            // Блюр и затемнение
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  color: Colors.black.withAlpha((0.6 * 255).round()),
+                ),
+              ),
+            ),
+          ],
+          // Контент
+          _buildScrollableContent(),
+          // Стрелочка выхода в левом верхнем углу
+          Positioned(
+            top: 50,
+            left: 20,
+            child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 20,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black.withOpacity(0.4),
+                shape: CircleBorder(),
+                padding: EdgeInsets.all(8),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
