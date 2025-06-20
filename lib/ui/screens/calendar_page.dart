@@ -1145,26 +1145,48 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                               ),
                             ),
                             const SizedBox(width: 12),
+                            // Название и оригинальное название в одной строке
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    holiday.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                                  Expanded(
+                                    child: Text(
+                                      holiday.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _getTraditionDisplayName(holiday.tradition),
-                                    style: TextStyle(
-                                      color: Colors.white.withAlpha((0.6 * 255).round()),
-                                      fontSize: 12,
+                                  if (holiday.nameOriginal != null && holiday.nameOriginal.trim().isNotEmpty && holiday.nameOriginal != holiday.name)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        holiday.nameOriginal,
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: traditionColor,
+                                          letterSpacing: 0.5,
+                                          fontFamily: 'RobotoMono',
+                                          shadows: [
+                                            Shadow(
+                                              color: traditionColor.withOpacity(0.7),
+                                              blurRadius: 8,
+                                            ),
+                                            Shadow(
+                                              color: Colors.white.withOpacity(0.3),
+                                              blurRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),

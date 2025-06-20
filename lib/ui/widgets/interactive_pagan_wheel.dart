@@ -314,115 +314,59 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                       bottom: -80,
                       left: -50,
                       right: -50,
-                      child: GestureDetector(
-                        onTapDown: _handleTap,
-                        child: Container(
-                          width: 700,
-                          height: 700,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              ..._buildGlowLayers(),
-                              
-                              if (_isLoading)
-                                AnimatedBuilder(
-                                  animation: _loadingAnimation,
-                                  builder: (context, child) {
-                                    return Transform.rotate(
-                                      angle: _loadingAnimation.value,
-                                      child: CustomPaint(
-                                        size: const Size(650, 650),
-                                        painter: LoadingWheelPainter(
-                                          progress: _loadingController.value,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              
-                              AnimatedOpacity(
-                                duration: const Duration(milliseconds: 600),
-                                opacity: _isLoading ? 0.3 : 1.0,
-                                child: AnimatedBuilder(
-                                  animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
-                                  builder: (context, child) {
-                                    final currentRotation = _rotationController.isAnimating 
-                                        ? _rotationAnimation.value 
-                                        : _currentRotation;
-                                    
-                                    return Transform.rotate(
-                                      angle: currentRotation,
-                                      child: CustomPaint(
-                                        size: const Size(650, 650),
-                                        painter: EnhancedWheelPainter(
-                                          months: _months,
-                                          selectedMonth: _selectedMonth - 1,
-                                          glowIntensity: _glowAnimation.value,
-                                          shimmerProgress: _shimmerAnimation.value,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              
-                              AnimatedBuilder(
-                                animation: _rotationAnimation,
-                                builder: (context, child) {
-                                  final currentRotation = _rotationController.isAnimating 
-                                      ? _rotationAnimation.value 
-                                      : _currentRotation;
-                                  
-                                  return Transform.rotate(
-                                    angle: currentRotation,
-                                    child: _buildCenterElement(),
-                                  );
-                                },
-                              ),
-                              
-                              if (!_isLoading)
-                                _buildDecorativeElements(),
-                            ],
+                      child: Stack(
+                        children: [
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 600),
+                            opacity: _isLoading ? 0.3 : 1.0,
+                            child: AnimatedBuilder(
+                              animation: Listenable.merge([_rotationAnimation, _glowAnimation]),
+                              builder: (context, child) {
+                                final currentRotation = _rotationController.isAnimating 
+                                    ? _rotationAnimation.value 
+                                    : _currentRotation;
+                                
+                                return Transform.rotate(
+                                  angle: currentRotation,
+                                  child: CustomPaint(
+                                    size: const Size(650, 650),
+                                    painter: EnhancedWheelPainter(
+                                      months: _months,
+                                      selectedMonth: _selectedMonth - 1,
+                                      glowIntensity: _glowAnimation.value,
+                                      shimmerProgress: _shimmerAnimation.value,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
+                          AnimatedBuilder(
+                            animation: _rotationAnimation,
+                            builder: (context, child) {
+                              final currentRotation = _rotationController.isAnimating 
+                                  ? _rotationAnimation.value 
+                                  : _currentRotation;
+                              
+                              return Transform.rotate(
+                                angle: currentRotation,
+                                child: _buildCenterElement(),
+                              );
+                            },
+                          ),
+                          if (!_isLoading)
+                            _buildDecorativeElements(),
+                        ],
                       ),
                     ),
-                    
                     _buildTopGradient(),
-                    
                     if (!_isLoading)
                       _buildMonthIndicator(),
                   ],
                 ),
               ),
         ),
-        
-                
-        // Список праздников
-        if (_hasInteracted && !_isLoading) ...[
-          SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.3),
-              end: Offset.zero,
-            ).animate(_contentRevealAnimation),
-            child: FadeTransition(
-              opacity: _contentRevealAnimation,
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  _buildHolidaysList(),
-                ],
-              ),
-            ),
-          ),
-        ] else if (!_isLoading) ...[
-          Column(
-            children: [
-              const SizedBox(height: 20),
-              _buildHolidaysList(),
-            ],
-          ),
-        ],
+        // Список праздников месяца убран
       ],
     );
   }
@@ -589,335 +533,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   Widget _buildMonthIndicator() {
     // Убираем белую палочку - возвращаем пустой виджет
     return const SizedBox.shrink();
-  }
-
-  
-  Widget _buildHolidaysList() {
-    // ОБНОВЛЯЕМ СООБЩЕНИЕ О ПУСТОМ СПИСКЕ С УЧЕТОМ ОБОИХ ФИЛЬТРОВ
-    if (_currentMonthHolidays.isEmpty) {
-      String emptyMessage;
-      
-      if (widget.selectedTradition != null && widget.selectedAuthenticity != null) {
-        final traditionName = _getTraditionDisplayName(widget.selectedTradition!);
-        final authenticityName = _getAuthenticityDisplayName(widget.selectedAuthenticity!);
-        emptyMessage = 'В этом месяце нет праздников из $traditionName традиции с достоверностью "$authenticityName"';
-      } else if (widget.selectedTradition != null) {
-        final traditionName = _getTraditionDisplayName(widget.selectedTradition!);
-        emptyMessage = 'В этом месяце нет праздников из $traditionName традиции';
-      } else if (widget.selectedAuthenticity != null) {
-        final authenticityName = _getAuthenticityDisplayName(widget.selectedAuthenticity!);
-        emptyMessage = 'В этом месяце нет праздников с достоверностью "$authenticityName"';
-      } else {
-        emptyMessage = 'В этом месяце нет особых языческих праздников';
-      }
-      
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha((0.03 * 255).round()),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withAlpha((0.08 * 255).round()),
-                ),
-              ),
-              child: Text(
-                emptyMessage,
-                style: TextStyle(
-                  color: Colors.white.withAlpha((0.5 * 255).round()),
-                  fontSize: 14,
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha((0.05 * 255).round()),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withAlpha((0.1 * 255).round()),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha((0.08 * 255).round()),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          Icons.celebration,
-                          color: Colors.white.withAlpha((0.8 * 255).round()),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Праздники месяца',
-                              style: GoogleFonts.merriweather(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            // ОБНОВЛЯЕМ ИНФОРМАЦИЮ О ФИЛЬТРАХ
-                            if (widget.selectedTradition != null || widget.selectedAuthenticity != null) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  if (widget.selectedTradition != null) ...[
-                                    Text(
-                                      _getTraditionDisplayName(widget.selectedTradition!),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.orange.withAlpha((0.8 * 255).round()),
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
-                                    if (widget.selectedAuthenticity != null) ...[
-                                      Text(
-                                        ' • ',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.white.withAlpha((0.6 * 255).round()),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                  if (widget.selectedAuthenticity != null) ...[
-                                    Icon(
-                                      Icons.info_outline,
-                                      size: 12,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      _getAuthenticityDisplayName(widget.selectedAuthenticity!),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: _getAuthenticityColor(widget.selectedAuthenticity!).withAlpha((0.8 * 255).round()),
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                ..._currentMonthHolidays.map((holiday) => _buildHolidayCard(holiday)),
-                
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHolidayCard(PaganHoliday holiday) {
-    final traditionColor = Color(int.parse(holiday.traditionColor.replaceFirst('#', '0xFF')));
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            showHolidayInfoModal(context, holiday);
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  traditionColor.withAlpha((0.1 * 255).round()),
-                  traditionColor.withAlpha((0.05 * 255).round()),
-                ],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: traditionColor.withAlpha((0.2 * 255).round()),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        traditionColor,
-                        traditionColor.withAlpha((0.4 * 255).round()),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: traditionColor.withAlpha((0.6 * 255).round()),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ДОБАВЛЯЕМ ИНДИКАТОР ДОСТОВЕРНОСТИ В НАЗВАНИЕ
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              holiday.name,
-                              style: GoogleFonts.merriweather(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withAlpha((0.95 * 255).round()),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withAlpha((0.5 * 255).round()),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (holiday.nameOriginal != holiday.name) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          holiday.nameOriginal,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            color: traditionColor.withAlpha((0.7 * 255).round()),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 4),
-                      Text(
-                        '${holiday.date.day} ${_getMonthName(holiday.date.month)} • ${holiday.description}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withAlpha((0.7 * 255).round()),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: traditionColor.withAlpha((0.5 * 255).round()),
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // УПРОЩЕННЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДОСТОВЕРНОСТЬЮ
-
-  Color _getAuthenticityColor(HistoricalAuthenticity authenticity) {
-    // ВСЕ ЦВЕТА СЕРЫЕ
-    return Colors.grey;
-  }
-
-  String _getAuthenticityDisplayName(HistoricalAuthenticity authenticity) {
-    switch (authenticity) {
-      case HistoricalAuthenticity.authentic:
-        return 'Древние';
-      case HistoricalAuthenticity.likely:
-        return 'Вероятные';
-      case HistoricalAuthenticity.reconstructed:
-        return 'Восстановленные';
-      case HistoricalAuthenticity.modern:
-        return 'Новые';
-    }
-  }
-
- 
-
-  String _getMonthName(int month) {
-    const months = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ];
-    return months[month - 1];
-  }
-
-  String _getTraditionDisplayName(String tradition) {
-    switch (tradition.toLowerCase()) {
-      case 'nordic':
-      case 'scandinavian':
-        return 'Северная традиция';
-      case 'slavic':
-        return 'Славянская традиция';
-      case 'celtic':
-        return 'Кельтская традиция';
-      case 'germanic':
-        return 'Германская традиция';
-      case 'roman':
-        return 'Римская традиция';
-      case 'greek':
-        return 'Греческая традиция';
-      case 'baltic':
-        return 'Балтийская традиция';
-      case 'finnish':
-      case 'finno-ugric':
-        return 'Финно-угорская традиция';
-      default:
-        return tradition;
-    }
   }
 
   @override
