@@ -89,6 +89,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -96,8 +97,8 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/backgrounds/main_bg.jpg',
-              fit: BoxFit.cover,
+            'assets/images/backgrounds/main_bg.jpg',
+            fit: BoxFit.cover,
             ),
           ),
           Positioned.fill(
@@ -109,11 +110,33 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
             ),
           ),
           SafeArea(
-            child: GlassBackground(
-              borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                GlassBackground(
               child: _isLoading
                 ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                : _buildLibraryContent(),
+                    : _buildLibraryContent(),
+                ),
+                if (canPop)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Material(
+                          color: Colors.black.withOpacity(0.25),
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            tooltip: 'Назад',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -123,68 +146,68 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
 
   Widget _buildLibraryContent() {
     return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white12),
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[900],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          child: TextField(
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Поиск по названию или автору...',
+                              hintStyle: TextStyle(color: Colors.white38),
+                              prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            ),
+                            onChanged: (value) {
+                              _searchQuery = value;
+                              _filterBooks();
+                            },
+                          ),
+                        ),
+                        
+                        SizedBox(
+                          height: 50,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            children: [
+                              _buildCategoryChip('all', 'Все'),
+                              _buildCategoryChip('greece', 'Греция'),
+                              _buildCategoryChip('nordic', 'Север'),
+                              _buildCategoryChip('philosophy', 'Философия'),
+                              _buildCategoryChip('pagan', 'Язычество & традиционализм'),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        Expanded(
+                          child: _filteredBooks.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'Книги не найдены',
+                                    style: TextStyle(color: Colors.white54),
+                                  ),
+                                )
+                              : GridView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 0.65,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                  ),
+                                  itemCount: _filteredBooks.length,
+                                  itemBuilder: (context, index) => _buildBookCard(_filteredBooks[index]),
             ),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Поиск по названию или автору...',
-                hintStyle: TextStyle(color: Colors.white38),
-                prefixIcon: const Icon(Icons.search, color: Colors.white38),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-              onChanged: (value) {
-                _searchQuery = value;
-                _filterBooks();
-              },
-            ),
-          ),
-          
-          SizedBox(
-            height: 50,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildCategoryChip('all', 'Все'),
-                _buildCategoryChip('greece', 'Греция'),
-                _buildCategoryChip('nordic', 'Север'),
-                _buildCategoryChip('philosophy', 'Философия'),
-                _buildCategoryChip('pagan', 'Язычество & традиционализм'),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          Expanded(
-            child: _filteredBooks.isEmpty
-                ? Center(
-                    child: Text(
-                      'Книги не найдены',
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                  )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.65,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: _filteredBooks.length,
-                    itemBuilder: (context, index) => _buildBookCard(_filteredBooks[index]),
-                  ),
           ),
         ],
       ),

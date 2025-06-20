@@ -161,8 +161,8 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/backgrounds/main_bg.jpg',
-              fit: BoxFit.cover,
+            'assets/images/backgrounds/main_bg.jpg',
+            fit: BoxFit.cover,
             ),
           ),
           Positioned.fill(
@@ -174,17 +174,39 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
             ),
           ),
           SafeArea(
-            child: Column(
+            child: Stack(
               children: [
-                GlassBackground(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    margin: const EdgeInsets.all(12),
-                    child: _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                      : _buildNotesList(),
-                  ),
+                Column(
+                  children: [
+                    GlassBackground(
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                          : _buildNotesList(),
+                      ),
+                    ),
+                  ],
                 ),
+                if (Navigator.of(context).canPop())
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Material(
+                          color: Colors.black.withOpacity(0.25),
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            tooltip: 'Назад',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -195,51 +217,51 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
 
   Widget _buildNotesList() {
     return Column(
-      children: [
-        // Поиск
-        if (_notes.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Поиск по заметкам...',
-                hintStyle: TextStyle(color: Colors.white38),
-                prefixIcon: const Icon(Icons.search, color: Colors.white38),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                  _filterAndSortNotes();
-                });
-              },
-            ),
-          ),
-        
-        // Список заметок
-        Expanded(
-          child: _notes.isEmpty
-              ? _buildEmptyState()
-              : _filteredNotes.isEmpty
-                  ? _buildNoResultsState()
-                  : FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: _filteredNotes.length,
-                        itemBuilder: (context, index) => 
-                          _buildNoteCard(_filteredNotes[index]),
-                      ),
-                    ),
-        ),
-      ],
+                      children: [
+                        // Поиск
+                        if (_notes.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[900],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: TextField(
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'Поиск по заметкам...',
+                                hintStyle: TextStyle(color: Colors.white38),
+                                prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                  _filterAndSortNotes();
+                                });
+                              },
+                            ),
+                          ),
+                        
+                        // Список заметок
+                        Expanded(
+                          child: _notes.isEmpty
+                              ? _buildEmptyState()
+                              : _filteredNotes.isEmpty
+                                  ? _buildNoResultsState()
+                                  : FadeTransition(
+                                      opacity: _fadeAnimation,
+                                      child: ListView.builder(
+                                        padding: const EdgeInsets.only(bottom: 16),
+                                        itemCount: _filteredNotes.length,
+                                        itemBuilder: (context, index) => 
+                                          _buildNoteCard(_filteredNotes[index]),
+                                      ),
+                                    ),
+                        ),
+                      ],
     );
   }
 

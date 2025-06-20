@@ -113,6 +113,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -133,16 +134,38 @@ class _FavoritesPageState extends State<FavoritesPage> {
             ),
           ),
           SafeArea(
-            child: GlassBackground(
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                margin: const EdgeInsets.all(12),
-                child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                  : _favorites.isEmpty
-                      ? _buildEmptyState()
-                      : _buildFavoritesList(),
-              ),
+            child: Stack(
+              children: [
+                GlassBackground(
+                  child: Container(
+                    margin: const EdgeInsets.all(12),
+                    child: _loading
+                      ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                      : _favorites.isEmpty
+                          ? _buildEmptyState()
+                          : _buildFavoritesList(),
+                  ),
+                ),
+                if (canPop)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Material(
+                          color: Colors.black.withOpacity(0.25),
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            tooltip: 'Назад',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

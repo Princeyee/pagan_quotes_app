@@ -3,6 +3,7 @@ import '../../models/theme_info.dart';
 import '../../services/theme_service.dart';
 import '../../services/sound_manager.dart';
 import '../widgets/glass_background.dart';
+import 'dart:ui' as ui;
 
 class ThemeSelectorPage extends StatefulWidget {
   const ThemeSelectorPage({super.key});
@@ -66,12 +67,17 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      body: SafeArea(
-        child: GlassBackground(
-          borderRadius: BorderRadius.circular(20),
+      body: Stack(
+        children: [
+          // ... фон и блюр ...
+          SafeArea(
+            child: Stack(
+              children: [
+                GlassBackground(
           child: ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: allThemes.length,
@@ -87,39 +93,34 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
                   borderRadius: BorderRadius.circular(20),
                   color: isSelected ? Colors.white10 : Colors.white12,
                 ),
-                child: InkWell(
-                  onTap: () async {
-                    if (isExpanded) {
-                      // Закрываем контейнер и плавно затухаем звук
-                      await _stopThemeSound();
-                      setState(() {
-                        _expandedTheme = null;
-                      });
-                    } else {
-                      // Закрываем предыдущий контейнер если открыт
-                      if (_expandedTheme != null) {
-                        setState(() {
-                          _expandedTheme = null;
-                        });
-                      }
-                      // Открываем новый контейнер и плавно играем звук
-                      setState(() {
-                        _expandedTheme = theme;
-                      });
-                      await _playThemeSound(theme.id);
-                    }
-                  },
-                  child: AnimatedCrossFade(
-                    firstChild: _buildCollapsedCard(theme, isSelected),
-                    secondChild: _buildExpandedCard(theme, isSelected),
-                    crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                    duration: const Duration(milliseconds: 300),
+                        child: _buildThemeTile(theme, isSelected, isExpanded),
+                      );
+                    },
                   ),
                 ),
-              );
-            },
+                if (canPop)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Material(
+                          color: Colors.black.withOpacity(0.25),
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            tooltip: 'Назад',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -181,6 +182,38 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeTile(ThemeInfo theme, bool isSelected, bool isExpanded) {
+    return InkWell(
+      onTap: () async {
+        if (isExpanded) {
+          // Закрываем контейнер и плавно затухаем звук
+          await _stopThemeSound();
+          setState(() {
+            _expandedTheme = null;
+          });
+        } else {
+          // Закрываем предыдущий контейнер если открыт
+          if (_expandedTheme != null) {
+            setState(() {
+              _expandedTheme = null;
+            });
+          }
+          // Открываем новый контейнер и плавно играем звук
+          setState(() {
+            _expandedTheme = theme;
+          });
+          await _playThemeSound(theme.id);
+        }
+      },
+      child: AnimatedCrossFade(
+        firstChild: _buildCollapsedCard(theme, isSelected),
+        secondChild: _buildExpandedCard(theme, isSelected),
+        crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+        duration: const Duration(milliseconds: 300),
+      ),
     );
   }
 }
