@@ -259,6 +259,11 @@ class PublicGoogleDriveService {
   Future<bool> isFilePlayable(String fileId) async {
     return await _progressiveDownloadService.isPlayable(fileId);
   }
+
+  /// Получить путь к частично загруженному файлу
+  Future<String?> getPartialFilePath(String fileId) async {
+    return await _progressiveDownloadService.getPartialFilePath(fileId);
+  }
   
   /// Получить URL для воспроизведения (локальный сервер или прямая ссылка)
   Future<String?> getPlayableUrl(String fileId, String fileName) async {

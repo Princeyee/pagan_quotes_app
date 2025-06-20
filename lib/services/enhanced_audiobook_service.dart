@@ -105,52 +105,72 @@ class EnhancedAudiobookService {
     }
   }
 
-  // УЛУЧШЕННЫЙ МЕТОД ПОЛУЧЕНИЯ URL С ПРЕДЗАГРУЗКОЙ
+  // УЛУЧШЕННЫЙ МЕТОД ПОЛУЧЕНИЯ URL С КЕШИРОВАНИЕМ И ПРОГРЕССИВНОЙ ЗАГРУЗКОЙ
   Future<String?> getPlayableUrl(AudiobookChapter chapter) async {
     if (chapter.isStreamable && chapter.driveFileId != null) {
       final fileName = '${chapter.driveFileId}.mp3';
       
-      // Сначала проверяем кеш
+      print('🔍 Поиск файла: $fileName');
+      
+      // 1. Проверяем полностью загруженный кеш
       final cachedPath = await _driveService.getCachedFilePath(fileName);
-      if (cachedPath != null) {
-        print('✅ Файл найден в кеше: $cachedPath');
+      if (cachedPath != null && await File(cachedPath).exists()) {
+        print('✅ Файл найден в полном кеше: $cachedPath');
         return cachedPath;
       }
       
-      // Проверяем предзагруженные файлы
+      // 2. Проверяем предзагруженные файлы в памяти
       if (_preloadedFiles.containsKey(chapter.driveFileId)) {
         final preloadedPath = _preloadedFiles[chapter.driveFileId]!;
         if (await File(preloadedPath).exists()) {
-          print('✅ Файл найден в предзагрузке: $preloadedPath');
+          print('✅ Файл найден в предзагрузке (память): $preloadedPath');
           return preloadedPath;
+        } else {
+          // Файл был удален, убираем из кеша
+          _preloadedFiles.remove(chapter.driveFileId);
+          await _savePreloadedChapters();
         }
       }
       
-      // Если онлайн, пытаемся предзагрузить файл
+      // 3. Проверяем прогрессивную загрузку
+      final progressivePath = await _driveService.getPartialFilePath(chapter.driveFileId!);
+      if (progressivePath != null && await File(progressivePath).exists()) {
+        final isPlayable = await _driveService.isFilePlayable(chapter.driveFileId!);
+        if (isPlayable) {
+          print('✅ Файл найден в прогрессивной загрузке: $progressivePath');
+          _preloadedFiles[chapter.driveFileId!] = progressivePath;
+          await _savePreloadedChapters();
+          return progressivePath;
+        }
+      }
+      
+      // 4. Если онлайн, начинаем прогрессивную загрузку
       final connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult != ConnectivityResult.none) {
-        print('🔄 Начинаем предзагрузку файла: $fileName');
+        print('🔄 Начинаем прогрессивную загрузку файла: $fileName');
         
         try {
-          final preloadedPath = await _driveService.preloadFile(
+          // Используем прогрессивную загрузку вместо обычной предзагрузки
+          final progressiveUrl = await _driveService.startProgressiveDownload(
             chapter.driveFileId!,
             fileName,
-            onProgress: (progress) {
-              print('📥 Загрузка: ${(progress * 100).toInt()}%');
-            },
           );
           
-          if (preloadedPath != null) {
-            _preloadedFiles[chapter.driveFileId!] = preloadedPath;
-            await _savePreloadedChapters();
-            print('✅ Файл предзагружен: $preloadedPath');
-            return preloadedPath;
+          if (progressiveUrl != null) {
+            // Получаем реальный путь к файлу для кеширования
+            final realPath = await _driveService.getPartialFilePath(chapter.driveFileId!);
+            if (realPath != null) {
+              _preloadedFiles[chapter.driveFileId!] = realPath;
+              await _savePreloadedChapters();
+            }
+            print('✅ Файл добавлен в прогрессивную загрузку: $progressiveUrl');
+            return progressiveUrl;
           }
         } catch (e) {
-          print('❌ Ошибка предзагрузки: $e');
+          print('❌ Ошибка прогрессивной загрузки: $e');
         }
         
-        // Если предзагрузка не удалась, возвращаем стриминговый URL
+        // Если прогрессивная загрузка не удалась, возвращаем стриминговый URL
         print('🌐 Используем стриминг: ${chapter.driveFileId}');
         return _driveService.getFileDownloadUrl(chapter.driveFileId!);
       }

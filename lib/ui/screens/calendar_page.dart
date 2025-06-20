@@ -120,6 +120,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       // Загружаем кэшированные цитаты
       await _loadCachedQuotes();
 
+      // Загружаем цитату для сегодняшнего дня (только из кэша)
+      await _loadQuoteForDate(DateTime.now());
+
       // Подготавливаем события
       _prepareEvents();
 
@@ -175,7 +178,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     _events.clear();
     final currentYear = _focusedDay.year;
 
-    // Добавляем праздники
+    // Добавляем ТОЛЬКО праздники, НЕ добавляем цитаты как события
     final filteredHolidays = _getFilteredHolidays();
     for (final holiday in filteredHolidays) {
       final holidayDate = DateTime(currentYear, holiday.date.month, holiday.date.day);
@@ -183,11 +186,8 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       _events.putIfAbsent(dateKey, () => []).add(holiday);
     }
 
-    // Добавляем цитаты
-    for (final entry in _cachedQuotes.entries) {
-      final dateKey = DateTime(entry.key.year, entry.key.month, entry.key.day);
-      _events.putIfAbsent(dateKey, () => []).add(entry.value);
-    }
+    // НЕ добавляем цитаты в события, чтобы не показывать оранжевые маркеры
+    // Цитаты будут загружаться отдельно при клике на день
   }
 
   List<PaganHoliday> _getFilteredHolidays() {
@@ -215,17 +215,25 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
         _focusedDay = focusedDay;
       });
       
-      // Генерируем цитату для выбранной даты, если её нет
-      final dateKey = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-      if (!_cachedQuotes.containsKey(dateKey)) {
-        final quote = await _calendarQuoteService.generateQuoteForDate(dateKey);
-        if (quote != null) {
-          setState(() {
-            _cachedQuotes[dateKey] = quote;
-            _prepareEvents();
-          });
-        }
+      // Загружаем цитату для выбранной даты
+      await _loadQuoteForDate(selectedDay);
+    }
+  }
+
+  // Новый метод для загрузки цитаты для конкретной даты
+  Future<void> _loadQuoteForDate(DateTime date) async {
+    final dateKey = DateTime(date.year, date.month, date.day);
+    
+    // Сначала проверяем кэш
+    if (!_cachedQuotes.containsKey(dateKey)) {
+      // Проверяем в SharedPreferences
+      final cachedQuote = _cache.getCachedDailyQuote(dateKey);
+      if (cachedQuote != null) {
+        setState(() {
+          _cachedQuotes[dateKey] = cachedQuote;
+        });
       }
+      // НЕ генерируем новую цитату - показываем только сохраненные
     }
   }
   
@@ -446,9 +454,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
-                            // Виджет цитаты дня
-                            _buildDailyQuoteCard(),
-                            const SizedBox(height: 20),
+                            // Виджет цитаты дня (показываем только если календарь не открыт)
+                            if (!_showCalendar) ...[
+                              _buildDailyQuoteCard(),
+                              const SizedBox(height: 20),
+                            ],
                             if (_nextHoliday != null) _buildNextHolidayCard(),
                             if (_showCalendar) ...[
                               const SizedBox(height: 20),
@@ -572,19 +582,11 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
   
   // Новый виджет для цитаты дня
   Widget _buildDailyQuoteCard() {
-    // Получаем цитату дня для текущей даты
+    // Получаем цитату дня ТОЛЬКО для сегодняшней даты
     final today = DateTime.now();
     final dateKey = DateTime(today.year, today.month, today.day);
-    final events = _getEventsForDay(dateKey);
-    
-    // Ищем цитату среди событий
-    DailyQuote? dailyQuote;
-    for (final event in events) {
-      if (event is DailyQuote) {
-        dailyQuote = event;
-        break;
-      }
-    }
+    // Получаем цитату из кэша (НЕ из событий)
+    final dailyQuote = _cachedQuotes[dateKey];
     
     if (dailyQuote == null) return const SizedBox.shrink();
     
@@ -617,7 +619,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Цитата дня',
+                  'Цитата дня', // Всегда "Цитата дня" так как это только для сегодня
                   style: TextStyle(
                     color: Colors.white.withAlpha((0.8 * 255).round()),
                     fontSize: 14,
@@ -860,14 +862,18 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
 
   Widget _buildSelectedDayEvents() {
-    final events = _getEventsForDay(_selectedDay ?? DateTime.now());
+    final selectedDate = _selectedDay ?? DateTime.now();
+    final events = _getEventsForDay(selectedDate);
     
-    // Разделяем события на праздники и цитаты
+    // Получаем праздники из событий
     final holidays = events.whereType<PaganHoliday>().toList();
-    final quotes = events.whereType<DailyQuote>().toList();
+    
+    // Получаем цитату из кэша (НЕ из событий)
+    final dateKey = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    final quote = _cachedQuotes[dateKey];
     
     // Если нет ни праздников, ни цитат
-    if (holidays.isEmpty && quotes.isEmpty) {
+    if (holidays.isEmpty && quote == null) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -896,9 +902,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
             ),
             const SizedBox(height: 8),
             Text(
-              _selectedDay != null
-                  ? 'На ${_formatDate(_selectedDay!)} нет событий'
-                  : 'Выберите дату для просмотра событий',
+              'На ${_formatDate(selectedDate)} нет событий',
               style: TextStyle(
                 color: Colors.white.withAlpha((0.5 * 255).round()),
                 fontSize: 14,
@@ -912,9 +916,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
     return Column(
       children: [
-        // Цитата дня для выбранной даты
-        if (quotes.isNotEmpty) ...[
-          _buildQuoteCard(quotes.first),
+        // Цитата для выбранной даты
+        if (quote != null) ...[
+          _buildQuoteCard(quote, selectedDate),
           const SizedBox(height: 16),
         ],
         
@@ -943,9 +947,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _selectedDay != null
-                            ? 'Праздники ${_formatDate(_selectedDay!)}'
-                            : 'Праздники сегодня',
+                        'Праздники ${_formatDate(selectedDate)}',
                         style: GoogleFonts.merriweather(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -963,7 +965,18 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     );
   }
   
-  Widget _buildQuoteCard(DailyQuote dailyQuote) {
+  Widget _buildQuoteCard(DailyQuote dailyQuote, DateTime date) {
+    final today = DateTime.now();
+    final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
+    
+    // Определяем заголовок в зависимости от даты
+    String title;
+    if (isToday) {
+      title = 'Цитата дня';
+    } else {
+      title = 'Цитата ${_formatDate(date)}';
+    }
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -996,7 +1009,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Цитата дня',
+                    title,
                     style: TextStyle(
                       color: Colors.white.withAlpha((0.8 * 255).round()),
                       fontSize: 14,

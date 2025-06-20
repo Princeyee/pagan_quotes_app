@@ -589,42 +589,49 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
 
   Widget _buildControlsSection() {
     final isBuffering = _isLoading || (_downloadProgress != null && !_downloadProgress!.isPlayable);
+    final isDownloading = _downloadProgress != null && _downloadProgress!.status == ProgressiveDownloadStatus.downloading;
+    
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          // Прогресс бар
-          Column(
-            children: [
-              Row(
-                children: [
-                  Text(
-                    _formatDuration(_currentPosition),
-                    style: const TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                  Expanded(
-                    child: Slider(
-                      value: _totalDuration.inMilliseconds > 0
-                          ? _currentPosition.inMilliseconds.toDouble()
-                          : 0.0,
-                      max: _totalDuration.inMilliseconds.toDouble(),
-                      onChanged: (value) {
-                        _seek(Duration(milliseconds: value.toInt()));
-                      },
-                      activeColor: Colors.white,
-                      inactiveColor: Colors.white.withOpacity(0.3),
+          // Красивая анимация загрузки
+          if (isBuffering) ...[
+            _buildLoadingAnimation(),
+            const SizedBox(height: 24),
+          ] else ...[
+            // Прогресс воспроизведения (показывается только когда файл готов)
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      _formatDuration(_currentPosition),
+                      style: const TextStyle(fontSize: 12, color: Colors.white),
                     ),
-                  ),
-                  Text(
-                    _formatDuration(_totalDuration),
-                    style: const TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
+                    Expanded(
+                      child: Slider(
+                        value: _totalDuration.inMilliseconds > 0
+                            ? _currentPosition.inMilliseconds.toDouble()
+                            : 0.0,
+                        max: _totalDuration.inMilliseconds.toDouble(),
+                        onChanged: (value) {
+                          _seek(Duration(milliseconds: value.toInt()));
+                        },
+                        activeColor: Colors.white,
+                        inactiveColor: Colors.white.withOpacity(0.3),
+                      ),
+                    ),
+                    Text(
+                      _formatDuration(_totalDuration),
+                      style: const TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
 
           // Кнопки управления
           Row(
@@ -634,88 +641,70 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
               IconButton(
                 icon: const Icon(Icons.skip_previous, color: Colors.white),
                 iconSize: 32,
-                onPressed: _currentChapterIndex > 0 ? _previousChapter : null,
+                onPressed: (_currentChapterIndex > 0 && !isBuffering) ? _previousChapter : null,
               ),
 
               // Перемотка назад
               IconButton(
                 icon: const Icon(Icons.replay_30, color: Colors.white),
                 iconSize: 28,
-                onPressed: () {
+                onPressed: !isBuffering ? () {
                   final newPosition = _currentPosition - const Duration(seconds: 30);
                   _seek(newPosition < Duration.zero ? Duration.zero : newPosition);
-                },
+                } : null,
               ),
 
               // Play/Pause
-              Column(
-                children: [
-                  _buildPlayPauseButton(),
-                  if (isBuffering)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        'Буферизация...'
-                        + (_downloadProgress != null && _downloadProgress!.totalBytes > 0
-                          ? ' ${(100 * (_downloadProgress!.percentage)).toStringAsFixed(0)}%'
-                          : ''),
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 13,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              _buildPlayPauseButton(),
 
               // Перемотка вперед
               IconButton(
                 icon: const Icon(Icons.forward_30, color: Colors.white),
                 iconSize: 28,
-                onPressed: () {
+                onPressed: !isBuffering ? () {
                   final newPosition = _currentPosition + const Duration(seconds: 30);
                   _seek(newPosition > _totalDuration ? _totalDuration : newPosition);
-                },
+                } : null,
               ),
 
               // Следующая глава
               IconButton(
                 icon: const Icon(Icons.skip_next, color: Colors.white),
                 iconSize: 32,
-                onPressed: _currentChapterIndex < widget.audiobook.chapters.length - 1
+                onPressed: (_currentChapterIndex < widget.audiobook.chapters.length - 1 && !isBuffering)
                     ? _nextChapter
                     : null,
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
-
-          // Скорость воспроизведения
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Скорость: ', style: TextStyle(color: Colors.white)),
-              GestureDetector(
-                onTap: _showSpeedDialog,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${_playbackSpeed}x',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          if (!isBuffering) ...[
+            const SizedBox(height: 16),
+            // Скорость воспроизведения (показывается только когда файл готов)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Скорость: ', style: TextStyle(color: Colors.white)),
+                GestureDetector(
+                  onTap: _showSpeedDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${_playbackSpeed}x',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -770,6 +759,205 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
         ),
       ),
     );
+  }
+
+  Widget _buildLoadingAnimation() {
+    final downloadProgress = _downloadProgress;
+    final progressPercentage = downloadProgress?.percentage ?? 0.0;
+    final downloadSpeed = downloadProgress?.downloadSpeed ?? 0;
+    final isDownloading = downloadProgress?.status == ProgressiveDownloadStatus.downloading;
+    
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Анимированная иконка загрузки
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Внешний круг с анимацией
+              AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3 + 0.3 * _waveController.value),
+                        width: 2,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              // Прогресс загрузки
+              if (isDownloading)
+                SizedBox(
+                  width: 70,
+                  height: 70,
+                  child: CircularProgressIndicator(
+                    value: progressPercentage,
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: 70,
+                  height: 70,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                  ),
+                ),
+              
+              // Иконка в центре
+              AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: 1.0 + 0.1 * _waveController.value,
+                    child: Icon(
+                      Icons.audiotrack,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Текст загрузки
+          Text(
+            'Загрузка аудиокниги...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Детали загрузки
+          if (isDownloading) ...[
+            Text(
+              '${(progressPercentage * 100).toInt()}% загружено',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+              ),
+            ),
+            
+            if (downloadSpeed > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                _formatSpeed(downloadSpeed),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ] else ...[
+            Text(
+              'Подготовка к воспроизведению...',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+              ),
+            ),
+          ],
+          
+          const SizedBox(height: 16),
+          
+          // Прогресс бар
+          if (isDownloading)
+            Container(
+              width: double.infinity,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progressPercentage,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.white.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment(-1 + 2 * _waveController.value, 0),
+                        end: Alignment(-0.5 + 2 * _waveController.value, 0),
+                        colors: [
+                          Colors.transparent,
+                          Colors.white.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatSpeed(int bytesPerSecond) {
+    if (bytesPerSecond < 1024) {
+      return '${bytesPerSecond} Б/с';
+    } else if (bytesPerSecond < 1024 * 1024) {
+      return '${(bytesPerSecond / 1024).toStringAsFixed(1)} КБ/с';
+    } else {
+      return '${(bytesPerSecond / (1024 * 1024)).toStringAsFixed(1)} МБ/с';
+    }
   }
 
   Widget _buildChapterList() {
