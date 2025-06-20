@@ -5,6 +5,8 @@ import '../../utils/custom_cache.dart';
 import '../widgets/note_modal.dart';
 import '../../models/quote.dart';
 import '../widgets/glass_background.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -155,109 +157,89 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Мои заметки',
-          style: GoogleFonts.merriweather(color: Colors.white),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort, color: Colors.white),
-            onSelected: (value) {
-              setState(() {
-                _sortBy = value;
-                _filterAndSortNotes();
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'date_desc',
-                child: Text('Сначала новые'),
-              ),
-              const PopupMenuItem(
-                value: 'date_asc',
-                child: Text('Сначала старые'),
-              ),
-              const PopupMenuItem(
-                value: 'author',
-                child: Text('По автору'),
-              ),
-            ],
-          ),
-        ],
-      ),
       body: Stack(
         children: [
-          // Размытый фон с изображением из главного экрана
-          Image.asset(
-            'assets/images/backgrounds/main_bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/backgrounds/main_bg.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
-          
-          // Стеклянный контейнер с использованием GlassBackground
-          SafeArea(
-            child: GlassBackground(
-              borderRadius: BorderRadius.circular(20),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
-                margin: const EdgeInsets.all(12),
-                child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                  : Column(
-                      children: [
-                        // Поиск
-                        if (_notes.isNotEmpty)
-                          Container(
-                            margin: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[900],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white12),
-                            ),
-                            child: TextField(
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                hintText: 'Поиск по заметкам...',
-                                hintStyle: TextStyle(color: Colors.white38),
-                                prefixIcon: const Icon(Icons.search, color: Colors.white38),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  _searchQuery = value;
-                                  _filterAndSortNotes();
-                                });
-                              },
-                            ),
-                          ),
-                        
-                        // Список заметок
-                        Expanded(
-                          child: _notes.isEmpty
-                              ? _buildEmptyState()
-                              : _filteredNotes.isEmpty
-                                  ? _buildNoResultsState()
-                                  : FadeTransition(
-                                      opacity: _fadeAnimation,
-                                      child: ListView.builder(
-                                        padding: const EdgeInsets.only(bottom: 16),
-                                        itemCount: _filteredNotes.length,
-                                        itemBuilder: (context, index) => 
-                                          _buildNoteCard(_filteredNotes[index]),
-                                      ),
-                                    ),
-                        ),
-                      ],
-                    ),
+                color: Colors.black.withOpacity(0.7),
               ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                GlassBackground(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    margin: const EdgeInsets.all(12),
+                    child: _isLoading
+                      ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                      : _buildNotesList(),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotesList() {
+    return Column(
+      children: [
+        // Поиск
+        if (_notes.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: TextField(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Поиск по заметкам...',
+                hintStyle: TextStyle(color: Colors.white38),
+                prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                  _filterAndSortNotes();
+                });
+              },
+            ),
+          ),
+        
+        // Список заметок
+        Expanded(
+          child: _notes.isEmpty
+              ? _buildEmptyState()
+              : _filteredNotes.isEmpty
+                  ? _buildNoResultsState()
+                  : FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        itemCount: _filteredNotes.length,
+                        itemBuilder: (context, index) => 
+                          _buildNoteCard(_filteredNotes[index]),
+                      ),
+                    ),
+        ),
+      ],
     );
   }
 

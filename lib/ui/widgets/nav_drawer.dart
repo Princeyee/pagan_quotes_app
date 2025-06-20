@@ -303,47 +303,24 @@ class _NavDrawerState extends State<NavDrawer>
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      margin: EdgeInsets.zero,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(15),
         child: InkWell(
-          borderRadius: BorderRadius.circular(15),
           onTap: onTap,
           splashColor: Colors.white.withAlpha((0.05 * 255).round()),
           highlightColor: Colors.white.withAlpha((0.02 * 255).round()),
-          child: Container(
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.black.withAlpha((0.15 * 255).round()),
-              border: Border.all(
-                color: Colors.white.withAlpha((0.08 * 255).round()),
-                width: 0.5,
-              ),
-            ),
             child: Row(
               children: [
                 // Иконка
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha((0.05 * 255).round()),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.white.withAlpha((0.08 * 255).round()),
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white.withAlpha((0.8 * 255).round()),
-                    size: 20,
-                  ),
+                Icon(
+                  icon,
+                  color: Colors.white.withAlpha((0.8 * 255).round()),
+                  size: 20,
                 ),
                 const SizedBox(width: 16),
-                
                 // Текст
                 Expanded(
                   child: Text(
@@ -357,7 +334,6 @@ class _NavDrawerState extends State<NavDrawer>
                     ),
                   ),
                 ),
-                
                 // Стрелка
                 Icon(
                   Icons.chevron_right,

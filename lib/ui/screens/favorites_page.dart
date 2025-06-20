@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui';
 
 import '../../services/favorites_service.dart';
 import '../../services/image_picker_service.dart';
@@ -114,38 +116,29 @@ class _FavoritesPageState extends State<FavoritesPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Избранное', 
-          style: GoogleFonts.merriweather(color: Colors.white)
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
       body: Stack(
         children: [
-          // Размытый фон с изображением из главного экрана
-          Image.asset(
-            'assets/images/backgrounds/main_bg.jpg',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/backgrounds/main_bg.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
-          
-          // Стеклянный контейнер с использованием GlassBackground
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                color: Colors.black.withOpacity(0.7),
+              ),
+            ),
+          ),
           SafeArea(
             child: GlassBackground(
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 margin: const EdgeInsets.all(12),
                 child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.white)
-                    )
+                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
                   : _favorites.isEmpty
                       ? _buildEmptyState()
                       : _buildFavoritesList(),

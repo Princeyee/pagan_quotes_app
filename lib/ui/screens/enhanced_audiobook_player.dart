@@ -1,10 +1,13 @@
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:palette_generator/palette_generator.dart';
 import '../../models/audiobook.dart';
 import '../../services/enhanced_audiobook_service.dart';
+import '../../services/public_google_drive_service.dart';
+import '../../services/progressive_download_service.dart';
 
 class EnhancedAudiobookPlayer extends StatefulWidget {
   final Audiobook audiobook;
@@ -24,6 +27,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     with TickerProviderStateMixin {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final EnhancedAudiobookService _audiobookService = EnhancedAudiobookService();
+  final PublicGoogleDriveService _driveService = PublicGoogleDriveService();
 
   late AnimationController _playPauseController;
   late AnimationController _waveController;
@@ -46,6 +50,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   Duration? _sleepTimer;
   DateTime? _sleepEndTime;
 
+  DownloadProgress? _downloadProgress;
+  StreamSubscription<DownloadProgress>? _progressSub;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +63,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     _setupAudioListeners();
     _extractColorsFromCover();
     _audiobookService.initialize();
+    _subscribeToDownloadProgress();
   }
 
   void _initializeAnimations() {
@@ -75,7 +83,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     );
   }
 
-  // Извлечение ц��етов из обложки книги
+  // Извлечение цветов из обложки книги
   Future<void> _extractColorsFromCover() async {
     try {
       ImageProvider imageProvider;
@@ -114,9 +122,26 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     }
   }
 
+  void _subscribeToDownloadProgress() {
+    _progressSub?.cancel();
+    final chapter = widget.audiobook.chapters[_currentChapterIndex];
+    if (chapter.driveFileId != null) {
+      _progressSub = _driveService.getDownloadProgressStream(chapter.driveFileId!).listen((progress) {
+        setState(() {
+          _downloadProgress = progress;
+        });
+        // Автостарт, если достигнут playable threshold
+        if (!_isPlaying && progress.isPlayable && _isLoading) {
+          _audioPlayer.play();
+        }
+      });
+    }
+  }
+
   void _initializeAudio() async {
     setState(() => _isLoading = true);
-
+    _downloadProgress = null;
+    _subscribeToDownloadProgress();
     try {
       final chapter = widget.audiobook.chapters[_currentChapterIndex];
       
@@ -163,6 +188,10 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       
+      // Если файл уже playable, автостарт
+      if (_downloadProgress?.isPlayable ?? true) {
+        await _audioPlayer.play();
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       _showError('Ошибка загрузки аудиофайла: $e');
@@ -247,8 +276,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       setState(() {
         _currentChapterIndex = index;
         _isLoading = true;
+        _downloadProgress = null;
       });
-
+      _subscribeToDownloadProgress();
       try {
         final chapter = widget.audiobook.chapters[index];
         
@@ -289,7 +319,10 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
           await _audioPlayer.seek(progress.position);
         }
         
-        await _audioPlayer.play();
+        // Если файл уже playable, автостарт
+        if (_downloadProgress?.isPlayable ?? true) {
+          await _audioPlayer.play();
+        }
         
         // Предзагружаем следующие главы
         _audiobookService.preloadNextChapters(widget.audiobook, index);
@@ -555,6 +588,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   }
 
   Widget _buildControlsSection() {
+    final isBuffering = _isLoading || (_downloadProgress != null && !_downloadProgress!.isPlayable);
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -614,35 +648,25 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
               ),
 
               // Play/Pause
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(30),
-                    onTap: _isLoading ? null : _playPause,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      child: AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: _playPauseController,
-                        color: Colors.white,
-                        size: 48,
+              Column(
+                children: [
+                  _buildPlayPauseButton(),
+                  if (isBuffering)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Буферизация...'
+                        + (_downloadProgress != null && _downloadProgress!.totalBytes > 0
+                          ? ' ${(100 * (_downloadProgress!.percentage)).toStringAsFixed(0)}%'
+                          : ''),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                ],
               ),
 
               // Перемотка вперед
@@ -693,6 +717,57 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlayPauseButton() {
+    final isBuffering = _isLoading || (_downloadProgress != null && !_downloadProgress!.isPlayable);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: isBuffering ? null : _playPause,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: isBuffering
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: CircularProgressIndicator(
+                          value: _downloadProgress?.percentage ?? null,
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                        ),
+                      ),
+                      Icon(Icons.music_note, color: Colors.white.withOpacity(0.7), size: 28),
+                    ],
+                  )
+                : AnimatedIcon(
+                    icon: AnimatedIcons.play_pause,
+                    progress: _playPauseController,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+          ),
+        ),
       ),
     );
   }
@@ -939,6 +1014,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
 
   @override
   void dispose() {
+    _progressSub?.cancel();
     _audioPlayer.dispose();
     _playPauseController.dispose();
     _waveController.dispose();

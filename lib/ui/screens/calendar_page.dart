@@ -369,124 +369,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: AnimatedBuilder(
-          animation: _fadeController,
-          builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(0, -kToolbarHeight * (1 - _fadeController.value)),
-              child: child,
-            );
-          },
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            flexibleSpace: ClipRect(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withAlpha((0.8 * 255).round()),
-                        Colors.black.withAlpha((0.5 * 255).round()),
-                        Colors.black.withAlpha((0.2 * 255).round()),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Text(
-              'Календарь',
-              style: GoogleFonts.merriweather(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
       body: _buildBackgroundWithBlur(),
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha((0.1 * 255).round()),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: Colors.white.withAlpha((0.2 * 255).round()),
-                  width: 0.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha((0.3 * 255).round()),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(30),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => _buildFilterSheet(),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.filter_list,
-                          color: Colors.white.withAlpha((0.9 * 255).round()),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Фильтры',
-                          style: TextStyle(
-                            color: Colors.white.withAlpha((0.9 * 255).round()),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        if (_selectedTradition != null || _selectedAuthenticity != null)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.amber,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -549,11 +432,15 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Колесо в верхней части экрана
+                      // Колесо в самом верху
                       _buildPaganWheel(),
-                      // Отступ после колеса
-                      const SizedBox(height: 80),
+                      // Праздники месяца отдельным блоком
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24.0, left: 8, right: 8),
+                        child: _buildMonthHolidaysSection(),
+                      ),
                       // Контент
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -569,7 +456,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
                               const SizedBox(height: 20),
                               _buildSelectedDayEvents(),
                               const SizedBox(height: 20),
-                              _buildMonthHolidaysSection(),
                             ],
                             // Дополнительный отступ внизу для удобства прокрутки
                             const SizedBox(height: 100),
@@ -794,8 +680,6 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       width: double.infinity,
       child: Column(
         children: [
-          // Дополнительный отступ сверху, чтобы поднять колесо выше
-          const SizedBox(height: 40),
           // Полукруг колеса
           Container(
             height: 580,
@@ -1185,112 +1069,120 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
           ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
-            child: Row(
+      child: SizedBox(
+        height: 300, // Можно подобрать оптимальную высоту
+        child: Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.calendar_month,
-                  color: Colors.white.withAlpha((0.7 * 255).round()),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Все праздники месяца',
-                  style: GoogleFonts.merriweather(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withAlpha((0.9 * 255).round()),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...monthHolidays.map((holiday) {
-            final traditionColor = Color(int.parse(holiday.traditionColor.replaceFirst('#', '0xFF')));
-            return Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _showHolidayDetails(holiday),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.white.withAlpha((0.05 * 255).round()),
-                        width: 0.5,
-                      ),
-                    ),
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
                   child: Row(
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: traditionColor.withAlpha((0.1 * 255).round()),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: traditionColor.withAlpha((0.3 * 255).round()),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: traditionColor.withAlpha((0.2 * 255).round()),
-                              blurRadius: 4,
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          '${holiday.date.day}',
-                          style: TextStyle(
-                            color: traditionColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              holiday.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _getTraditionDisplayName(holiday.tradition),
-                              style: TextStyle(
-                                color: Colors.white.withAlpha((0.6 * 255).round()),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white.withAlpha((0.3 * 255).round()),
-                        size: 14,
+                        Icons.calendar_month,
+                        color: Colors.white.withAlpha((0.7 * 255).round()),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Все праздники месяца',
+                        style: GoogleFonts.merriweather(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withAlpha((0.9 * 255).round()),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-        ],
+                ...monthHolidays.map((holiday) {
+                  final traditionColor = Color(int.parse(holiday.traditionColor.replaceFirst('#', '0xFF')));
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _showHolidayDetails(holiday),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.white.withAlpha((0.05 * 255).round()),
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: traditionColor.withAlpha((0.1 * 255).round()),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: traditionColor.withAlpha((0.3 * 255).round()),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: traditionColor.withAlpha((0.2 * 255).round()),
+                                    blurRadius: 4,
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                '${holiday.date.day}',
+                                style: TextStyle(
+                                  color: traditionColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    holiday.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _getTraditionDisplayName(holiday.tradition),
+                                    style: TextStyle(
+                                      color: Colors.white.withAlpha((0.6 * 255).round()),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white.withAlpha((0.3 * 255).round()),
+                              size: 14,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

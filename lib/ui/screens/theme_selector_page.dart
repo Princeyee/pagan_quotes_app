@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../models/theme_info.dart';
 import '../../services/theme_service.dart';
@@ -70,11 +69,6 @@ class _ThemeSelectorPageState extends State<ThemeSelectorPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('Темы'),
-      ),
       body: SafeArea(
         child: GlassBackground(
           borderRadius: BorderRadius.circular(20),
