@@ -28,7 +28,7 @@ final List<ThemeInfo> allThemes = [
     id: "nordic",
     name: "Север",
     image: "assets/images/nordic.jpg",
-    authors: ["Мифопоэтика", "Песнь о Нибелунгах", "Беовульф"],
+    authors: ["Старшая Эдда", "Песнь о Нибелунгах", "Беовульф"],
     description: "Скандинавская мудрость, мифы и эпос викингов.",
   ),
   ThemeInfo(
