@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/book_source.dart';
-import 'enhanced_audiobook_service.dart';
+// import 'enhanced_audiobook_service.dart'; // УБИРАЕМ ЦИКЛИЧЕСКУЮ ЗАВИСИМОСТЬ
 
 class TextFileService {
   static final TextFileService _instance = TextFileService._internal();
@@ -21,9 +21,10 @@ class TextFileService {
       return _cachedSources.values.expand((list) => list).toList();
     }
     
+    // УБИРАЕМ ЦИКЛИЧЕСКУЮ ЗАВИСИМОСТЬ
     // Загружаем список аудиокниг для проверки наличия аудиоверсий
-    final audiobookService = EnhancedAudiobookService();
-    final audiobooks = await audiobookService.getAudiobooks();
+    // final audiobookService = EnhancedAudiobookService();
+    // final audiobooks = await audiobookService.getAudiobooks();
 
     // ХАРДКОД - точно такие же книги как в random_curator.dart
     final sources = <BookSource>[
@@ -321,37 +322,43 @@ class TextFileService {
     // Проверяем наличие аудиоверсий для книг
     for (int i = 0; i < sources.length; i++) {
       final book = sources[i];
-      // Проверяем, есть ли аудиокнига с таким же ID, названием или автором
-      final hasAudio = audiobooks.any((audiobook) {
-        // Точное совпадение по ID
-        if (audiobook.id == book.id) return true;
-        
-        // Точное совпадение по названию
-        if (audiobook.title.toLowerCase().trim() == book.title.toLowerCase().trim()) return true;
-        
-        // Совпадение по автору (если названия похожи)
-        if (audiobook.author.toLowerCase().trim() == book.author.toLowerCase().trim()) {
-          // Проверяем, есть ли частичное совпадение в названиях
-          final audioTitle = audiobook.title.toLowerCase().trim();
-          final bookTitle = book.title.toLowerCase().trim();
-          
-          // Если одно название содержит другое
-          if (audioTitle.contains(bookTitle) || bookTitle.contains(audioTitle)) {
-            return true;
-          }
-          
-          // Если названия имеют общие ключевые слова
-          final audioWords = audioTitle.split(' ');
-          final bookWords = bookTitle.split(' ');
-          final commonWords = audioWords.where((word) => 
-            word.length > 3 && bookWords.contains(word)
-          ).length;
-          
-          if (commonWords >= 2) return true;
-        }
-        
-        return false;
-      });
+      
+      // Маппинг ID текстовых книг к названиям папок аудиокниг
+      final Map<String, List<String>> bookToAudioFolders = {
+        'aristotle_metaphysics': ['аристотель метафизика', 'метафизика'],
+        'aristotle_ethics': ['аристотель этика', 'этика'],
+        'aristotle_politics': ['аристотель политика', 'политика'],
+        'aristotle_rhetoric': ['аристотель риторика', 'риторика'],
+        'plato_sophist': ['платон софист', 'софист'],
+        'plato_parmenides': ['платон парменид', 'парменид'],
+        'homer_iliad': ['гомер илиада', 'илиада'],
+        'homer_odyssey': ['гомер одиссея', 'одиссея'],
+        'hesiod_labour': ['гесиод труды', 'труды и дни'],
+        'beowulf': ['беовульф'],
+        'elder_edda': ['старшая эдда', 'эдда'],
+        'heidegger_being': ['хайдеггер бытие', 'бытие и время'],
+        'heidegger_think': ['хайдеггер мыслить', 'что значит мыслить'],
+        'nietzsche_antichrist': ['ницше антихрист', 'антихрист'],
+        'nietzsche_gay_science': ['ницше веселая', 'веселая наука'],
+        'nietzsche_zarathustra': ['ницше заратустра', 'заратустра'],
+        'nietzsche_tragedy': ['ницше трагедия', 'рождение трагедии'],
+        'nietzsche_beyond': ['ницше добро зло', 'по ту сторону'],
+        'schopenhauer_world': ['шопенгауэр мир', 'мир как воля'],
+        'schopenhauer_aphorisms': ['шопенгауэр афоризмы', 'афоризмы'],
+        'on_being_a_pagan': ['де бенуа язычник', 'как можно быть язычником'],
+        'eliade_sacred': ['элиаде священное', 'священное и мирское'],
+        'eliade_myth': ['элиаде миф', 'миф о вечном возвращении'],
+        'evola_imperialism': ['эвола империализм', 'языческий империализм'],
+        'evola_sex': ['эвола пол', 'метафизика пола'],
+        'evola_ruins': ['эвола руины', 'люди и руины'],
+        'askr_svarte_pagan_identity': ['аскр идентичность', 'идентичность язычника'],
+        'askr_svarte_priblizhenie': ['аскр приближение', 'приближение и окружение'],
+        'askr_svarte_polemos': ['аскр полемос', 'polemos'],
+      };
+      
+      // Проверяем, есть ли аудиокнига для этой текстовой книги
+      final possibleAudioFolders = bookToAudioFolders[book.id];
+      final hasAudio = possibleAudioFolders != null;
       
       if (hasAudio) {
         sources[i] = BookSource(
@@ -365,6 +372,7 @@ class TextFileService {
           cleanedFilePath: book.cleanedFilePath,
           hasAudioVersion: true,
         );
+        print('🎧 Текстовая книга "${book.title}" имеет аудиоверсию');
       }
     }
     

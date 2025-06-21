@@ -149,17 +149,21 @@ class _BookReaderPageState extends State<BookReaderPage>
     });
 
     try {
+      // Загружаем текст в фоне
       final text = await _textService.loadTextFile(widget.book.cleanedFilePath);
       _fullText = text;
       
       _paragraphs = _textService.extractParagraphsWithPositions(text);
       
+      // Плавно переключаем на контент
       setState(() {
         _isLoading = false;
       });
       
+      // Запускаем анимацию появления
       _fadeController.forward();
       
+      // Восстанавливаем позицию прокрутки
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_savedScrollPosition > 0 && _scrollController.hasClients) {
           _scrollController.jumpTo(_savedScrollPosition);
@@ -208,14 +212,10 @@ class _BookReaderPageState extends State<BookReaderPage>
       animation: _themeAnimation,
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: Color.lerp(
-            _effectiveBackgroundColor,
-            _currentTheme.highlightColor,
-            _themeAnimation.value * 0.3,
-          ),
+          backgroundColor: _effectiveBackgroundColor,
           body: SafeArea(
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
+              duration: const Duration(milliseconds: 400),
               switchInCurve: Curves.easeInOutCubic,
               switchOutCurve: Curves.easeInOutCubic,
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -223,7 +223,7 @@ class _BookReaderPageState extends State<BookReaderPage>
                   opacity: animation,
                   child: SlideTransition(
                     position: Tween<Offset>(
-                      begin: const Offset(0.0, 0.1),
+                      begin: const Offset(0.0, 0.05),
                       end: Offset.zero,
                     ).animate(CurvedAnimation(
                       parent: animation,
@@ -246,21 +246,56 @@ class _BookReaderPageState extends State<BookReaderPage>
   }
 
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: _currentTheme.quoteHighlightColor),
-          const SizedBox(height: 16),
-          Text(
-            'Загружаем книгу...',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: _currentTheme.textColor,
+    return Container(
+      color: _effectiveBackgroundColor,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _currentTheme.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.1 * 255).round()),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    color: _currentTheme.quoteHighlightColor,
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Загружаем книгу...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: _currentTheme.textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.book.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: _currentTheme.textColor.withAlpha((0.7 * 255).round()),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

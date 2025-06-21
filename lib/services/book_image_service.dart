@@ -96,6 +96,14 @@ class BookImageService {
 
   static Future<String> getStableBookImage(String bookId, String category) async {
     final cache = CustomCache.prefs;
+    
+    // Инициализируем кеш если нужно
+    try {
+      await cache.init();
+    } catch (e) {
+      // Если кеш уже инициализирован, игнорируем ошибку
+    }
+    
     final cacheKey = 'book_image_$bookId';
     
     String? cachedImageUrl = cache.getSetting<String>(cacheKey);
@@ -127,6 +135,14 @@ class BookImageService {
 
   static Future<void> clearBookImagesCache() async {
     final cache = CustomCache.prefs;
+    
+    // Инициализируем кеш если нужно
+    try {
+      await cache.init();
+    } catch (e) {
+      // Если кеш уже инициализирован, игнорируем ошибку
+    }
+    
     final allSettings = cache.getSettings();
     
     for (final key in allSettings.keys.toList()) {
@@ -137,6 +153,15 @@ class BookImageService {
   }
 
   static Future<void> preloadBookImages(List<String> bookIds, List<String> categories) async {
+    final cache = CustomCache.prefs;
+    
+    // Инициализируем кеш если нужно
+    try {
+      await cache.init();
+    } catch (e) {
+      // Если кеш уже инициализирован, игнорируем ошибку
+    }
+    
     for (int i = 0; i < bookIds.length; i++) {
       final bookId = bookIds[i];
       final category = i < categories.length ? categories[i] : 'philosophy';

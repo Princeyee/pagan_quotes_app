@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
 import 'public_google_drive_service.dart';
-import 'text_file_service.dart';
+// import 'text_file_service.dart'; // УБИРАЕМ ЦИКЛИЧЕСКУЮ ЗАВИСИМОСТЬ
 
 class EnhancedAudiobookService {
   static const String _progressKey = 'audiobook_progress';
@@ -69,9 +69,13 @@ class EnhancedAudiobookService {
   }
 
   Future<List<Audiobook>> _getOnlineAudiobooks() async {
-    print('🔍 _getOnlineAudiobooks() - начало');
-    
     try {
+      print('🔄 Загружаем аудиокниги из Google Drive...');
+      
+      // Очищаем кеш обложек для применения новых настроек сопоставления
+      await BookImageService.clearBookImagesCache();
+      print('🧹 Кеш обложек очищен');
+      
       // Инициализируем публичный Google Drive сервис
       print('🔧 Инициализируем Google Drive сервис...');
       final isInitialized = await _driveService.initialize();
@@ -82,20 +86,8 @@ class EnhancedAudiobookService {
         return [];
       }
       
-      // Получаем структуру папок с аудиофайлами
-      print('📁 Получаем структуру папок...');
       final folderStructure = await _driveService.getAudiobooksByFolders();
-      print('📁 Получено папок: ${folderStructure.length}');
-      
-      if (folderStructure.isEmpty) {
-        print('❌ Структура папок пуста');
-        return [];
-      }
-      
-      // Выводим информацию о найденных папках
-      for (final entry in folderStructure.entries) {
-        print('📁 Папка "${entry.key}": ${entry.value.length} файлов');
-      }
+      print('📁 Найдено папок: ${folderStructure.length}');
       
       final List<Audiobook> audiobooks = [];
       
@@ -137,26 +129,85 @@ class EnhancedAudiobookService {
         String bookId = folderName;
         String category = 'pagan'; // по умолчанию
         
-        // Пытаемся найти соответствующую текстовую книгу
+        // УПРОЩЕННАЯ ЛОГИКА - убираем циклическую зависимость
+        // Пытаемся определить категорию по названию папки
+        final folderNameLower = folderName.toLowerCase();
+        if (folderNameLower.contains('греция') || folderNameLower.contains('грек') || 
+            folderNameLower.contains('аристотель') || folderNameLower.contains('платон') ||
+            folderNameLower.contains('гомер') || folderNameLower.contains('гесиод')) {
+          category = 'greece';
+        } else if (folderNameLower.contains('север') || folderNameLower.contains('нордик') ||
+                   folderNameLower.contains('эдда') || folderNameLower.contains('беовульф')) {
+          category = 'nordic';
+        } else if (folderNameLower.contains('философия') || folderNameLower.contains('ницше') ||
+                   folderNameLower.contains('хайдеггер') || folderNameLower.contains('шопенгауэр')) {
+          category = 'philosophy';
+        }
+        
+        // Пытаемся найти соответствующую текстовую книгу (упрощенная версия)
         try {
           print('🔍 Ищем соответствующую текстовую книгу для: $folderName');
-          final textService = TextFileService();
-          final textBooks = await textService.loadBookSources();
           
-          // Ищем книгу с похожим названием
-          for (final textBook in textBooks) {
-            final textTitle = textBook.title.toLowerCase().trim();
-            final audioTitle = folderName.toLowerCase().trim();
+          // Создаем маппинг названий папок к ID текстовых книг
+          final Map<String, String> folderToBookId = {
+            // Греция
+            'аристотель метафизика': 'aristotle_metaphysics',
+            'аристотель этика': 'aristotle_ethics',
+            'аристотель политика': 'aristotle_politics',
+            'аристотель риторика': 'aristotle_rhetoric',
+            'платон софист': 'plato_sophist',
+            'платон парменид': 'plato_parmenides',
+            'гомер илиада': 'homer_iliad',
+            'гомер одиссея': 'homer_odyssey',
+            'гесиод труды': 'hesiod_labour',
             
-            if (textTitle == audioTitle || 
-                textTitle.contains(audioTitle) || 
-                audioTitle.contains(textTitle)) {
-              bookId = textBook.id;
-              category = textBook.category;
-              print('🎨 Найдена соответствующая книга: ${textBook.title} (${textBook.category})');
-              break;
+            // Север
+            'беовульф': 'beowulf',
+            'старшая эдда': 'elder_edda',
+            
+            // Философия
+            'хайдеггер бытие': 'heidegger_being',
+            'хайдеггер мыслить': 'heidegger_think',
+            'ницше антихрист': 'nietzsche_antichrist',
+            'ницше веселая': 'nietzsche_gay_science',
+            'ницше заратустра': 'nietzsche_zarathustra',
+            'ницше трагедия': 'nietzsche_tragedy',
+            'ницше добро зло': 'nietzsche_beyond',
+            'шопенгауэр мир': 'schopenhauer_world',
+            'шопенгауэр афоризмы': 'schopenhauer_aphorisms',
+            
+            // Язычество
+            'де бенуа язычник': 'on_being_a_pagan',
+            'элиаде священное': 'eliade_sacred',
+            'элиаде миф': 'eliade_myth',
+            'эвола империализм': 'evola_imperialism',
+            'эвола пол': 'evola_sex',
+            'эвола руины': 'evola_ruins',
+            'аскр идентичность': 'askr_svarte_pagan_identity',
+            'аскр приближение': 'askr_svarte_priblizhenie',
+            'аскр полемос': 'askr_svarte_polemos',
+          };
+          
+          // Ищем точное совпадение
+          final normalizedFolderName = folderNameLower.trim();
+          String? matchedBookId = folderToBookId[normalizedFolderName];
+          
+          // Если точного совпадения нет, ищем частичное
+          if (matchedBookId == null) {
+            for (final entry in folderToBookId.entries) {
+              final key = entry.key;
+              if (normalizedFolderName.contains(key) || key.contains(normalizedFolderName)) {
+                matchedBookId = entry.value;
+                break;
+              }
             }
           }
+          
+          if (matchedBookId != null) {
+            bookId = matchedBookId;
+            print('🎨 Найдена соответствующая книга: $matchedBookId');
+          }
+          
         } catch (e) {
           print('❌ Ошибка поиска текстовой книги для обложки: $e');
         }

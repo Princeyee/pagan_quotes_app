@@ -560,28 +560,82 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
       // Закрываем индикатор загрузки
       Navigator.of(context).pop();
       
-      // Ищем аудиокнигу по названию или автору
-      Audiobook? matchedAudiobook;
+      // Маппинг ID текстовых книг к названиям папок аудиокниг
+      final Map<String, List<String>> bookToAudioFolders = {
+        'aristotle_metaphysics': ['аристотель метафизика', 'метафизика'],
+        'aristotle_ethics': ['аристотель этика', 'этика'],
+        'aristotle_politics': ['аристотель политика', 'политика'],
+        'aristotle_rhetoric': ['аристотель риторика', 'риторика'],
+        'plato_sophist': ['платон софист', 'софист'],
+        'plato_parmenides': ['платон парменид', 'парменид'],
+        'homer_iliad': ['гомер илиада', 'илиада'],
+        'homer_odyssey': ['гомер одиссея', 'одиссея'],
+        'hesiod_labour': ['гесиод труды', 'труды и дни'],
+        'beowulf': ['беовульф'],
+        'elder_edda': ['старшая эдда', 'эдда'],
+        'heidegger_being': ['хайдеггер бытие', 'бытие и время'],
+        'heidegger_think': ['хайдеггер мыслить', 'что значит мыслить'],
+        'nietzsche_antichrist': ['ницше антихрист', 'антихрист'],
+        'nietzsche_gay_science': ['ницше веселая', 'веселая наука'],
+        'nietzsche_zarathustra': ['ницше заратустра', 'заратустра'],
+        'nietzsche_tragedy': ['ницше трагедия', 'рождение трагедии'],
+        'nietzsche_beyond': ['ницше добро зло', 'по ту сторону'],
+        'schopenhauer_world': ['шопенгауэр мир', 'мир как воля'],
+        'schopenhauer_aphorisms': ['шопенгауэр афоризмы', 'афоризмы'],
+        'on_being_a_pagan': ['де бенуа язычник', 'как можно быть язычником'],
+        'eliade_sacred': ['элиаде священное', 'священное и мирское'],
+        'eliade_myth': ['элиаде миф', 'миф о вечном возвращении'],
+        'evola_imperialism': ['эвола империализм', 'языческий империализм'],
+        'evola_sex': ['эвола пол', 'метафизика пола'],
+        'evola_ruins': ['эвола руины', 'люди и руины'],
+        'askr_svarte_pagan_identity': ['аскр идентичность', 'идентичность язычника'],
+        'askr_svarte_priblizhenie': ['аскр приближение', 'приближение и окружение'],
+        'askr_svarte_polemos': ['аскр полемос', 'polemos'],
+      };
       
-      for (final audiobook in audiobooks) {
-        // Проверяем точное совпадение названия
-        if (audiobook.title.toLowerCase().trim() == book.title.toLowerCase().trim()) {
-          matchedAudiobook = audiobook;
-          break;
+      // Ищем аудиокнигу по маппингу
+      Audiobook? matchedAudiobook;
+      final possibleAudioFolders = bookToAudioFolders[book.id];
+      
+      if (possibleAudioFolders != null) {
+        for (final audiobook in audiobooks) {
+          final audiobookTitle = audiobook.title.toLowerCase();
+          
+          // Проверяем совпадение с возможными названиями папок
+          for (final folderName in possibleAudioFolders) {
+            if (audiobookTitle.contains(folderName.toLowerCase()) ||
+                folderName.toLowerCase().contains(audiobookTitle)) {
+              matchedAudiobook = audiobook;
+              break;
+            }
+          }
+          
+          if (matchedAudiobook != null) break;
         }
-        
-        // Проверяем частичное совпадение названия
-        if (audiobook.title.toLowerCase().contains(book.title.toLowerCase()) ||
-            book.title.toLowerCase().contains(audiobook.title.toLowerCase())) {
-          matchedAudiobook = audiobook;
-          break;
-        }
-        
-        // Проверяем совпадение по автору
-        if (audiobook.title.toLowerCase().contains(book.author.toLowerCase()) ||
-            book.author.toLowerCase().contains(audiobook.title.toLowerCase())) {
-          matchedAudiobook = audiobook;
-          break;
+      }
+      
+      // Если не нашли по маппингу, пробуем общий поиск
+      if (matchedAudiobook == null) {
+        for (final audiobook in audiobooks) {
+          // Проверяем точное совпадение названия
+          if (audiobook.title.toLowerCase().trim() == book.title.toLowerCase().trim()) {
+            matchedAudiobook = audiobook;
+            break;
+          }
+          
+          // Проверяем частичное совпадение названия
+          if (audiobook.title.toLowerCase().contains(book.title.toLowerCase()) ||
+              book.title.toLowerCase().contains(audiobook.title.toLowerCase())) {
+            matchedAudiobook = audiobook;
+            break;
+          }
+          
+          // Проверяем совпадение по автору
+          if (audiobook.title.toLowerCase().contains(book.author.toLowerCase()) ||
+              book.author.toLowerCase().contains(audiobook.title.toLowerCase())) {
+            matchedAudiobook = audiobook;
+            break;
+          }
         }
       }
       

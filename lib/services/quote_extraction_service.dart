@@ -260,7 +260,7 @@ class QuoteExtractionService {
       final contextParagraphs = _textService.getContextAroundPosition(
         cleanedText, 
         quote.position,
-        contextSize: 1, // По 1 параграфу до и после
+        contextSize: 3, // Увеличиваем с 1 до 3 параграфов до и после
       );
 
       if (contextParagraphs.isEmpty) {
@@ -282,7 +282,7 @@ class QuoteExtractionService {
             final foundContextParagraphs = _textService.getContextAroundPosition(
               cleanedText, 
               position,
-              contextSize: 1,
+              contextSize: 3, // Увеличиваем с 1 до 3 параграфов до и после
             );
 
             if (foundContextParagraphs.isNotEmpty) {

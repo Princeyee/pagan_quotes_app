@@ -463,6 +463,16 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
                   ],
                 ),
               ),
+              PopupMenuItem(
+                value: 'clear_cache', 
+                child: Row(
+                  children: [
+                    const Icon(Icons.clear_all, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Очистить кеш обложек', style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -1270,6 +1280,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
       case 'background':
         _toggleBackgroundPlayback();
         break;
+      case 'clear_cache':
+        _clearCache();
+        break;
     }
   }
   
@@ -1424,6 +1437,13 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
           ),
         ),
       ),
+    );
+  }
+
+  void _clearCache() {
+    // Implementation of clearing cache
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Функция очистки кеша обложек не реализована')),
     );
   }
 
