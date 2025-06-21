@@ -661,4 +661,109 @@ for (int i = 1; i < paragraphs.length; i++) {
     }
     return false;
   }
+
+  /// ИСПРАВЛЕННЫЙ метод поиска источника книги с гибким сопоставлением
+  BookSource? findBookSource(String author, String title) {
+    final sources = _cachedSources.values.expand((list) => list).toList();
+    
+    // Нормализуем строки для сравнения
+    final normalizedAuthor = _normalizeString(author);
+    final normalizedTitle = _normalizeString(title);
+    
+    // Сначала ищем точное совпадение
+    for (final source in sources) {
+      final sourceAuthor = _normalizeString(source.author);
+      final sourceTitle = _normalizeString(source.title);
+      
+      if (sourceAuthor == normalizedAuthor && sourceTitle == normalizedTitle) {
+        return source;
+      }
+    }
+    
+    // Затем ищем частичные совпадения по автору
+    for (final source in sources) {
+      final sourceAuthor = _normalizeString(source.author);
+      final sourceTitle = _normalizeString(source.title);
+      
+      // Проверяем различные варианты написания авторов
+      if (_authorsMatch(sourceAuthor, normalizedAuthor) && sourceTitle == normalizedTitle) {
+        return source;
+      }
+    }
+    
+    // Ищем по частичному совпадению названий
+    for (final source in sources) {
+      final sourceAuthor = _normalizeString(source.author);
+      final sourceTitle = _normalizeString(source.title);
+      
+      if (_authorsMatch(sourceAuthor, normalizedAuthor) && _titlesMatch(sourceTitle, normalizedTitle)) {
+        return source;
+      }
+    }
+    
+    return null;
+  }
+  
+  /// Нормализует строку для сравнения
+  String _normalizeString(String str) {
+    return str.toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+  
+  /// Проверяет соответствие авторов с учетом различных вариантов написания
+  bool _authorsMatch(String sourceAuthor, String queryAuthor) {
+    // Точное совпадение
+    if (sourceAuthor == queryAuthor) return true;
+    
+    // Маппинг сокращенных имен к полным
+    final authorMappings = {
+      'хайдеггер': 'мартин хайдеггер',
+      'ницше': 'фридрих ницше',
+      'шопенгауэр': 'артур шопенгауэр',
+      'элиаде': 'мирча элиаде',
+      'эвола': 'юлиус эвола',
+    };
+    
+    // Проверяем маппинг
+    final mappedQuery = authorMappings[queryAuthor] ?? queryAuthor;
+    final mappedSource = authorMappings[sourceAuthor] ?? sourceAuthor;
+    
+    if (mappedQuery == mappedSource) return true;
+    
+    // Проверяем включение одного в другое
+    if (sourceAuthor.contains(queryAuthor) || queryAuthor.contains(sourceAuthor)) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /// Проверяет соответствие названий с учетом различных вариантов
+  bool _titlesMatch(String sourceTitle, String queryTitle) {
+    // Точное совпадение
+    if (sourceTitle == queryTitle) return true;
+    
+    // Маппинг сокращенных названий к полным
+    final titleMappings = {
+      'мир как воля': 'мир как воля и представление',
+      'история веры том 1': 'история веры и религиозных идей том 1',
+      'история веры том 2': 'история веры и религиозных идей том 2',
+      'история веры том 3': 'история веры и религиозных идей том 3',
+    };
+    
+    // Проверяем маппинг
+    final mappedQuery = titleMappings[queryTitle] ?? queryTitle;
+    final mappedSource = titleMappings[sourceTitle] ?? sourceTitle;
+    
+    if (mappedQuery == mappedSource) return true;
+    
+    // Проверяем включение одного в другое
+    if (sourceTitle.contains(queryTitle) || queryTitle.contains(sourceTitle)) {
+      return true;
+    }
+    
+    return false;
+  }
 }

@@ -999,14 +999,15 @@ class _FullTextPage2State extends State<FullTextPage2>
     });
 
     try {
-      // Найти источник книги
-      final sources = await _textService.loadBookSources();
-      
-      final source = sources.firstWhere(
-        (s) => s.author == widget.context.quote.author && 
-               s.title == widget.context.quote.source,
-        orElse: () => throw Exception('Источник книги не найден'),
+      // Найти источник книги с помощью нового гибкого метода
+      final source = _textService.findBookSource(
+        widget.context.quote.author, 
+        widget.context.quote.source
       );
+      
+      if (source == null) {
+        throw Exception('Источник книги не найден для: ${widget.context.quote.author} - ${widget.context.quote.source}');
+      }
 
       _logger.info('Найден источник: ${source.title} - ${source.cleanedFilePath}');
 

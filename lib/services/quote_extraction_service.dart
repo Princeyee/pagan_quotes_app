@@ -206,44 +206,13 @@ class QuoteExtractionService {
     try {
       print('🔍 Ищем контекст для цитаты: ${quote.id}');
 
-      // Загружаем источники книг
-      final sources = await _textService.loadBookSources();
-      BookSource? matchingSource;
-
-      // Находим источник по автору и названию
-      for (final source in sources) {
-        if (source.author == quote.author && source.title == quote.source) {
-          matchingSource = source;
-          break;
-        }
-      }
-
-      // Fallback поиск по категории и автору
-      if (matchingSource == null) {
-        for (final source in sources) {
-          if (source.author == quote.author && source.category == quote.category) {
-            matchingSource = source;
-            break;
-          }
-        }
-      }
-
-      // Дополнительный fallback - поиск по частичному совпадению
-      if (matchingSource == null) {
-        print('⚠️ Точное совпадение не найдено, ищем по автору...');
-        for (final source in sources) {
-          if (source.author.toLowerCase().contains(quote.author.toLowerCase()) || 
-              quote.author.toLowerCase().contains(source.author.toLowerCase())) {
-            matchingSource = source;
-            print('✅ Найдено частичное совпадение: ${source.title}');
-            break;
-          }
-        }
-      }
+      // Находим источник с помощью нового гибкого метода
+      final matchingSource = _textService.findBookSource(quote.author, quote.source);
 
       if (matchingSource == null) {
         print('❌ Источник не найден для: ${quote.author} - ${quote.source}');
         print('📚 Доступные источники:');
+        final sources = await _textService.loadBookSources();
         for (final s in sources) {
           print('   - ${s.author} : ${s.title} (${s.category})');
         }
