@@ -466,10 +466,14 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
               child: ClipOval(
                 child: Image.asset(
                   'assets/icon/old1.png',
-                  fit: BoxFit.cover,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
                     print('Ошибка загрузки old1.png: $error');
                     return Container(
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(

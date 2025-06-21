@@ -539,17 +539,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
               color: Colors.black87,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: Colors.white),
-                SizedBox(height: 16),
-                Text(
-                  'Загрузка аудиокниги...',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
+            child: CircularProgressIndicator(color: Colors.white),
           ),
         ),
       );
