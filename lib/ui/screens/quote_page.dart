@@ -1,4 +1,3 @@
-
 // lib/ui/screens/quote_page.dart - АДАПТИВНАЯ ВЕРСИЯ
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -833,7 +832,7 @@ class _QuotePageState extends State<QuotePage>
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          added ? 'Добавлено в избранное' : 'Удалено из избранного',
+                          added ? 'В избранном' : 'Удалено из избранного',
                           style: GoogleFonts.montserrat(
                             color: Colors.white,
                             fontSize: 16,
@@ -1215,7 +1214,7 @@ class _QuotePageState extends State<QuotePage>
 
     textPainter.layout(maxWidth: constraints.maxWidth);
     
-    // Если текст помещае��ся или достигли минимального размера - возвращаем
+    // Если текст помещается или достигли минимального размера - возвращаем
     if (textPainter.height <= maxHeight || fontSize <= minFontSize) {
       return Text(
         '"$text"',

@@ -468,6 +468,7 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                   'assets/icon/old1.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
+                    print('Ошибка загрузки old1.png: $error');
                     return Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,

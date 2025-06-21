@@ -368,7 +368,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
               Expanded(
                 child: _buildActionButton(
                   icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  label: _isFavorite ? 'В избранном' : 'В избранное',
+                  label: _isFavorite ? 'В избранном' : 'Удалено из избранного',
                   color: _isFavorite ? Colors.red : Colors.white,
                   onTap: _toggleFavorite,
                 ),
@@ -475,7 +475,7 @@ class _CalendarQuoteModalState extends State<CalendarQuoteModal>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _isFavorite ? 'Добавлено в избранное' : 'Удалено из избранного'
+            _isFavorite ? 'В избранном' : 'Удалено из избранного'
           ),
           duration: const Duration(seconds: 2),
         ),
