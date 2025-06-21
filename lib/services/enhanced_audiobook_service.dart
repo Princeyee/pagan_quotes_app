@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
 import 'public_google_drive_service.dart';
-// import 'text_file_service.dart'; // УБИРАЕМ ЦИКЛИЧЕСКУЮ ЗАВИСИМОСТЬ
+import 'text_file_service.dart';
 
 class EnhancedAudiobookService {
   static const String _progressKey = 'audiobook_progress';
@@ -70,24 +70,17 @@ class EnhancedAudiobookService {
 
   Future<List<Audiobook>> _getOnlineAudiobooks() async {
     try {
-      print('🔄 Загружаем аудиокниги из Google Drive...');
-      
-      // Очищаем кеш обложек для применения новых настроек сопоставления
-      await BookImageService.clearBookImagesCache();
-      print('🧹 Кеш обложек очищен');
-      
       // Инициализируем публичный Google Drive сервис
-      print('🔧 Инициализируем Google Drive сервис...');
       final isInitialized = await _driveService.initialize();
-      print('✅ Google Drive сервис инициализирован: $isInitialized');
-      
       if (!isInitialized) {
-        print('❌ Google Drive сервис не инициализирован');
         return [];
       }
       
+      // Получаем структуру папок с аудиофайлами
       final folderStructure = await _driveService.getAudiobooksByFolders();
-      print('📁 Найдено папок: ${folderStructure.length}');
+      if (folderStructure.isEmpty) {
+        return [];
+      }
       
       final List<Audiobook> audiobooks = [];
       
@@ -96,20 +89,13 @@ class EnhancedAudiobookService {
         final folderName = entry.key;
         final files = entry.value;
         
-        print('📚 Обрабатываем папку: $folderName');
-        
-        if (files.isEmpty) {
-          print('⚠️ Папка $folderName пуста, пропускаем');
-          continue;
-        }
+        if (files.isEmpty) continue;
         
         final chapters = <AudiobookChapter>[];
         for (int i = 0; i < files.length; i++) {
           final file = files[i];
           final fileName = file['name'] as String;
           final chapterTitle = _formatChapterTitle(fileName, i + 1);
-          
-          print('🎵 Глава ${i + 1}: $fileName -> $chapterTitle');
           
           chapters.add(AudiobookChapter(
             title: chapterTitle,
@@ -129,91 +115,98 @@ class EnhancedAudiobookService {
         String bookId = folderName;
         String category = 'pagan'; // по умолчанию
         
-        // УПРОЩЕННАЯ ЛОГИКА - убираем циклическую зависимость
-        // Пытаемся определить категорию по названию папки
-        final folderNameLower = folderName.toLowerCase();
-        if (folderNameLower.contains('греция') || folderNameLower.contains('грек') || 
-            folderNameLower.contains('аристотель') || folderNameLower.contains('платон') ||
-            folderNameLower.contains('гомер') || folderNameLower.contains('гесиод')) {
-          category = 'greece';
-        } else if (folderNameLower.contains('север') || folderNameLower.contains('нордик') ||
-                   folderNameLower.contains('эдда') || folderNameLower.contains('беовульф')) {
-          category = 'nordic';
-        } else if (folderNameLower.contains('философия') || folderNameLower.contains('ницше') ||
-                   folderNameLower.contains('хайдеггер') || folderNameLower.contains('шопенгауэр')) {
-          category = 'philosophy';
-        }
-        
-        // Пытаемся найти соответствующую текстовую книгу (упрощенная версия)
+        // Пытаемся найти соответствующую текстовую книгу
         try {
-          print('🔍 Ищем соответствующую текстовую книгу для: $folderName');
+          final textService = TextFileService();
+          final textBooks = await textService.loadBookSources();
           
-          // Создаем маппинг названий папок к ID текстовых книг
+          // Маппинг названий папок к ID текстовых книг
           final Map<String, String> folderToBookId = {
-            // Греция
             'аристотель метафизика': 'aristotle_metaphysics',
+            'метафизика': 'aristotle_metaphysics',
             'аристотель этика': 'aristotle_ethics',
+            'этика': 'aristotle_ethics',
             'аристотель политика': 'aristotle_politics',
+            'политика': 'aristotle_politics',
             'аристотель риторика': 'aristotle_rhetoric',
+            'риторика': 'aristotle_rhetoric',
             'платон софист': 'plato_sophist',
+            'софист': 'plato_sophist',
             'платон парменид': 'plato_parmenides',
+            'парменид': 'plato_parmenides',
             'гомер илиада': 'homer_iliad',
+            'илиада': 'homer_iliad',
             'гомер одиссея': 'homer_odyssey',
+            'одиссея': 'homer_odyssey',
             'гесиод труды': 'hesiod_labour',
-            
-            // Север
+            'труды и дни': 'hesiod_labour',
             'беовульф': 'beowulf',
             'старшая эдда': 'elder_edda',
-            
-            // Философия
+            'эдда': 'elder_edda',
             'хайдеггер бытие': 'heidegger_being',
+            'бытие и время': 'heidegger_being',
             'хайдеггер мыслить': 'heidegger_think',
+            'что значит мыслить': 'heidegger_think',
             'ницше антихрист': 'nietzsche_antichrist',
+            'антихрист': 'nietzsche_antichrist',
             'ницше веселая': 'nietzsche_gay_science',
+            'веселая наука': 'nietzsche_gay_science',
             'ницше заратустра': 'nietzsche_zarathustra',
+            'заратустра': 'nietzsche_zarathustra',
             'ницше трагедия': 'nietzsche_tragedy',
+            'рождение трагедии': 'nietzsche_tragedy',
             'ницше добро зло': 'nietzsche_beyond',
+            'по ту сторону': 'nietzsche_beyond',
             'шопенгауэр мир': 'schopenhauer_world',
+            'мир как воля': 'schopenhauer_world',
             'шопенгауэр афоризмы': 'schopenhauer_aphorisms',
-            
-            // Язычество
+            'афоризмы': 'schopenhauer_aphorisms',
             'де бенуа язычник': 'on_being_a_pagan',
+            'как можно быть язычником': 'on_being_a_pagan',
             'элиаде священное': 'eliade_sacred',
+            'священное и мирское': 'eliade_sacred',
             'элиаде миф': 'eliade_myth',
+            'миф о вечном возвращении': 'eliade_myth',
             'эвола империализм': 'evola_imperialism',
+            'языческий империализм': 'evola_imperialism',
             'эвола пол': 'evola_sex',
+            'метафизика пола': 'evola_sex',
             'эвола руины': 'evola_ruins',
+            'люди и руины': 'evola_ruins',
             'аскр идентичность': 'askr_svarte_pagan_identity',
+            'идентичность язычника': 'askr_svarte_pagan_identity',
             'аскр приближение': 'askr_svarte_priblizhenie',
+            'приближение и окружение': 'askr_svarte_priblizhenie',
             'аскр полемос': 'askr_svarte_polemos',
+            'polemos': 'askr_svarte_polemos',
           };
           
-          // Ищем точное совпадение
-          final normalizedFolderName = folderNameLower.trim();
-          String? matchedBookId = folderToBookId[normalizedFolderName];
-          
-          // Если точного совпадения нет, ищем частичное
-          if (matchedBookId == null) {
-            for (final entry in folderToBookId.entries) {
-              final key = entry.key;
-              if (normalizedFolderName.contains(key) || key.contains(normalizedFolderName)) {
-                matchedBookId = entry.value;
-                break;
-              }
+          // Ищем соответствующую текстовую книгу
+          String? matchedBookId;
+          for (final entry in folderToBookId.entries) {
+            if (folderName.toLowerCase().contains(entry.key.toLowerCase()) ||
+                entry.key.toLowerCase().contains(folderName.toLowerCase())) {
+              matchedBookId = entry.value;
+              break;
             }
           }
           
           if (matchedBookId != null) {
-            bookId = matchedBookId;
-            print('🎨 Найдена соответствующая книга: $matchedBookId');
+            // Находим текстовую книгу по ID
+            for (final textBook in textBooks) {
+              if (textBook.id == matchedBookId) {
+                bookId = textBook.id;
+                category = textBook.category;
+                print('🎨 Найдена соответствующая книга: ${textBook.title} (${textBook.category})');
+                break;
+              }
+            }
           }
-          
         } catch (e) {
-          print('❌ Ошибка поиска текстовой книги для обложки: $e');
+          print('Ошибка поиска текстовой книги для обложки: $e');
         }
         
         final coverPath = await BookImageService.getStableBookImage(bookId, category);
-        print('🖼️ Обложка: $coverPath');
         
         audiobooks.add(Audiobook(
           id: 'drive_${folderName.replaceAll(' ', '_')}',
@@ -224,14 +217,10 @@ class EnhancedAudiobookService {
           totalDuration: totalDuration,
           description: 'Аудиокнига из Google Drive',
         ));
-        
-        print('✅ Создана аудиокнига: ${_formatBookTitle(folderName)}');
       }
       
-      print('📚 Всего создано аудиокниг: ${audiobooks.length}');
       return audiobooks;
     } catch (e) {
-      print('❌ Ошибка в _getOnlineAudiobooks: $e');
       return [];
     }
   }

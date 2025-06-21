@@ -260,8 +260,19 @@ class QuoteExtractionService {
       final contextParagraphs = _textService.getContextAroundPosition(
         cleanedText, 
         quote.position,
-        contextSize: 3, // Увеличиваем с 1 до 3 параграфов до и после
+        contextSize: 1, // Уменьшаем с 5 до 1 параграфа до и после
       );
+
+      print('🔍 DEBUG: Получено ${contextParagraphs.length} параграфов контекста');
+      print('🔍 DEBUG: Позиция цитаты: ${quote.position}');
+      print('🔍 DEBUG: Текст цитаты: ${quote.text.substring(0, min(50, quote.text.length))}...');
+      
+      for (int i = 0; i < contextParagraphs.length; i++) {
+        final para = contextParagraphs[i];
+        final content = para['content'] as String;
+        final position = para['position'] as int;
+        print('🔍 DEBUG: Параграф $i (позиция $position): ${content.substring(0, min(100, content.length))}...');
+      }
 
       if (contextParagraphs.isEmpty) {
         print('❌ Контекст не найден на позиции: ${quote.position}');
@@ -282,7 +293,7 @@ class QuoteExtractionService {
             final foundContextParagraphs = _textService.getContextAroundPosition(
               cleanedText, 
               position,
-              contextSize: 3, // Увеличиваем с 1 до 3 параграфов до и после
+              contextSize: 1, // Уменьшаем с 5 до 1 параграфа до и после
             );
 
             if (foundContextParagraphs.isNotEmpty) {

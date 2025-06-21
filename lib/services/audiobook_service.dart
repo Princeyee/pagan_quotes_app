@@ -92,18 +92,86 @@ class AudiobookService {
           final textService = TextFileService();
           final textBooks = await textService.loadBookSources();
           
-          // Ищем книгу с похожим названием
-          for (final textBook in textBooks) {
-            final textTitle = textBook.title.toLowerCase().trim();
-            final audioTitle = folderName.toLowerCase().trim();
-            
-            if (textTitle == audioTitle || 
-                textTitle.contains(audioTitle) || 
-                audioTitle.contains(textTitle)) {
-              bookId = textBook.id;
-              category = textBook.category;
-              print('🎨 Найдена соответствующая книга: ${textBook.title} (${textBook.category})');
+          // Маппинг названий папок к ID текстовых книг
+          final Map<String, String> folderToBookId = {
+            'аристотель метафизика': 'aristotle_metaphysics',
+            'метафизика': 'aristotle_metaphysics',
+            'аристотель этика': 'aristotle_ethics',
+            'этика': 'aristotle_ethics',
+            'аристотель политика': 'aristotle_politics',
+            'политика': 'aristotle_politics',
+            'аристотель риторика': 'aristotle_rhetoric',
+            'риторика': 'aristotle_rhetoric',
+            'платон софист': 'plato_sophist',
+            'софист': 'plato_sophist',
+            'платон парменид': 'plato_parmenides',
+            'парменид': 'plato_parmenides',
+            'гомер илиада': 'homer_iliad',
+            'илиада': 'homer_iliad',
+            'гомер одиссея': 'homer_odyssey',
+            'одиссея': 'homer_odyssey',
+            'гесиод труды': 'hesiod_labour',
+            'труды и дни': 'hesiod_labour',
+            'беовульф': 'beowulf',
+            'старшая эдда': 'elder_edda',
+            'эдда': 'elder_edda',
+            'хайдеггер бытие': 'heidegger_being',
+            'бытие и время': 'heidegger_being',
+            'хайдеггер мыслить': 'heidegger_think',
+            'что значит мыслить': 'heidegger_think',
+            'ницше антихрист': 'nietzsche_antichrist',
+            'антихрист': 'nietzsche_antichrist',
+            'ницше веселая': 'nietzsche_gay_science',
+            'веселая наука': 'nietzsche_gay_science',
+            'ницше заратустра': 'nietzsche_zarathustra',
+            'заратустра': 'nietzsche_zarathustra',
+            'ницше трагедия': 'nietzsche_tragedy',
+            'рождение трагедии': 'nietzsche_tragedy',
+            'ницше добро зло': 'nietzsche_beyond',
+            'по ту сторону': 'nietzsche_beyond',
+            'шопенгауэр мир': 'schopenhauer_world',
+            'мир как воля': 'schopenhauer_world',
+            'шопенгауэр афоризмы': 'schopenhauer_aphorisms',
+            'афоризмы': 'schopenhauer_aphorisms',
+            'де бенуа язычник': 'on_being_a_pagan',
+            'как можно быть язычником': 'on_being_a_pagan',
+            'элиаде священное': 'eliade_sacred',
+            'священное и мирское': 'eliade_sacred',
+            'элиаде миф': 'eliade_myth',
+            'миф о вечном возвращении': 'eliade_myth',
+            'эвола империализм': 'evola_imperialism',
+            'языческий империализм': 'evola_imperialism',
+            'эвола пол': 'evola_sex',
+            'метафизика пола': 'evola_sex',
+            'эвола руины': 'evola_ruins',
+            'люди и руины': 'evola_ruins',
+            'аскр идентичность': 'askr_svarte_pagan_identity',
+            'идентичность язычника': 'askr_svarte_pagan_identity',
+            'аскр приближение': 'askr_svarte_priblizhenie',
+            'приближение и окружение': 'askr_svarte_priblizhenie',
+            'аскр полемос': 'askr_svarte_polemos',
+            'polemos': 'askr_svarte_polemos',
+          };
+          
+          // Ищем соответствующую текстовую книгу
+          String? matchedBookId;
+          for (final entry in folderToBookId.entries) {
+            if (folderName.toLowerCase().contains(entry.key.toLowerCase()) ||
+                entry.key.toLowerCase().contains(folderName.toLowerCase())) {
+              matchedBookId = entry.value;
               break;
+            }
+          }
+          
+          if (matchedBookId != null) {
+            // Находим текстовую книгу по ID
+            for (final textBook in textBooks) {
+              if (textBook.id == matchedBookId) {
+                bookId = textBook.id;
+                category = textBook.category;
+                print('🎨 Найдена соответствующая книга: ${textBook.title} (${textBook.category})');
+                break;
+              }
             }
           }
         } catch (e) {

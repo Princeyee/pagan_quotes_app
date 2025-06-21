@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/book_source.dart';
-// import 'enhanced_audiobook_service.dart'; // УБИРАЕМ ЦИКЛИЧЕСКУЮ ЗАВИСИМОСТЬ
+import 'public_google_drive_service.dart'; // Добавляем импорт для проверки аудиокниг
 
 class TextFileService {
   static final TextFileService _instance = TextFileService._internal();
@@ -13,6 +13,7 @@ class TextFileService {
 
   final Map<String, String> _cachedTexts = {};
   final Map<String, List<BookSource>> _cachedSources = {};
+  final PublicGoogleDriveService _driveService = PublicGoogleDriveService();
 
   /// Загружает все доступные источники книг (ХАРДКОД из curator)
   Future<List<BookSource>> loadBookSources() async {
@@ -21,11 +22,6 @@ class TextFileService {
       return _cachedSources.values.expand((list) => list).toList();
     }
     
-    // УБИРАЕМ ЦИКЛИЧЕСКУЮ ЗАВИСИМОСТЬ
-    // Загружаем список аудиокниг для проверки наличия аудиоверсий
-    // final audiobookService = EnhancedAudiobookService();
-    // final audiobooks = await audiobookService.getAudiobooks();
-
     // ХАРДКОД - точно такие же книги как в random_curator.dart
     final sources = <BookSource>[
       // Греция - античная философия
@@ -214,36 +210,33 @@ class TextFileService {
         rawFilePath: 'assets/full_texts/philosophy/schopenhauer/aphorisms_on_wisdom_of_life_cleaned.txt',
       ),
       
-      // Язычество - традиция и символизм
-      // Добавьте эти BookSource объекты в список sources в методе loadBookSources()
-// после существующих книг Элиаде:
-
+      // Язычество и традиционализм
       BookSource(
-        id: 'askr_svarte_pagan_identity',
-        title: 'Идентичность язычника в 21 веке',
-        author: 'Askr Svarte',
+        id: 'on_being_a_pagan',
+        title: 'Как можно быть язычником',
+        author: 'Ален де Бенуа',
         category: 'pagan',
         language: 'ru',
-        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt',
-        rawFilePath: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_raw.txt',
+        cleanedFilePath: 'assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/de_benua/on_being_a_pagan_cleaned.txt',
       ),
       BookSource(
-        id: 'askr_svarte_priblizhenie',
-        title: 'Приближение и окружение',
-        author: 'Askr Svarte',
+        id: 'eliade_sacred',
+        title: 'Священное и мирское',
+        author: 'Элиаде',
         category: 'pagan',
-        language: 'ru', 
-        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt',
-        rawFilePath: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_raw.txt',
+        language: 'ru',
+        cleanedFilePath: 'assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt',
       ),
       BookSource(
-        id: 'askr_svarte_polemos',
-        title: 'Polemos',
-        author: 'Askr Svarte',
+        id: 'eliade_myth',
+        title: 'Миф о вечном возвращении',
+        author: 'Элиаде',
         category: 'pagan',
-        language: 'ru', 
-        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt',
-        rawFilePath: 'assets/full_texts/pagan/askr_svarte/polemos_raw.txt',
+        language: 'ru',
+        cleanedFilePath: 'assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt',
       ),
       BookSource(
         id: 'evola_imperialism',
@@ -273,26 +266,35 @@ class TextFileService {
         rawFilePath: 'assets/full_texts/pagan/julius_evola/men_among_ruins_cleaned.txt',
       ),
       BookSource(
-        id: 'eliade_sacred',
-        title: 'Священное и мирское',
-        author: 'Элиаде',
+        id: 'askr_svarte_pagan_identity',
+        title: 'Идентичность язычника в 21 веке',
+        author: 'Askr Svarte',
         category: 'pagan',
         language: 'ru',
-        cleanedFilePath: 'assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt',
-        rawFilePath: 'assets/full_texts/pagan/mercea_eliade/sacred_and_profane_cleaned.txt',
+        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/askr_svarte/pagan_identity_xxi_cleaned.txt',
       ),
       BookSource(
-        id: 'eliade_myth',
-        title: 'Миф о вечном возвращении',
-        author: 'Элиаде',
+        id: 'askr_svarte_priblizhenie',
+        title: 'Приближение и окружение',
+        author: 'Askr Svarte',
         category: 'pagan',
         language: 'ru',
-        cleanedFilePath: 'assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt',
-        rawFilePath: 'assets/full_texts/pagan/mercea_eliade/myth_of_eternal_return_cleaned.txt',
+        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/askr_svarte/priblizheniye_i_okruzheniye_cleaned.txt',
+      ),
+      BookSource(
+        id: 'askr_svarte_polemos',
+        title: 'Polemos',
+        author: 'Askr Svarte',
+        category: 'pagan',
+        language: 'ru',
+        cleanedFilePath: 'assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt',
+        rawFilePath: 'assets/full_texts/pagan/askr_svarte/polemos_cleaned.txt',
       ),
       BookSource(
         id: 'eliade_history1',
-        title: 'История веры и религиозных идей том 1',
+        title: 'История и религиозных идей веры том 1',
         author: 'Элиаде',
         category: 'pagan',
         language: 'ru',
@@ -320,8 +322,42 @@ class TextFileService {
     ];
 
     // Проверяем наличие аудиоверсий для книг
-    for (int i = 0; i < sources.length; i++) {
-      final book = sources[i];
+    await _checkAudioVersions(sources);
+    
+    // Группируем по категориям для кэша
+    final Map<String, List<BookSource>> categorizedSources = {};
+    for (final source in sources) {
+      categorizedSources.putIfAbsent(source.category, () => []).add(source);
+    }
+    
+    _cachedSources.addAll(categorizedSources);
+    
+    print('📚 Загружено ${sources.length} книг в ${categorizedSources.length} категориях');
+    for (final entry in categorizedSources.entries) {
+      print('   ${entry.key}: ${entry.value.length} книг');
+    }
+    
+    return sources;
+  }
+
+  /// Проверяет наличие аудиоверсий для книг
+  Future<void> _checkAudioVersions(List<BookSource> sources) async {
+    try {
+      // Инициализируем Google Drive сервис
+      final isInitialized = await _driveService.initialize();
+      if (!isInitialized) {
+        print('⚠️ Не удалось инициализировать Google Drive сервис для проверки аудиоверсий');
+        return;
+      }
+      
+      // Получаем структуру папок с аудиофайлами
+      final folderStructure = await _driveService.getAudiobooksByFolders();
+      if (folderStructure.isEmpty) {
+        print('⚠️ Не найдено папок с аудиокнигами в Google Drive');
+        return;
+      }
+      
+      print('🎧 Найдено ${folderStructure.length} папок с аудиокнигами в Google Drive');
       
       // Маппинг ID текстовых книг к названиям папок аудиокниг
       final Map<String, List<String>> bookToAudioFolders = {
@@ -356,40 +392,44 @@ class TextFileService {
         'askr_svarte_polemos': ['аскр полемос', 'polemos'],
       };
       
-      // Проверяем, есть ли аудиокнига для этой текстовой книги
-      final possibleAudioFolders = bookToAudioFolders[book.id];
-      final hasAudio = possibleAudioFolders != null;
-      
-      if (hasAudio) {
-        sources[i] = BookSource(
-          id: book.id,
-          title: book.title,
-          author: book.author,
-          category: book.category,
-          language: book.language,
-          translator: book.translator,
-          rawFilePath: book.rawFilePath,
-          cleanedFilePath: book.cleanedFilePath,
-          hasAudioVersion: true,
-        );
-        print('🎧 Текстовая книга "${book.title}" имеет аудиоверсию');
+      // Проверяем каждую книгу
+      for (int i = 0; i < sources.length; i++) {
+        final book = sources[i];
+        final possibleAudioFolders = bookToAudioFolders[book.id];
+        
+        if (possibleAudioFolders != null) {
+          // Проверяем, есть ли соответствующая папка в Google Drive
+          bool hasAudio = false;
+          for (final folderName in folderStructure.keys) {
+            for (final possibleFolder in possibleAudioFolders) {
+              if (folderName.toLowerCase().contains(possibleFolder.toLowerCase()) ||
+                  possibleFolder.toLowerCase().contains(folderName.toLowerCase())) {
+                hasAudio = true;
+                break;
+              }
+            }
+            if (hasAudio) break;
+          }
+          
+          if (hasAudio) {
+            sources[i] = BookSource(
+              id: book.id,
+              title: book.title,
+              author: book.author,
+              category: book.category,
+              language: book.language,
+              translator: book.translator,
+              rawFilePath: book.rawFilePath,
+              cleanedFilePath: book.cleanedFilePath,
+              hasAudioVersion: true,
+            );
+            print('🎧 Текстовая книга "${book.title}" имеет аудиоверсию');
+          }
+        }
       }
+    } catch (e) {
+      print('❌ Ошибка при проверке аудиоверсий: $e');
     }
-    
-    // Группируем по категориям для кэша
-    final Map<String, List<BookSource>> categorizedSources = {};
-    for (final source in sources) {
-      categorizedSources.putIfAbsent(source.category, () => []).add(source);
-    }
-    
-    _cachedSources.addAll(categorizedSources);
-    
-    print('📚 Загружено ${sources.length} книг в ${categorizedSources.length} категориях');
-    for (final entry in categorizedSources.entries) {
-      print('   ${entry.key}: ${entry.value.length} книг');
-    }
-    
-    return sources;
   }
 
   /// Загружает текст из файла (raw или cleaned)
@@ -553,6 +593,7 @@ for (int i = 1; i < paragraphs.length; i++) {
     
     final context = paragraphs.sublist(startIndex, endIndex);
     debugPrint('!!! SACRAL_APP: CONTEXT FOUND: ${context.length} PARAGRAPHS');
+    debugPrint('!!! SACRAL_APP: START INDEX: $startIndex, END INDEX: $endIndex, CENTER INDEX: $centerIndex');
     
     return context;
   }

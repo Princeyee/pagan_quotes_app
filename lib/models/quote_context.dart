@@ -38,68 +38,35 @@ class QuoteContext {
 
   /// Получает абзац, содержащий саму цитату
   String get quoteParagraph {
-    // Нормализуем текст цитаты для более точного поиска
-    final normalizedQuote = _normalizeText(quote.text);
+    // При contextSize: 1 мы получаем 3 параграфа (1 до + 1 цитата + 1 после)
+    // Центральный параграф (индекс 1) должен содержать цитату
+    final centerIndex = contextParagraphs.length ~/ 2;
     
-    // Сначала пробуем найти точное совпадение
-    for (final paragraph in contextParagraphs) {
-      if (_normalizeText(paragraph).contains(normalizedQuote)) {
-        return paragraph;
-      }
+    if (centerIndex < contextParagraphs.length) {
+      return contextParagraphs[centerIndex];
     }
     
-    // Если точное совпадение не найдено, ищем по словам
-    final quoteWords = normalizedQuote.split(' ')
-        .where((word) => word.length > 3)  // Игнорируем короткие слова
-        .toList();
-    
-    if (quoteWords.isEmpty) return contextParagraphs.first;
-    
-    // Ищем параграф с наибольшим количеством совпадающих слов
-    var bestMatch = contextParagraphs.first;
-    var maxMatchCount = 0;
-    
-    for (final paragraph in contextParagraphs) {
-      final normalizedParagraph = _normalizeText(paragraph);
-      final matchCount = quoteWords
-          .where((word) => normalizedParagraph.contains(word))
-          .length;
-      
-      if (matchCount > maxMatchCount) {
-        maxMatchCount = matchCount;
-        bestMatch = paragraph;
-      }
-    }
-    
-    return bestMatch;
-  }
-  
-  /// Нормализует текст для сравнения
-  String _normalizeText(String text) {
-    return text
-        .toLowerCase()
-        .replaceAll(RegExp(r'[.,!?:;«»\[\]()]'), '')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+    // Fallback: возвращаем первый параграф
+    return contextParagraphs.isNotEmpty ? contextParagraphs.first : '';
   }
 
   /// Получает абзацы до цитаты (контекст "до")
   List<String> get beforeContext {
-    final quoteParIndex = contextParagraphs.indexWhere(
-      (p) => p.toLowerCase().contains(quote.text.toLowerCase()),
-    );
-    return quoteParIndex > 0 
-        ? contextParagraphs.sublist(0, quoteParIndex)
-        : [];
+    // При contextSize: 1 мы получаем 3 параграфа (1 до + 1 цитата + 1 после)
+    // Центральный параграф (индекс 1) должен содержать цитату
+    final centerIndex = contextParagraphs.length ~/ 2;
+    
+    // Возвращаем все параграфы до центрального (не включая его)
+    return contextParagraphs.sublist(0, centerIndex);
   }
 
   /// Получает абзацы после цитаты (контекст "после")  
   List<String> get afterContext {
-    final quoteParIndex = contextParagraphs.indexWhere(
-      (p) => p.toLowerCase().contains(quote.text.toLowerCase()),
-    );
-    return quoteParIndex >= 0 && quoteParIndex < contextParagraphs.length - 1
-        ? contextParagraphs.sublist(quoteParIndex + 1)
-        : [];
+    // При contextSize: 1 мы получаем 3 параграфа (1 до + 1 цитата + 1 после)
+    // Центральный параграф (индекс 1) должен содержать цитату
+    final centerIndex = contextParagraphs.length ~/ 2;
+    
+    // Возвращаем все параграфы после центрального (не включая его)
+    return contextParagraphs.sublist(centerIndex + 1);
   }
 }
