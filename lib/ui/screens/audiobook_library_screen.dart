@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/audiobook.dart';
-import '../../services/audiobook_service.dart';
+import '../../services/enhanced_audiobook_service.dart';
 import '../../ui/widgets/audiobook_card.dart';
 import '../widgets/glass_background.dart';
 import 'enhanced_audiobook_player.dart';
@@ -12,9 +12,10 @@ class AudiobookLibraryScreen extends StatefulWidget {
 }
 
 class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
-  final AudiobookService _audiobookService = AudiobookService();
+  final EnhancedAudiobookService _audiobookService = EnhancedAudiobookService();
   List<Audiobook> _audiobooks = [];
   bool _isLoading = true;
+  String _debugInfo = '';
 
   @override
   void initState() {
@@ -25,24 +26,38 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
   Future<void> _loadAudiobooks() async {
     setState(() {
       _isLoading = true;
+      _debugInfo = 'Начинаем загрузку аудиокниг...';
     });
     
     try {
-      // Загружаем только из Google Drive
+      print('🔍 Начинаем загрузку аудиокниг...');
+      
+      // Инициализируем сервис
+      await _audiobookService.initialize();
+      
+      setState(() {
+        _debugInfo = 'Сервис инициализирован, загружаем аудиокниги...';
+      });
+      
+      // Загружаем аудиокниги
       final audiobooks = await _audiobookService.getAudiobooks();
+      
+      print('📚 Загружено аудиокниг: ${audiobooks.length}');
       
       if (mounted) {
         setState(() {
           _audiobooks = audiobooks;
           _isLoading = false;
+          _debugInfo = 'Загружено ${audiobooks.length} аудиокниг';
         });
       }
     } catch (e) {
-      print('Ошибка при загрузке аудиокниг: $e');
+      print('❌ Ошибка при загрузке аудиокниг: $e');
       
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _debugInfo = 'Ошибка: $e';
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ошибка загрузки аудиокниг: $e')),
@@ -105,6 +120,47 @@ class _AudiobookLibraryScreenState extends State<AudiobookLibraryScreen> {
                                       fontSize: 14,
                                     ),
                                     textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 20),
+                                  // Отладочная информация
+                                  Container(
+                                    padding: EdgeInsets.all(16),
+                                    margin: EdgeInsets.symmetric(horizontal: 20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.grey[600]!),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          'Отладочная информация:',
+                                          style: TextStyle(
+                                            color: Colors.amber,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          _debugInfo,
+                                          style: TextStyle(
+                                            color: Colors.grey[300],
+                                            fontSize: 12,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        SizedBox(height: 10),
+                                        ElevatedButton(
+                                          onPressed: _loadAudiobooks,
+                                          child: Text('Повторить загрузку'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.amber,
+                                            foregroundColor: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),

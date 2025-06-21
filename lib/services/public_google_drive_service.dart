@@ -27,7 +27,7 @@ class PublicGoogleDriveService {
   List<Map<String, dynamic>>? _cachedFolders;
   DateTime? _cacheTimestamp;
   
-  // Сервисы для прогрессив��ой загрузки
+  // Сервисы для прогрессивной загрузки
   final ProgressiveDownloadService _progressiveDownloadService = ProgressiveDownloadService();
   final LocalAudioServer _localServer = LocalAudioServer.instance;
 
@@ -39,9 +39,12 @@ class PublicGoogleDriveService {
       print('🔧 Инициализация Google Drive сервиса...');
       
       // Загружаем кеш
+      print('📦 Загружаем кеш файлов...');
       await _loadFilesCache();
+      print('✅ Кеш файлов загружен');
       
       // Запускаем локальный сервер
+      print('🌐 Запускаем локальный сервер...');
       final serverStarted = await _localServer.start();
       if (!serverStarted) {
         print('❌ Не удалось запустить локальный сервер');
@@ -54,15 +57,19 @@ class PublicGoogleDriveService {
       if (await isOnline()) {
         print('🌐 Проверяем доступ к Google Drive API...');
         final testUrl = 'https://www.googleapis.com/drive/v3/files/$_folderId?key=$_apiKey';
+        print('🔗 Тестовый URL: $testUrl');
         
         try {
           final response = await _dio.get(testUrl);
+          print('📡 Ответ от Google Drive API: ${response.statusCode}');
+          
           if (response.statusCode == 200) {
             print('✅ Google Drive API доступен');
             _isInitialized = true;
             return true;
           } else {
             print('❌ Google Drive API недоступен: ${response.statusCode}');
+            print('📄 Ответ: ${response.data}');
             _lastError = 'Google Drive API недоступен: ${response.statusCode}';
           }
         } catch (e) {
@@ -97,7 +104,10 @@ class PublicGoogleDriveService {
 
   // Получаем структуру папок и файлов
   Future<Map<String, List<Map<String, dynamic>>>> getAudiobooksByFolders() async {
+    print('🔍 getAudiobooksByFolders() - начало');
+    
     if (!await isOnline()) {
+      print('❌ Нет интернет соединения');
       return {};
     }
 
@@ -108,15 +118,24 @@ class PublicGoogleDriveService {
           '&key=$_apiKey'
           '&fields=files(id,name)';
       
+      print('📁 Запрашиваем папки...');
+      print('🔗 URL папок: $foldersUrl');
+      
       final foldersResponse = await _dio.get(foldersUrl);
       
+      print('📡 Ответ папок: ${foldersResponse.statusCode}');
+      
       if (foldersResponse.statusCode != 200) {
+        print('❌ Ошибка получения папок: ${foldersResponse.statusCode}');
+        print('📄 Ответ: ${foldersResponse.data}');
         _lastError = 'Ошибка получения папок: ${foldersResponse.statusCode}';
         return {};
       }
       
       final foldersData = foldersResponse.data;
       final folders = List<Map<String, dynamic>>.from(foldersData['files'] ?? []);
+      
+      print('📁 Найдено папок: ${folders.length}');
       
       final Map<String, List<Map<String, dynamic>>> result = {};
       
@@ -125,37 +144,60 @@ class PublicGoogleDriveService {
         final folderId = folder['id'] as String;
         final folderName = folder['name'] as String;
         
+        print('📁 Обрабатываем папку: $folderName (ID: $folderId)');
+        
         final filesUrl = 'https://www.googleapis.com/drive/v3/files'
             '?q=${Uri.encodeComponent("'$folderId' in parents")}'
             '&key=$_apiKey'
             '&fields=files(id,name,mimeType,size,webContentLink)';
         
+        print('🔗 URL файлов для папки $folderName: $filesUrl');
+        
         final filesResponse = await _dio.get(filesUrl);
+        
+        print('📡 Ответ файлов для папки $folderName: ${filesResponse.statusCode}');
         
         if (filesResponse.statusCode == 200) {
           final filesData = filesResponse.data;
           final files = List<Map<String, dynamic>>.from(filesData['files'] ?? []);
           
+          print('📄 Всего файлов в папке $folderName: ${files.length}');
+          
           // Фильтруем только аудиофайлы
           final audioFiles = files.where((file) {
             final mimeType = file['mimeType'] as String? ?? '';
             final fileName = file['name'] as String? ?? '';
-            return mimeType.startsWith('audio/') || 
+            final isAudio = mimeType.startsWith('audio/') || 
                    fileName.toLowerCase().endsWith('.mp3') ||
                    fileName.toLowerCase().endsWith('.m4a') ||
                    fileName.toLowerCase().endsWith('.wav');
+            
+            if (isAudio) {
+              print('🎵 Аудиофайл: $fileName (MIME: $mimeType)');
+            }
+            
+            return isAudio;
           }).toList();
+          
+          print('🎵 Аудиофайлов в папке $folderName: ${audioFiles.length}');
           
           if (audioFiles.isNotEmpty) {
             // Сортируем файлы по имени
             audioFiles.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
             result[folderName] = audioFiles;
+            print('✅ Папка $folderName добавлена в результат');
+          } else {
+            print('⚠️ В папке $folderName нет аудиофайлов');
           }
+        } else {
+          print('❌ Ошибка получения файлов для папки $folderName: ${filesResponse.statusCode}');
         }
       }
       
+      print('📚 Итого папок с аудиофайлами: ${result.length}');
       return result;
     } catch (e) {
+      print('❌ Ошибка получения структуры папок: $e');
       _lastError = 'Ошибка получения структуры папок: $e';
       return {};
     }
@@ -194,7 +236,7 @@ class PublicGoogleDriveService {
       final filePath = '${cacheDir.path}/$fileName';
       final file = File(filePath);
       
-      // Если файл уже есть в кеше, во��вращаем путь
+      // Если файл уже есть в кеше, возвращаем путь
       if (await file.exists()) {
         return filePath;
       }
@@ -261,7 +303,7 @@ class PublicGoogleDriveService {
         _progressiveDownloadService.getProgressStream(fileId).listen(onProgress);
       }
       
-      // Начинаем загрузку (или продолжае�� существующую)
+      // Начинаем загрузку (или продолжаем существующую)
       final filePath = await _progressiveDownloadService.startProgressiveDownload(
         fileId: fileId,
         downloadUrl: downloadUrl,
@@ -288,7 +330,7 @@ class PublicGoogleDriveService {
     return _progressiveDownloadService.getProgressStream(fileId);
   }
   
-  /// Проверить, можно ли на��ать воспроизведение
+  /// Проверить, можно ли наать воспроизведение
   Future<bool> isFilePlayable(String fileId) async {
     return await _progressiveDownloadService.isPlayable(fileId);
   }

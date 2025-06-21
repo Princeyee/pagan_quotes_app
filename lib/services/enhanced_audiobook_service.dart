@@ -20,47 +20,81 @@ class EnhancedAudiobookService {
   final Map<String, String> _urlCache = {}; // chapterId -> cachedUrl
 
   Future<List<Audiobook>> getAudiobooks() async {
+    print('🔍 EnhancedAudiobookService.getAudiobooks() - начало');
+    
     final connectivityResult = await Connectivity().checkConnectivity();
     final isOnline = connectivityResult != ConnectivityResult.none;
+    
+    print('🌐 Статус подключения: ${isOnline ? "онлайн" : "оффлайн"}');
 
     try {
       // Загружаем кеш URL при первом обращении
+      print('📦 Загружаем кеш URL...');
       await _loadUrlCache();
+      print('✅ Кеш URL загружен');
       
       if (isOnline) {
+        print('🌐 Онлайн режим - загружаем из Google Drive...');
         // Онлайн режим - загружаем только из Google Drive
         final onlineAudiobooks = await _getOnlineAudiobooks();
+        print('📚 Получено аудиокниг из Google Drive: ${onlineAudiobooks.length}');
         
         if (onlineAudiobooks.isNotEmpty) {
+          print('💾 Сохраняем для оффлайн режима...');
           // Сохраняем для оффлайн режима
           await _saveOfflineAudiobooks(onlineAudiobooks);
+          print('✅ Аудиокниги сохранены в кеш');
           return onlineAudiobooks;
         } else {
+          print('⚠️ Нет аудиокниг онлайн, возвращаем кеш...');
           // Возвращаем кеш если есть
-          return await _getOfflineAudiobooks();
+          final cachedAudiobooks = await _getOfflineAudiobooks();
+          print('📚 Получено аудиокниг из кеша: ${cachedAudiobooks.length}');
+          return cachedAudiobooks;
         }
       } else {
+        print('📱 Оффлайн режим - используем кеш...');
         // Оффлайн режим - используем только кеш
-        return await _getOfflineAudiobooks();
+        final cachedAudiobooks = await _getOfflineAudiobooks();
+        print('📚 Получено аудиокниг из кеша: ${cachedAudiobooks.length}');
+        return cachedAudiobooks;
       }
     } catch (e) {
+      print('❌ Ошибка в getAudiobooks: $e');
       // Fallback на кешированные данные
-      return await _getOfflineAudiobooks();
+      final cachedAudiobooks = await _getOfflineAudiobooks();
+      print('📚 Fallback: получено аудиокниг из кеша: ${cachedAudiobooks.length}');
+      return cachedAudiobooks;
     }
   }
 
   Future<List<Audiobook>> _getOnlineAudiobooks() async {
+    print('🔍 _getOnlineAudiobooks() - начало');
+    
     try {
       // Инициализируем публичный Google Drive сервис
+      print('🔧 Инициализируем Google Drive сервис...');
       final isInitialized = await _driveService.initialize();
+      print('✅ Google Drive сервис инициализирован: $isInitialized');
+      
       if (!isInitialized) {
+        print('❌ Google Drive сервис не инициализирован');
         return [];
       }
       
       // Получаем структуру папок с аудиофайлами
+      print('📁 Получаем структуру папок...');
       final folderStructure = await _driveService.getAudiobooksByFolders();
+      print('📁 Получено папок: ${folderStructure.length}');
+      
       if (folderStructure.isEmpty) {
+        print('❌ Структура папок пуста');
         return [];
+      }
+      
+      // Выводим информацию о найденных папках
+      for (final entry in folderStructure.entries) {
+        print('📁 Папка "${entry.key}": ${entry.value.length} файлов');
       }
       
       final List<Audiobook> audiobooks = [];
@@ -70,13 +104,20 @@ class EnhancedAudiobookService {
         final folderName = entry.key;
         final files = entry.value;
         
-        if (files.isEmpty) continue;
+        print('📚 Обрабатываем папку: $folderName');
+        
+        if (files.isEmpty) {
+          print('⚠️ Папка $folderName пуста, пропускаем');
+          continue;
+        }
         
         final chapters = <AudiobookChapter>[];
         for (int i = 0; i < files.length; i++) {
           final file = files[i];
           final fileName = file['name'] as String;
           final chapterTitle = _formatChapterTitle(fileName, i + 1);
+          
+          print('🎵 Глава ${i + 1}: $fileName -> $chapterTitle');
           
           chapters.add(AudiobookChapter(
             title: chapterTitle,
@@ -98,6 +139,7 @@ class EnhancedAudiobookService {
         
         // Пытаемся найти соответствующую текстовую книгу
         try {
+          print('🔍 Ищем соответствующую текстовую книгу для: $folderName');
           final textService = TextFileService();
           final textBooks = await textService.loadBookSources();
           
@@ -116,10 +158,11 @@ class EnhancedAudiobookService {
             }
           }
         } catch (e) {
-          print('Ошибка поиска текстовой книги для обложки: $e');
+          print('❌ Ошибка поиска текстовой книги для обложки: $e');
         }
         
         final coverPath = await BookImageService.getStableBookImage(bookId, category);
+        print('🖼️ Обложка: $coverPath');
         
         audiobooks.add(Audiobook(
           id: 'drive_${folderName.replaceAll(' ', '_')}',
@@ -130,10 +173,14 @@ class EnhancedAudiobookService {
           totalDuration: totalDuration,
           description: 'Аудиокнига из Google Drive',
         ));
+        
+        print('✅ Создана аудиокнига: ${_formatBookTitle(folderName)}');
       }
       
+      print('📚 Всего создано аудиокниг: ${audiobooks.length}');
       return audiobooks;
     } catch (e) {
+      print('❌ Ошибка в _getOnlineAudiobooks: $e');
       return [];
     }
   }

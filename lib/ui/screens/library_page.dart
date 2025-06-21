@@ -7,7 +7,7 @@ import '../../models/book_source.dart';
 import '../../services/text_file_service.dart';
 import '../../services/book_image_service.dart';
 import '../../utils/custom_cache.dart';
-import '../../services/audiobook_service.dart';
+import '../../services/enhanced_audiobook_service.dart';
 import '../../models/audiobook.dart';
 import 'book_reader_page.dart';
 import 'enhanced_audiobook_player.dart';
@@ -554,7 +554,7 @@ class _LibraryPageState extends State<LibraryPage> with SingleTickerProviderStat
         ),
       );
 
-      final audiobookService = AudiobookService();
+      final audiobookService = EnhancedAudiobookService();
       final audiobooks = await audiobookService.getAudiobooks();
       
       // Закрываем индикатор загрузки

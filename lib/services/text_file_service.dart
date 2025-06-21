@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/book_source.dart';
-import 'audiobook_service.dart';
+import 'enhanced_audiobook_service.dart';
 
 class TextFileService {
   static final TextFileService _instance = TextFileService._internal();
@@ -22,7 +22,7 @@ class TextFileService {
     }
     
     // Загружаем список аудиокниг для проверки наличия аудиоверсий
-    final audiobookService = AudiobookService();
+    final audiobookService = EnhancedAudiobookService();
     final audiobooks = await audiobookService.getAudiobooks();
 
     // ХАРДКОД - точно такие же книги как в random_curator.dart
