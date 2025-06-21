@@ -55,6 +55,28 @@
           "chapterNumber": 2
         }
       ]
+    },
+    {
+      "id": "beowulf_audiobook",
+      "title": "Беовульф",
+      "author": "Мифопоэтика",
+      "coverPath": "nordic",
+      "description": "Древнеанглийская эпическая поэма о герое Беовульфе, который сражается с чудовищами Гренделем и его матерью, а затем с драконом.",
+      "totalDurationMs": 1800000,
+      "chapters": [
+        {
+          "title": "Глава 1: Прибытие Беовульфа",
+          "filePath": "assets/audiobooks/beowulf/chapter_01.mp3",
+          "durationMs": 900000,
+          "chapterNumber": 1
+        },
+        {
+          "title": "Глава 2: Битва с Гренделем",
+          "filePath": "assets/audiobooks/beowulf/chapter_02.mp3",
+          "durationMs": 900000,
+          "chapterNumber": 2
+        }
+      ]
     }
   ]
 }

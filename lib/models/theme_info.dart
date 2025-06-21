@@ -40,7 +40,7 @@ final List<ThemeInfo> allThemes = [
   ),
   ThemeInfo(
     id: "pagan",
-    name: "Язычество",
+    name: "Язычество и традиционализм",
     image: "assets/images/pagan.jpg",
     authors: ["Эвола", "Элиаде", "Ален де Бенуа", "Askr Svarte"],
     description: "Архаические традиции, мифология и символизм.",

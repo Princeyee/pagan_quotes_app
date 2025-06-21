@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -55,6 +56,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
 
   DownloadProgress? _downloadProgress;
   StreamSubscription<DownloadProgress>? _progressSub;
+  
+  // Таймер для предотвращения бесконечной загрузки
+  Timer? _loadingTimeoutTimer;
 
   @override
   void initState() {
@@ -68,6 +72,16 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
     _audiobookService.initialize();
     _subscribeToDownloadProgress();
     _initAudioSession();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Свайп вверх по экрану для списка глав'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    });
   }
 
   void _initializeAnimations() {
@@ -197,12 +211,24 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   void _subscribeToDownloadProgress() {
     _progressSub?.cancel();
     final chapter = widget.audiobook.chapters[_currentChapterIndex];
+    
     if (chapter.driveFileId != null) {
-            
       _progressSub = _driveService.getDownloadProgressStream(chapter.driveFileId!).listen((progress) {
         setState(() {
           _downloadProgress = progress;
         });
+        
+        // Если хоть немного скачалось — через 2 сек после первого прогресса снимаем загрузку
+        if (_isLoading && progress != null && progress.percentage > 0.01) {
+          _loadingTimeoutTimer?.cancel();
+          _loadingTimeoutTimer = Timer(const Duration(seconds: 2), () {
+            if (mounted && _isLoading) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          });
+        }
         
         // Автостарт, если достигнут playable threshold
         if (!_isPlaying && progress.isPlayable && _isLoading) {
@@ -210,6 +236,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
             _isLoading = false;
           });
           _audioPlayer.play();
+          _loadingTimeoutTimer?.cancel();
         }
         
         // Убираем состояние загрузки когда файл готов
@@ -217,10 +244,17 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
           setState(() {
             _isLoading = false;
           });
+          _loadingTimeoutTimer?.cancel();
         }
+      }, onError: (error) {
+        if (_isLoading) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        _loadingTimeoutTimer?.cancel();
       });
     } else {
-      // Если нет driveFileId, сразу убираем прогресс загрузки
       setState(() {
         _downloadProgress = null;
       });
@@ -230,6 +264,19 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
   void _initializeAudio() async {
     setState(() => _isLoading = true);
     _downloadProgress = null;
+    
+    // Отменяем предыдущий таймер
+    _loadingTimeoutTimer?.cancel();
+    
+    // Устанавливаем таймер на 10 секунд для предотвращения бесконечной загрузки
+    _loadingTimeoutTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted && _isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
+    
     _subscribeToDownloadProgress();
     
     try {
@@ -249,8 +296,8 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       }
 
       // Восстановить позицию из сохраненного прогресса
-      final progress = await _audiobookService.getProgress(widget.audiobook.id);
-      if (progress != null && progress.chapterIndex == _currentChapterIndex) {
+      final progress = await _audiobookService.getProgress(widget.audiobook.id, chapterIndex: _currentChapterIndex);
+      if (progress != null) {
         await _audioPlayer.seek(progress.position);
       }
       
@@ -260,10 +307,12 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       // Если файл локальный или не требует загрузки, сразу убираем загрузку
       if (playableUrl.startsWith('file://') || !playableUrl.startsWith('http') || chapter.driveFileId == null) {
         setState(() => _isLoading = false);
+        _loadingTimeoutTimer?.cancel();
       }
     } catch (e) {
       _showError('Ошибка загрузки аудиофайла: $e');
       setState(() => _isLoading = false);
+      _loadingTimeoutTimer?.cancel();
     }
   }
 
@@ -286,6 +335,14 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       if (isPlaying) {
         _playPauseController.forward();
         _waveController.repeat();
+        
+        // Если началось воспроизведение и была загрузка - снимаем её
+        if (_isLoading) {
+          setState(() {
+            _isLoading = false;
+          });
+          _loadingTimeoutTimer?.cancel();
+        }
       } else {
         _playPauseController.reverse();
         _waveController.stop();
@@ -293,6 +350,14 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
 
       if (processingState == ProcessingState.completed) {
         _nextChapter();
+      }
+      
+      // Если состояние готово и была загрузка - снимаем её
+      if (processingState == ProcessingState.ready && _isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+        _loadingTimeoutTimer?.cancel();
       }
     });
   }
@@ -345,6 +410,19 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
         _isLoading = true;
         _downloadProgress = null;
       });
+      
+      // Отменяем предыдущий таймер
+      _loadingTimeoutTimer?.cancel();
+      
+      // Устанавливаем таймер на 10 секунд для предотвращения бесконечной загрузки
+      _loadingTimeoutTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted && _isLoading) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
+      
       _subscribeToDownloadProgress();
       
       try {
@@ -362,14 +440,15 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
           await _audioPlayer.setFilePath(playableUrl);
         }
 
-        final progress = await _audiobookService.getProgress(widget.audiobook.id);
-        if (progress != null && progress.chapterIndex == index) {
+        final progress = await _audiobookService.getProgress(widget.audiobook.id, chapterIndex: index);
+        if (progress != null) {
           await _audioPlayer.seek(progress.position);
         }
         
         // Если файл локальный или не требует загрузки, сразу убираем загрузку
         if (playableUrl.startsWith('file://') || !playableUrl.startsWith('http') || chapter.driveFileId == null) {
           setState(() => _isLoading = false);
+          _loadingTimeoutTimer?.cancel();
         }
         
         // Предзагружаем следующие главы
@@ -378,6 +457,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
       } catch (e) {
         _showError('Ошибка загрузки главы: $e');
         setState(() => _isLoading = false);
+        _loadingTimeoutTimer?.cancel();
       }
     }
   }
@@ -552,67 +632,9 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
               }
             },
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: _handleMenuAction,
-            color: _dominantColor.withOpacity(0.9),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'speed', 
-                child: Row(
-                  children: [
-                    const Icon(Icons.speed, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    const Text('Скорость', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'timer', 
-                child: Row(
-                  children: [
-                    const Icon(Icons.timer, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    const Text('Таймер сна', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'background', 
-                child: Row(
-                  children: [
-                    Icon(
-                      _playInBackground ? Icons.music_note : Icons.music_off,
-                      color: Colors.white,
-                      size: 20
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _playInBackground ? 'Фоновое воспроизведение: Вкл' : 'Фоновое воспроизведение: Выкл',
-                      style: const TextStyle(color: Colors.white)
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
-  }
-
-  void _handleMenuAction(String action) {
-    switch (action) {
-      case 'speed':
-        _showSpeedDialog();
-        break;
-      case 'timer':
-        _showSleepTimerDialog();
-        break;
-      case 'background':
-        _toggleBackgroundPlayback();
-        break;
-    }
   }
 
   void _showSleepTimerDialog() {
@@ -773,6 +795,27 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
               fontSize: 14,
               color: Colors.white.withOpacity(0.7),
             ),
+          ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.speed, color: Colors.white),
+                tooltip: 'Скорость',
+                onPressed: _showSpeedDialog,
+              ),
+              IconButton(
+                icon: const Icon(Icons.timer, color: Colors.white),
+                tooltip: 'Таймер сна',
+                onPressed: _showSleepTimerDialog,
+              ),
+              IconButton(
+                icon: Icon(_playInBackground ? Icons.music_note : Icons.music_off, color: Colors.white),
+                tooltip: _playInBackground ? 'Фоновое воспроизведение: Вкл' : 'Фоновое воспроизведение: Выкл',
+                onPressed: _toggleBackgroundPlayback,
+              ),
+            ],
           ),
         ],
       ),
@@ -1351,7 +1394,7 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
                                               ),
                                             ),
                                             
-                                            // Индикатор воспрои��ведения
+                                            // Индикатор воспроизведения
                                             if (isCurrentChapter)
                                               AnimatedBuilder(
                                                 animation: _waveController,
@@ -1427,11 +1470,13 @@ class _EnhancedAudiobookPlayerState extends State<EnhancedAudiobookPlayer>
 
   @override
   void dispose() {
+    _loadingTimeoutTimer?.cancel();
     _progressSub?.cancel();
     _audioPlayer.dispose();
     _playPauseController.dispose();
     _waveController.dispose();
     _chapterListController.dispose();
+    // Освобождаем аудио ресурсы
     _releaseAudioResources();
     super.dispose();
   }

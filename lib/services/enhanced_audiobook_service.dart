@@ -6,21 +6,27 @@ import 'package:path_provider/path_provider.dart';
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
 import 'public_google_drive_service.dart';
+import 'text_file_service.dart';
 
 class EnhancedAudiobookService {
   static const String _progressKey = 'audiobook_progress';
   static const String _favoritesKey = 'favorite_audiobooks';
   static const String _offlineAudiobooksKey = 'offline_audiobooks';
   static const String _preloadedChaptersKey = 'preloaded_chapters';
+  static const String _urlCacheKey = 'audiobook_url_cache';
   
   final PublicGoogleDriveService _driveService = PublicGoogleDriveService();
   final Map<String, String> _preloadedFiles = {}; // fileId -> localPath
+  final Map<String, String> _urlCache = {}; // chapterId -> cachedUrl
 
   Future<List<Audiobook>> getAudiobooks() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     final isOnline = connectivityResult != ConnectivityResult.none;
 
     try {
+      // Загружаем кеш URL при первом обращении
+      await _loadUrlCache();
+      
       if (isOnline) {
         // Онлайн режим - загружаем только из Google Drive
         final onlineAudiobooks = await _getOnlineAudiobooks();
@@ -86,7 +92,34 @@ class EnhancedAudiobookService {
           milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
         );
         
-        final coverPath = await BookImageService.getStableBookImage(folderName, 'pagan');
+        // Определяем ID и категорию для обложки
+        String bookId = folderName;
+        String category = 'pagan'; // по умолчанию
+        
+        // Пытаемся найти соответствующую текстовую книгу
+        try {
+          final textService = TextFileService();
+          final textBooks = await textService.loadBookSources();
+          
+          // Ищем книгу с похожим названием
+          for (final textBook in textBooks) {
+            final textTitle = textBook.title.toLowerCase().trim();
+            final audioTitle = folderName.toLowerCase().trim();
+            
+            if (textTitle == audioTitle || 
+                textTitle.contains(audioTitle) || 
+                audioTitle.contains(textTitle)) {
+              bookId = textBook.id;
+              category = textBook.category;
+              print('🎨 Найдена соответствующая книга: ${textBook.title} (${textBook.category})');
+              break;
+            }
+          }
+        } catch (e) {
+          print('Ошибка поиска текстовой книги для обложки: $e');
+        }
+        
+        final coverPath = await BookImageService.getStableBookImage(bookId, category);
         
         audiobooks.add(Audiobook(
           id: 'drive_${folderName.replaceAll(' ', '_')}',
@@ -105,31 +138,49 @@ class EnhancedAudiobookService {
     }
   }
 
-  // УПРОЩЕННЫЙ И НАДЕЖНЫЙ МЕТОД ПОЛУ��ЕНИЯ URL
+  // УПРОЩЕННЫЙ И НАДЕЖНЫЙ МЕТОД ПОЛУЧЕНИЯ URL
   Future<String?> getPlayableUrl(AudiobookChapter chapter) async {
     if (chapter.isStreamable && chapter.driveFileId != null) {
       final fileName = '${chapter.driveFileId}.mp3';
+      final chapterId = '${chapter.driveFileId}';
       
       print('🔍 Поиск файла: $fileName');
       
       try {
-        // 1. Проверяем полностью загруженный кеш
+        // 1. Проверяем кеш URL
+        if (_urlCache.containsKey(chapterId)) {
+          final cachedUrl = _urlCache[chapterId]!;
+          print('✅ Используем кешированный URL: $cachedUrl');
+          return cachedUrl;
+        }
+        
+        // 2. Проверяем полностью загруженный кеш
         final cachedPath = await _driveService.getCachedFilePath(fileName);
         if (cachedPath != null && await File(cachedPath).exists()) {
           print('✅ Файл найден в полном кеше: $cachedPath');
+          _urlCache[chapterId] = cachedPath;
           return cachedPath;
         }
         
-        // 2. Проверяем интернет соединение
+        // 3. Проверяем интернет соединение
         final connectivityResult = await Connectivity().checkConnectivity();
         if (connectivityResult == ConnectivityResult.none) {
           print('❌ Нет интернет соединения');
           return null;
         }
         
-        // 3. Возвращаем прямую ссылку на Google Drive
+        // 4. Возвращаем прямую ссылку на Google Drive
         final directUrl = _driveService.getFileDownloadUrl(chapter.driveFileId!);
         print('🌐 Используем прямую ссылку: $directUrl');
+        
+        // Кешируем URL
+        _urlCache[chapterId] = directUrl;
+        
+        // Сохраняем кеш если добавили новую запись
+        if (_urlCache.length % 5 == 0) { // Сохраняем каждые 5 новых URL
+          _saveUrlCache();
+        }
+        
         return directUrl;
         
       } catch (e) {
@@ -291,6 +342,9 @@ class EnhancedAudiobookService {
       final prefs = await SharedPreferences.getInstance();
       final progressMap = await _getProgressMap();
       
+      // Создаем ключ для конкретной главы
+      final chapterKey = '${audiobookId}_chapter_$chapterIndex';
+      
       final progress = AudiobookProgress(
         audiobookId: audiobookId,
         chapterIndex: chapterIndex,
@@ -298,6 +352,10 @@ class EnhancedAudiobookService {
         lastPlayed: DateTime.now(),
       );
       
+      // Сохраняем прогресс для конкретной главы
+      progressMap[chapterKey] = progress.toJson();
+      
+      // Также сохраняем общий прогресс аудиокниги
       progressMap[audiobookId] = progress.toJson();
       
       await prefs.setString(_progressKey, json.encode(progressMap));
@@ -306,19 +364,30 @@ class EnhancedAudiobookService {
     }
   }
 
-  Future<AudiobookProgress?> getProgress(String audiobookId) async {
+  Future<AudiobookProgress?> getProgress(String audiobookId, {int? chapterIndex}) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       final progressMap = await _getProgressMap();
-      final progressJson = progressMap[audiobookId];
       
-      if (progressJson != null) {
-        return AudiobookProgress.fromJson(progressJson);
+      // Если указан конкретный индекс главы, ищем прогресс для неё
+      if (chapterIndex != null) {
+        final chapterKey = '${audiobookId}_chapter_$chapterIndex';
+        final chapterProgress = progressMap[chapterKey];
+        if (chapterProgress != null) {
+          return AudiobookProgress.fromJson(chapterProgress);
+        }
       }
+      
+      // Иначе возвращаем общий прогресс аудиокниги
+      final progress = progressMap[audiobookId];
+      if (progress != null) {
+        return AudiobookProgress.fromJson(progress);
+      }
+      
+      return null;
     } catch (e) {
-      // Игнорируем ошибки загрузки прогресса
+      return null;
     }
-    
-    return null;
   }
 
   Future<Map<String, dynamic>> _getProgressMap() async {
@@ -385,14 +454,45 @@ class EnhancedAudiobookService {
   Future<void> clearCache() async {
     try {
       _preloadedFiles.clear();
-      await _driveService.clearCache();
+      _urlCache.clear();
       
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_preloadedChaptersKey);
+      await prefs.remove(_urlCacheKey);
       
-      print('🗑️ Кеш очищен');
+      print('🧹 Кеш очищен');
     } catch (e) {
       print('Ошибка очистки кеша: $e');
+    }
+  }
+
+  Future<void> _loadUrlCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final urlCacheString = prefs.getString(_urlCacheKey);
+      
+      if (urlCacheString != null) {
+        final Map<String, dynamic> urlCacheMap = json.decode(urlCacheString);
+        _urlCache.clear();
+        
+        for (final entry in urlCacheMap.entries) {
+          _urlCache[entry.key] = entry.value as String;
+        }
+        
+        print('📦 Загружен кеш URL: ${_urlCache.length} записей');
+      }
+    } catch (e) {
+      print('Ошибка загрузки кеша URL: $e');
+    }
+  }
+
+  Future<void> _saveUrlCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_urlCacheKey, json.encode(_urlCache));
+      print('💾 Сохранен кеш URL: ${_urlCache.length} записей');
+    } catch (e) {
+      print('Ошибка сохранения кеша URL: $e');
     }
   }
 }

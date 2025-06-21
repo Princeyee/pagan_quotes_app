@@ -1,4 +1,3 @@
-
 // lib/services/text_file_service.dart - ИСПРАВЛЕННАЯ ВЕРСИЯ
 
 import 'dart:math';
@@ -123,8 +122,8 @@ class TextFileService {
       ),
       BookSource(
         id: 'elder_edda',
-        title: 'Мифопоэтика',
-        author: 'Старшая эдда',
+        title: 'Старшая Эдда',
+        author: 'Аноним',
         category: 'nordic',
         language: 'ru',
         cleanedFilePath: 'assets/full_texts/nordic/folk/elder_edda_cleaned.txt',
@@ -322,11 +321,37 @@ class TextFileService {
     // Проверяем наличие аудиоверсий для книг
     for (int i = 0; i < sources.length; i++) {
       final book = sources[i];
-      // Проверяем, есть ли аудиокнига с таким же ID или названием
-      final hasAudio = audiobooks.any((audiobook) => 
-        audiobook.id == book.id || 
-        audiobook.title.toLowerCase() == book.title.toLowerCase()
-      );
+      // Проверяем, есть ли аудиокнига с таким же ID, названием или автором
+      final hasAudio = audiobooks.any((audiobook) {
+        // Точное совпадение по ID
+        if (audiobook.id == book.id) return true;
+        
+        // Точное совпадение по названию
+        if (audiobook.title.toLowerCase().trim() == book.title.toLowerCase().trim()) return true;
+        
+        // Совпадение по автору (если названия похожи)
+        if (audiobook.author.toLowerCase().trim() == book.author.toLowerCase().trim()) {
+          // Проверяем, есть ли частичное совпадение в названиях
+          final audioTitle = audiobook.title.toLowerCase().trim();
+          final bookTitle = book.title.toLowerCase().trim();
+          
+          // Если одно название содержит другое
+          if (audioTitle.contains(bookTitle) || bookTitle.contains(audioTitle)) {
+            return true;
+          }
+          
+          // Если названия имеют общие ключевые слова
+          final audioWords = audioTitle.split(' ');
+          final bookWords = bookTitle.split(' ');
+          final commonWords = audioWords.where((word) => 
+            word.length > 3 && bookWords.contains(word)
+          ).length;
+          
+          if (commonWords >= 2) return true;
+        }
+        
+        return false;
+      });
       
       if (hasAudio) {
         sources[i] = BookSource(

@@ -1,4 +1,3 @@
-
 {
   "greece": {
     "displayName": "Греция",
@@ -100,8 +99,8 @@
       },
       {
         "id": "elder_edda",
-        "title": "Мифопоэтика",
-        "author": "Старшая Эдда",
+        "title": "Старшая Эдда",
+        "author": "Аноним",
         "language": "ru",
         "translator": "А.И. Корсун",
         "rawFilePath": "assets/full_texts/nordic/folk/elder_edda_raw.txt",

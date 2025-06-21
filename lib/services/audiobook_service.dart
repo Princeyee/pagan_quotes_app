@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/audiobook.dart';
 import 'book_image_service.dart';
 import 'public_google_drive_service.dart';
+import 'text_file_service.dart';
 
 class AudiobookService {
   static const String _progressKey = 'audiobook_progress';
@@ -82,7 +83,34 @@ class AudiobookService {
           milliseconds: chapters.fold(0, (sum, chapter) => sum + chapter.duration.inMilliseconds),
         );
         
-        final coverPath = await BookImageService.getStableBookImage(folderName, 'pagan');
+        // Определяем ID и категорию для обложки
+        String bookId = folderName;
+        String category = 'pagan'; // по умолчанию
+        
+        // Пытаемся найти соответствующую текстовую книгу
+        try {
+          final textService = TextFileService();
+          final textBooks = await textService.loadBookSources();
+          
+          // Ищем книгу с похожим названием
+          for (final textBook in textBooks) {
+            final textTitle = textBook.title.toLowerCase().trim();
+            final audioTitle = folderName.toLowerCase().trim();
+            
+            if (textTitle == audioTitle || 
+                textTitle.contains(audioTitle) || 
+                audioTitle.contains(textTitle)) {
+              bookId = textBook.id;
+              category = textBook.category;
+              print('🎨 Найдена соответствующая книга: ${textBook.title} (${textBook.category})');
+              break;
+            }
+          }
+        } catch (e) {
+          print('Ошибка поиска текстовой книги для обложки: $e');
+        }
+        
+        final coverPath = await BookImageService.getStableBookImage(bookId, category);
         
         audiobooks.add(Audiobook(
           id: 'drive_${folderName.replaceAll(' ', '_')}',
@@ -174,7 +202,7 @@ class AudiobookService {
         .replaceAll('-', ' ')
         .trim();
     
-    // Если в имени файла есть "chapter" или "глава", использ��ем как есть
+    // Если в имени файла есть "chapter" или "глава", используем как есть
     if (cleanName.toLowerCase().contains('chapter') ||
         cleanName.toLowerCase().contains('глава') ||
         cleanName.toLowerCase().contains('часть')) {
