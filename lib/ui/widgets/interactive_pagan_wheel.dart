@@ -351,9 +351,13 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                     ? _rotationAnimation.value 
                                     : _currentRotation;
                                 
-                                return Transform.rotate(
-                                  angle: currentRotation,
-                                  child: _buildCenterElement(),
+                                return Positioned(
+                                  left: 275, // Центрируем относительно колеса 650px
+                                  top: 275,  // Центрируем относительно колеса 650px
+                                  child: Transform.rotate(
+                                    angle: currentRotation,
+                                    child: _buildCenterElement(),
+                                  ),
                                 );
                               },
                             ),
@@ -421,75 +425,86 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
   }
 
   Widget _buildCenterElement() {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            Colors.black.withAlpha((0.9 * 255).round()),
-            Colors.black.withAlpha((0.7 * 255).round()),
+    return Center(
+      child: Container(
+        width: 120,
+        height: 120,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              Colors.black.withAlpha((0.95 * 255).round()),
+              Colors.black.withAlpha((0.8 * 255).round()),
+              Colors.black.withAlpha((0.6 * 255).round()),
+            ],
+            stops: const [0.0, 0.7, 1.0],
+          ),
+          border: Border.all(
+            color: Colors.white.withAlpha((0.15 * 255).round()),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha((0.6 * 255).round()),
+              blurRadius: 25,
+              spreadRadius: 8,
+            ),
+            BoxShadow(
+              color: _months[_selectedMonth - 1].color.withAlpha((0.3 * 255).round()),
+              blurRadius: 40,
+              spreadRadius: 0,
+            ),
           ],
         ),
-        border: Border.all(
-          color: Colors.white.withAlpha((0.1 * 255).round()),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha((0.5 * 255).round()),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-          BoxShadow(
-            color: _months[_selectedMonth - 1].color.withAlpha((0.2 * 255).round()),
-            blurRadius: 30,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  Colors.white.withAlpha((0.05 * 255).round()),
-                  Colors.transparent,
-                ],
+        child: ClipOval(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withAlpha((0.08 * 255).round()),
+                    Colors.transparent,
+                  ],
+                ),
               ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/icon/old1.png',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    print('Ошибка загрузки old1.png: $error');
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            _months[_selectedMonth - 1].color.withAlpha((0.6 * 255).round()),
-                            _months[_selectedMonth - 1].color.withAlpha((0.2 * 255).round()),
-                          ],
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.auto_awesome,
-                        color: Colors.white.withAlpha((0.9 * 255).round()),
-                        size: 40,
-                      ),
-                    );
-                  },
+              child: Center(
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.transparent,
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/icon/old1.png',
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Ошибка загрузки old1.png: $error');
+                        return Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                _months[_selectedMonth - 1].color.withAlpha((0.7 * 255).round()),
+                                _months[_selectedMonth - 1].color.withAlpha((0.3 * 255).round()),
+                              ],
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.auto_awesome,
+                            color: Colors.white.withAlpha((0.9 * 255).round()),
+                            size: 45,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),

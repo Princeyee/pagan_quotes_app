@@ -130,7 +130,7 @@ class TextFileService {
       BookSource(
         id: 'elder_edda',
         title: 'Старшая Эдда',
-        author: 'Аноним',
+        author: 'Мифопоэтика',
         category: 'nordic',
         language: 'ru',
         translator: 'А.И. Корсун',
