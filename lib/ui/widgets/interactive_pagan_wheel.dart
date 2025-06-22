@@ -311,7 +311,6 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
             height: 380,
             width: double.infinity,
             child: ClipRect(
-                  child: ClipRect(
                   child: Stack(
                     children: [
                       Positioned(
