@@ -129,6 +129,34 @@ class QuoteExtractionService {
     }
   }
 
+  /// НОВЫЙ МЕТОД: Получить отфильтрованные цитаты по темам и авторам
+  Future<List<Quote>> getFilteredQuotes() async {
+    final curated = await loadCuratedQuotes();
+    final enabledThemes = await ThemeService.getEnabledThemes();
+    final selectedAuthors = await ThemeService.getSelectedAuthors();
+    
+    print('🎯 Фильтруем цитаты: темы=$enabledThemes, авторы=$selectedAuthors');
+    
+    final filteredQuotes = <Quote>[];
+    
+    for (final themeId in enabledThemes) {
+      if (curated.containsKey(themeId)) {
+        for (final curatedQuote in curated[themeId]!) {
+          // Для северной темы фильтруем по source (название книги), для остальных - по author
+          final filterKey = curatedQuote.category == 'nordic' ? curatedQuote.source : curatedQuote.author;
+          
+          // Фильтруем по авторам если они выбраны
+          if (selectedAuthors.isEmpty || selectedAuthors.contains(filterKey)) {
+            filteredQuotes.add(curatedQuote.toQuote());
+          }
+        }
+      }
+    }
+    
+    print('✅ Найдено ${filteredQuotes.length} отфильтрованных цитат');
+    return filteredQuotes;
+  }
+
   /// Генерирует ежедневную цитату для указанной даты
   Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
     try {
