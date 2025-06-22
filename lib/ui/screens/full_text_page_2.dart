@@ -999,11 +999,28 @@ class _FullTextPage2State extends State<FullTextPage2>
     });
 
     try {
-      // Найти источник книги с помощью нового гибкого метода
-      final source = _textService.findBookSource(
-        widget.context.quote.author, 
-        widget.context.quote.source
-      );
+      // ОСОБАЯ ОБРАБОТКА ДЛЯ СЕВЕРНЫХ ЦИТАТ
+      BookSource? source;
+      
+      if (widget.context.quote.category == 'nordic') {
+        // Для северных цитат ищем по названию книги (source), а не по автору
+        _logger.info('🔍 Северная цитата - ищем по названию: ${widget.context.quote.source}');
+        final sources = await _textService.loadBookSources();
+        
+        for (final s in sources) {
+          if (s.category == 'nordic' && s.title == widget.context.quote.source) {
+            source = s;
+            _logger.info('✅ Найден северный источник: ${s.title}');
+            break;
+          }
+        }
+      } else {
+        // Для остальных цитат используем стандартный поиск
+        source = _textService.findBookSource(
+          widget.context.quote.author, 
+          widget.context.quote.source
+        );
+      }
       
       if (source == null) {
         throw Exception('Источник книги не найден для: ${widget.context.quote.author} - ${widget.context.quote.source}');

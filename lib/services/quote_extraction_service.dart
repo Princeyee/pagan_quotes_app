@@ -214,9 +214,27 @@ class QuoteExtractionService {
   Future<QuoteContext?> getQuoteContext(Quote quote) async {
     try {
       print('🔍 Ищем контекст для цитаты: ${quote.id}');
+      print('🔍 Цитата: автор="${quote.author}", источник="${quote.source}", категория="${quote.category}"');
 
-      // Находим источник с помощью нового гибкого метода
-      final matchingSource = _textService.findBookSource(quote.author, quote.source);
+      // ОСОБАЯ ОБРАБОТКА ДЛЯ СЕВЕРНЫХ ЦИТАТ
+      BookSource? matchingSource;
+      
+      if (quote.category == 'nordic') {
+        // Для северных цитат ищем по названию книги (source), а не по автору
+        print('🔍 Северная цитата - ищем по названию: ${quote.source}');
+        final sources = await _textService.loadBookSources();
+        
+        for (final source in sources) {
+          if (source.category == 'nordic' && source.title == quote.source) {
+            matchingSource = source;
+            print('✅ Найден северный источник: ${source.title}');
+            break;
+          }
+        }
+      } else {
+        // Для остальных цитат используем стандартный поиск
+        matchingSource = _textService.findBookSource(quote.author, quote.source);
+      }
 
       if (matchingSource == null) {
         print('❌ Источник не найден для: ${quote.author} - ${quote.source}');

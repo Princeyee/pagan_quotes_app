@@ -352,8 +352,8 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                     : _currentRotation;
                                 
                                 return Positioned(
-                                  left: 275, // Центрируем относительно колеса 650px
-                                  top: 275,  // Центрируем относительно колеса 650px
+                                  left: 265, // Центрируем относительно колеса 650px: (650-120)/2 = 265
+                                  top: 265,  // Центрируем относительно колеса 650px: (650-120)/2 = 265
                                   child: Transform.rotate(
                                     angle: currentRotation,
                                     child: _buildCenterElement(),

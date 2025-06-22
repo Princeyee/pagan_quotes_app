@@ -701,6 +701,17 @@ for (int i = 1; i < paragraphs.length; i++) {
       }
     }
     
+    // ОСОБАЯ ОБРАБОТКА ДЛЯ СЕВЕРНЫХ КНИГ
+    // Если автор "Мифопоэтика", ищем по названию книги
+    if (normalizedAuthor == 'мифопоэтика') {
+      for (final source in sources) {
+        final sourceTitle = _normalizeString(source.title);
+        if (sourceTitle == normalizedTitle) {
+          return source;
+        }
+      }
+    }
+    
     return null;
   }
   
