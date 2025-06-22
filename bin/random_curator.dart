@@ -1,4 +1,3 @@
-
 // bin/random_curator.dart - СЛУЧАЙНЫЙ ОТБОР ИЗ ВСЕХ КНИГ
 import 'dart:io';
 import 'dart:convert';
@@ -404,7 +403,13 @@ class RandomCurator {
         final quote = Quote(
           id: paragraph.id,
           text: paragraph.text,
-          author: paragraph.book.author,
+          author: paragraph.book.category == 'nordic'
+              ? (paragraph.book.source == 'Старшая Эдда'
+                  ? 'Мифопоэтика'
+                  : (paragraph.book.source == 'Младшая Эдда'
+                      ? 'Снорри Стурлусон'
+                      : paragraph.book.author))
+              : paragraph.book.author,
           source: paragraph.book.source,
           category: paragraph.book.category,
           position: paragraph.position,

@@ -1,5 +1,3 @@
-
-
 class ThemeInfo {
   final String id;
   final String name;
@@ -28,7 +26,7 @@ final List<ThemeInfo> allThemes = [
     id: "nordic",
     name: "Север",
     image: "assets/images/nordic.jpg",
-    authors: ["Старшая Эдда", "Песнь о Нибелунгах", "Беовульф"],
+    authors: ["Мифопоэтика"],
     description: "Скандинавская мудрость, мифы и эпос викингов.",
   ),
   ThemeInfo(
