@@ -331,35 +331,24 @@ class _InteractivePaganWheelState extends State<InteractivePaganWheel>
                                   
                                   return Transform.rotate(
                                     angle: currentRotation,
-                                    child: CustomPaint(
-                                      size: const Size(650, 650),
-                                      painter: EnhancedWheelPainter(
-                                        months: _months,
-                                        selectedMonth: _selectedMonth - 1,
-                                        glowIntensity: _glowAnimation.value,
-                                        shimmerProgress: _shimmerAnimation.value,
-                                      ),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        CustomPaint(
+                                          size: const Size(650, 650),
+                                          painter: EnhancedWheelPainter(
+                                            months: _months,
+                                            selectedMonth: _selectedMonth - 1,
+                                            glowIntensity: _glowAnimation.value,
+                                            shimmerProgress: _shimmerAnimation.value,
+                                          ),
+                                        ),
+                                        _buildCenterElement(),
+                                      ],
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                            AnimatedBuilder(
-                              animation: _rotationAnimation,
-                              builder: (context, child) {
-                                final currentRotation = _rotationController.isAnimating 
-                                    ? _rotationAnimation.value 
-                                    : _currentRotation;
-                                
-                                return Positioned(
-                                  left: 265, // Центрируем относительно колеса 650px: (650-120)/2 = 265
-                                  top: 265,  // Центрируем относительно колеса 650px: (650-120)/2 = 265
-                                  child: Transform.rotate(
-                                    angle: currentRotation,
-                                    child: _buildCenterElement(),
-                                  ),
-                                );
-                              },
                             ),
                             if (!_isLoading)
                               _buildDecorativeElements(),
