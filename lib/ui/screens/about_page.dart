@@ -143,21 +143,22 @@ class _AboutPageState extends State<AboutPage> with SingleTickerProviderStateMix
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 36),
-          ElevatedButton.icon(
-            onPressed: _launchSupport,
-            icon: const Icon(Icons.favorite_border),
-            label: const Text('Поддержать проект'),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.deepOrangeAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              textStyle: const TextStyle(fontSize: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
+          // Временно скрыта кнопка поддержки проекта
+          // ElevatedButton.icon(
+          //   onPressed: _launchSupport,
+          //   icon: const Icon(Icons.favorite_border),
+          //   label: const Text('Поддержать проект'),
+          //   style: ElevatedButton.styleFrom(
+          //     foregroundColor: Colors.white,
+          //     backgroundColor: Colors.deepOrangeAccent,
+          //     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+          //     textStyle: const TextStyle(fontSize: 16),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(30),
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(height: 24),
           Text(
             'Спасибо за интерес к Sacral ✨',
             style: GoogleFonts.merriweather(
