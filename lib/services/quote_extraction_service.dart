@@ -124,8 +124,11 @@ class QuoteExtractionService {
     for (final themeId in enabledThemes) {
       if (curated.containsKey(themeId)) {
         for (final curatedQuote in curated[themeId]!) {
+          // Для северной темы фильтруем по source (название книги), для остальных - по author
+          final filterKey = curatedQuote.category == 'nordic' ? curatedQuote.source : curatedQuote.author;
+          
           // Фильтруем по авторам если они выбраны
-          if (selectedAuthors.isEmpty || selectedAuthors.contains(curatedQuote.author)) {
+          if (selectedAuthors.isEmpty || selectedAuthors.contains(filterKey)) {
             filteredQuotes.add(curatedQuote.toQuote());
           }
         }

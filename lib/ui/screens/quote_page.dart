@@ -1267,6 +1267,26 @@ class _QuotePageState extends State<QuotePage>
     final authorFontSize = constraints.maxHeight < 600 ? 16.0 : 18.0;
     final sourceFontSize = constraints.maxHeight < 600 ? 13.0 : 15.0;
     
+    // Для северных цитат показываем только источник (название книги)
+    if (quote.category == 'nordic') {
+      return Column(
+        children: [
+          Text(
+            quote.source,
+            style: TextStyle(
+              fontSize: authorFontSize,
+              fontWeight: FontWeight.w600,
+              color: _textColor,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      );
+    }
+    
+    // Для остальных категорий показываем автора и источник
     return Column(
       children: [
         Text(

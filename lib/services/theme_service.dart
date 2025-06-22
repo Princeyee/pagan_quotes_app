@@ -19,7 +19,7 @@ class ThemeService {
     
     // СБРАСЫВАЕМ КЭШ ЕЖЕДНЕВНЫХ ЦИТАТ при изменении тем
     await CustomCache.prefs.clearDailyQuotes();
-    print('🔄 Кэш ежедневных цитат очищен ��осле смены тем');
+    print('🔄 Кэш ежедневных цитат очищен после смены тем');
   }
 
   static Future<void> toggleTheme(String themeId) async {
@@ -179,7 +179,9 @@ class ThemeService {
       
       for (final categoryQuotes in curated.values) {
         for (final quote in categoryQuotes) {
-          authorsWithQuotes[quote.author] = (authorsWithQuotes[quote.author] ?? 0) + 1;
+          // Для северной темы используем source (название книги), для остальных - author
+          final key = quote.category == 'nordic' ? quote.source : quote.author;
+          authorsWithQuotes[key] = (authorsWithQuotes[key] ?? 0) + 1;
         }
       }
       
