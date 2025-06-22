@@ -25,6 +25,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
   
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
+  bool _hasInitialized = false;
 
   @override
   void initState() {
@@ -38,6 +39,16 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
       curve: Curves.easeIn,
     );
     _loadNotes();
+    _hasInitialized = true;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Обновляем заметки при возвращении на страницу, но только после инициализации
+    if (_hasInitialized) {
+      _loadNotes();
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -86,9 +97,9 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
       if (_searchQuery.isEmpty) return true;
       
       final query = _searchQuery.toLowerCase();
-      final noteText = (note['note'] as String).toLowerCase();
-      final quoteText = (note['quoteText'] as String).toLowerCase();
-      final author = (note['quoteAuthor'] as String).toLowerCase();
+      final noteText = (note['note'] as String?)?.toLowerCase() ?? '';
+      final quoteText = (note['quoteText'] as String?)?.toLowerCase() ?? '';
+      final author = (note['quoteAuthor'] as String?)?.toLowerCase() ?? '';
       
       return noteText.contains(query) || 
              quoteText.contains(query) || 
@@ -99,22 +110,25 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
     switch (_sortBy) {
       case 'date_desc':
         _filteredNotes.sort((a, b) => 
-          DateTime.parse(b['createdAt']).compareTo(DateTime.parse(a['createdAt'])));
+          DateTime.parse(b['createdAt'] as String).compareTo(DateTime.parse(a['createdAt'] as String)));
         break;
       case 'date_asc':
         _filteredNotes.sort((a, b) => 
-          DateTime.parse(a['createdAt']).compareTo(DateTime.parse(b['createdAt'])));
+          DateTime.parse(a['createdAt'] as String).compareTo(DateTime.parse(b['createdAt'] as String)));
         break;
       case 'author':
-        _filteredNotes.sort((a, b) => 
-          (a['quoteAuthor'] as String).compareTo(b['quoteAuthor'] as String));
+        _filteredNotes.sort((a, b) {
+          final authorA = a['quoteAuthor'] as String? ?? '';
+          final authorB = b['quoteAuthor'] as String? ?? '';
+          return authorA.compareTo(authorB);
+        });
         break;
     }
   }
 
   Future<void> _deleteNote(String quoteId) async {
     final notes = _cache.getSetting<List<dynamic>>('all_notes') ?? [];
-    notes.removeWhere((n) => n['quoteId'] == quoteId);
+    notes.removeWhere((n) => (n['quoteId'] as String?) == quoteId);
     await _cache.setSetting('all_notes', notes);
     await _cache.setSetting('note_$quoteId', null);
     _loadNotes();
@@ -122,9 +136,9 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
 
   void _editNote(Map<String, dynamic> noteData) {
     final quote = Quote(
-      id: noteData['quoteId'],
-      text: noteData['quoteText'],
-      author: noteData['quoteAuthor'],
+      id: noteData['quoteId'] as String? ?? '',
+      text: noteData['quoteText'] as String? ?? '',
+      author: noteData['quoteAuthor'] as String? ?? '',
       source: '', // Не сохраняем в заметках
       category: '',
       position: 0,
@@ -331,11 +345,14 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
   }
 
   Widget _buildNoteCard(Map<String, dynamic> noteData) {
-    final createdAt = DateTime.parse(noteData['createdAt']);
+    final createdAt = DateTime.parse(noteData['createdAt'] as String);
     final formattedDate = _formatDate(createdAt);
+    final noteText = noteData['note'] as String? ?? '';
+    final quoteText = noteData['quoteText'] as String? ?? '';
+    final quoteAuthor = noteData['quoteAuthor'] as String? ?? '';
     
     return Dismissible(
-      key: Key(noteData['quoteId']),
+      key: Key(noteData['quoteId'] as String),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
@@ -375,7 +392,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
           ),
         );
       },
-      onDismissed: (_) => _deleteNote(noteData['quoteId']),
+      onDismissed: (_) => _deleteNote(noteData['quoteId'] as String),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
@@ -414,7 +431,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
                 
                 // Заметка
                 Text(
-                  noteData['note'],
+                  noteText,
                   style: const TextStyle(
                     fontSize: 16,
                     color: Colors.white,
@@ -440,7 +457,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '"${noteData['quoteText']}"',
+                        '"$quoteText"',
                         style: TextStyle(
                           fontSize: 14,
                           fontStyle: FontStyle.italic,
@@ -451,7 +468,7 @@ class _NotesPageState extends State<NotesPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '— ${noteData['quoteAuthor']}',
+                        '— $quoteAuthor',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white54,
