@@ -1042,6 +1042,60 @@ class _FullTextPage2State extends State<FullTextPage2>
         }
       }
 
+      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что найденный источник действительно правильный
+      if (source != null) {
+        final sourceTitle = source.title.toLowerCase();
+        final quoteSource = widget.context.quote.source.toLowerCase();
+        
+        // Проверяем, что названия действительно совпадают
+        if (!sourceTitle.contains(quoteSource) && !quoteSource.contains(sourceTitle)) {
+          _logger.warning('Названия не совпадают! Ищем более точное совпадение...');
+          _logger.info('Цитата источник: $quoteSource');
+          _logger.info('Найденный источник: $sourceTitle');
+          
+          // Ищем более точное совпадение
+          final sources = await _textService.loadBookSources();
+          final categorySources = sources.where((s) => s.category == widget.context.quote.category).toList();
+          
+          for (final s in categorySources) {
+            final sTitle = s.title.toLowerCase();
+            if (sTitle.contains(quoteSource) || quoteSource.contains(sTitle)) {
+              source = s;
+              _logger.info('Найден более точный источник: ${s.title}');
+              break;
+            }
+          }
+        }
+        
+        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА ДЛЯ АВТОРОВ С НЕСКОЛЬКИМИ КНИГАМИ
+        final multiBookAuthors = [
+          'аристотель', 'ницше', 'платон', 'хайдеггер', 'шопенгауэр', 
+          'эвола', 'элиаде', 'askr svarte', 'де бенуа'
+        ];
+        
+        if (multiBookAuthors.contains(widget.context.quote.author.toLowerCase())) {
+          _logger.info('🔍 Автор с несколькими книгами: ${widget.context.quote.author}');
+          _logger.info('🔍 Ищем точное совпадение для: ${widget.context.quote.source}');
+          
+          // Ищем точное совпадение названия
+          final sources = await _textService.loadBookSources();
+          final authorSources = sources.where((s) => 
+            s.author.toLowerCase() == widget.context.quote.author.toLowerCase()
+          ).toList();
+          
+          for (final s in authorSources) {
+            final sTitle = s.title.toLowerCase();
+            final qSource = widget.context.quote.source.toLowerCase();
+            
+            if (sTitle == qSource || sTitle.contains(qSource) || qSource.contains(sTitle)) {
+              source = s;
+              _logger.info('✅ Найдена правильная книга автора: ${s.title}');
+              break;
+            }
+          }
+        }
+      }
+
       if (source == null) {
         _logger.error('Источник книги не найден');
         setState(() {

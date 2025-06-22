@@ -154,13 +154,82 @@ class _ContextPageState extends State<ContextPage>
             });
           }
         } else {
-          // Кэшируем новый контекст
-          await _cache.cacheQuoteContext(context);
-          setState(() {
-            _context = context;
-            _isLoading = false;
-          });
-          _animationController.forward();
+          // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что контекст соответствует правильному источнику
+          final expectedSource = widget.dailyQuote.quote.source.toLowerCase();
+          final contextSource = context.quote.source.toLowerCase();
+          
+          if (expectedSource != contextSource) {
+            print('⚠️ Контекст из неправильного источника! Ожидалось: $expectedSource, получено: $contextSource');
+            await _cache.clearAllQuoteContexts();
+            
+            // Пробуем загрузить контекст еще раз
+            final retryContext = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
+            if (retryContext != null) {
+              await _cache.cacheQuoteContext(retryContext);
+              setState(() {
+                _context = retryContext;
+                _isLoading = false;
+              });
+              _animationController.forward();
+            } else {
+              setState(() {
+                _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
+                _isLoading = false;
+              });
+            }
+          } else {
+            // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА ДЛЯ АВТОРОВ С НЕСКОЛЬКИМИ КНИГАМИ
+            final multiBookAuthors = [
+              'аристотель', 'ницше', 'платон', 'хайдеггер', 'шопенгауэр', 
+              'эвола', 'элиаде', 'askr svarte', 'де бенуа'
+            ];
+            
+            if (multiBookAuthors.contains(widget.dailyQuote.quote.author.toLowerCase())) {
+              print('🔍 Проверяем контекст для автора с несколькими книгами: ${widget.dailyQuote.quote.author}');
+              
+              // Проверяем, что контекст действительно содержит цитату из правильной книги
+              final quoteText = widget.dailyQuote.quote.text.toLowerCase();
+              final contextText = context.contextText.toLowerCase();
+              
+              // Ищем первые 30 символов цитаты в контексте
+              final quoteStart = quoteText.substring(0, min(30, quoteText.length));
+              if (!contextText.contains(quoteStart)) {
+                print('⚠️ Контекст не содержит цитату! Очищаем кеш и пробуем снова...');
+                await _cache.clearAllQuoteContexts();
+                
+                final retryContext = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
+                if (retryContext != null) {
+                  await _cache.cacheQuoteContext(retryContext);
+                  setState(() {
+                    _context = retryContext;
+                    _isLoading = false;
+                  });
+                  _animationController.forward();
+                } else {
+                  setState(() {
+                    _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
+                    _isLoading = false;
+                  });
+                }
+              } else {
+                // Кэшируем новый контекст
+                await _cache.cacheQuoteContext(context);
+                setState(() {
+                  _context = context;
+                  _isLoading = false;
+                });
+                _animationController.forward();
+              }
+            } else {
+              // Кэшируем новый контекст
+              await _cache.cacheQuoteContext(context);
+              setState(() {
+                _context = context;
+                _isLoading = false;
+              });
+              _animationController.forward();
+            }
+          }
         }
       } else {
         setState(() {
