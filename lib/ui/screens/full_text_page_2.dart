@@ -1022,6 +1022,26 @@ class _FullTextPage2State extends State<FullTextPage2>
         }
       }
 
+      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что найденный источник соответствует категории цитаты
+      if (source != null && source.category != widget.context.quote.category) {
+        _logger.warning('Найденный источник не соответствует категории цитаты!');
+        _logger.info('Цитата категория: ${widget.context.quote.category}');
+        _logger.info('Источник категория: ${source.category}');
+        _logger.info('Ищем источник в правильной категории...');
+        
+        // Ищем источник в правильной категории
+        final sources = await _textService.loadBookSources();
+        final categorySources = sources.where((s) => s.category == widget.context.quote.category).toList();
+        
+        for (final s in categorySources) {
+          if (s.title == widget.context.quote.source || s.author == widget.context.quote.author) {
+            source = s;
+            _logger.info('Найден правильный источник в категории ${widget.context.quote.category}: ${s.title}');
+            break;
+          }
+        }
+      }
+
       if (source == null) {
         _logger.error('Источник книги не найден');
         setState(() {

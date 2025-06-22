@@ -291,6 +291,26 @@ class QuoteExtractionService {
         }
       }
 
+      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что найденный источник соответствует категории цитаты
+      if (matchingSource != null && matchingSource.category != quote.category) {
+        print('⚠️ Найденный источник не соответствует категории цитаты!');
+        print('   Цитата категория: ${quote.category}');
+        print('   Источник категория: ${matchingSource.category}');
+        print('   Ищем источник в правильной категории...');
+        
+        // Ищем источник в правильной категории
+        final sources = await _textService.loadBookSources();
+        final categorySources = sources.where((s) => s.category == quote.category).toList();
+        
+        for (final source in categorySources) {
+          if (source.title == quote.source || source.author == quote.author) {
+            matchingSource = source;
+            print('✅ Найден правильный источник в категории ${quote.category}: ${source.title}');
+            break;
+          }
+        }
+      }
+
       if (matchingSource == null) {
         print('❌ Источник не найден для: ${quote.author} - ${quote.source}');
         print('📚 Доступные источники:');

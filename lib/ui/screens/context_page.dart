@@ -129,14 +129,39 @@ class _ContextPageState extends State<ContextPage>
       // Это гарантирует, что контекст соответствует текущей цитате
       final context = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
       if (context != null) {
-        // Убираем строгую валидацию - принимаем любой контекст, который вернул сервис
-        // Кэшируем новый контекст
-        await _cache.cacheQuoteContext(context);
-        setState(() {
-          _context = context;
-          _isLoading = false;
-        });
-        _animationController.forward();
+        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что контекст действительно содержит цитату
+        final quoteText = widget.dailyQuote.quote.text.toLowerCase();
+        final contextText = context.contextText.toLowerCase();
+        
+        // Проверяем, содержится ли цитата в контексте
+        if (!contextText.contains(quoteText.substring(0, min(50, quoteText.length)))) {
+          print('⚠️ Контекст не содержит цитату! Очищаем кеш и пробуем снова...');
+          await _cache.clearAllQuoteContexts();
+          
+          // Пробуем загрузить контекст еще раз
+          final retryContext = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
+          if (retryContext != null) {
+            await _cache.cacheQuoteContext(retryContext);
+            setState(() {
+              _context = retryContext;
+              _isLoading = false;
+            });
+            _animationController.forward();
+          } else {
+            setState(() {
+              _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
+              _isLoading = false;
+            });
+          }
+        } else {
+          // Кэшируем новый контекст
+          await _cache.cacheQuoteContext(context);
+          setState(() {
+            _context = context;
+            _isLoading = false;
+          });
+          _animationController.forward();
+        }
       } else {
         setState(() {
           _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';

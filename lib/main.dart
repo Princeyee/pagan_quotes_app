@@ -11,6 +11,10 @@ void main() async {
   await CustomCache.prefs.init();
   await SoundManager().init();
   
+  // Очищаем кеш контекстов при запуске для предотвращения проблем с неправильными данными
+  await CustomCache.prefs.clearAllQuoteContexts();
+  print('🧹 Очищен кеш контекстов при запуске приложения');
+  
   runApp(const MyApp());
 }
 
