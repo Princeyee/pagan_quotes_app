@@ -78,6 +78,7 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
 
   void _findNextHoliday() {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day); // Только дата, без времени
     final filteredHolidays = _getFilteredHolidays();
     
     PaganHoliday? closest;
@@ -87,8 +88,9 @@ class _CalendarPageState extends State<CalendarPage> with TickerProviderStateMix
       final thisYear = DateTime(now.year, holiday.date.month, holiday.date.day);
       final nextYear = DateTime(now.year + 1, holiday.date.month, holiday.date.day);
       
-      int daysUntilThisYear = thisYear.difference(now).inDays;
-      int daysUntilNextYear = nextYear.difference(now).inDays;
+      // Вычисляем разницу в днях, сравнивая только даты
+      int daysUntilThisYear = thisYear.difference(today).inDays;
+      int daysUntilNextYear = nextYear.difference(today).inDays;
       
       if (daysUntilThisYear >= 0 && daysUntilThisYear < minDays) {
         minDays = daysUntilThisYear;
