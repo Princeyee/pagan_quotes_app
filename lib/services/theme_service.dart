@@ -17,9 +17,9 @@ class ThemeService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_key, themes);
     
-    // СБРАСЫВАЕМ КЭШ ЕЖЕДНЕВНЫХ ЦИТАТ при изменении тем
-    await CustomCache.prefs.clearDailyQuotes();
-    print('🔄 Кэш ежедневных цитат очищен после смены тем');
+    // ОЧИЩАЕМ ТОЛЬКО КЭШ БУДУЩИХ ЦИТАТ при изменении тем
+    await _clearFutureDailyQuotes();
+    print('🔄 Кэш будущих ежедневных цитат очищен после смены тем');
   }
 
   static Future<void> toggleTheme(String themeId) async {
@@ -86,9 +86,9 @@ class ThemeService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_selectedAuthorsKey, authors.toList());
     
-    // СБРАСЫВАЕМ КЭШ ЕЖЕДНЕВНЫХ ЦИТАТ при изменении авторов
-    await CustomCache.prefs.clearDailyQuotes();
-    print('🔄 Кэш ежедневных цитат очищен после смены авторов');
+    // ОЧИЩАЕМ ТОЛЬКО КЭШ БУДУЩИХ ЦИТАТ при изменении авторов
+    await _clearFutureDailyQuotes();
+    print('🔄 Кэш будущих ежедневных цитат очищен после смены авторов');
   }
 
   /// Переключить автора (добавить/убрать из выбранных)
@@ -215,5 +215,25 @@ class ThemeService {
     
     selectedAuthors.addAll(authorsWithQuotes);
     await _saveSelectedAuthors(selectedAuthors);
+  }
+
+  /// Очищает кэш только будущих ежедневных цитат (сохраняя сегодняшнюю)
+  static Future<void> _clearFutureDailyQuotes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final today = DateTime.now();
+      final todayKey = 'daily_quote_${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+      
+      final keys = prefs.getKeys().where((key) => key.startsWith('daily_quote_'));
+      
+      for (final key in keys) {
+        // Сохраняем сегодняшнюю цитату, удаляем остальные
+        if (key != todayKey) {
+          await prefs.remove(key);
+        }
+      }
+    } catch (e) {
+      print('Ошибка при очистке будущих цитат: $e');
+    }
   }
 }
