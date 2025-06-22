@@ -91,9 +91,15 @@ class QuoteExtractionService {
             .toList();
 
         if (quotes.isNotEmpty) {
-          final category = quotes.first.category;
-          curatedQuotes[category] = quotes;
-          print('✅ ${quotes.length} цитат для: $category');
+          // ИСПРАВЛЕНО: Группируем цитаты по их реальным категориям
+          for (final quote in quotes) {
+            curatedQuotes.putIfAbsent(quote.category, () => []).add(quote);
+          }
+          
+          // Выводим статистику по категориям
+          for (final category in curatedQuotes.keys) {
+            print('✅ ${curatedQuotes[category]!.length} цитат для: $category');
+          }
         }
       } catch (e) {
         print('⚠️ Файл $filePath не найден или поврежден: $e');
