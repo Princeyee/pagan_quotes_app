@@ -999,40 +999,42 @@ class _FullTextPage2State extends State<FullTextPage2>
     });
 
     try {
-      // ВСЕГДА ищем источник заново, не полагаясь на кэш
-      // Это гарантирует, что загружается правильная книга
-      BookSource? source;
+      _logger.info('Загружаем полный текст для цитаты: ${widget.context.quote.id}');
+      _logger.info('Автор: ${widget.context.quote.author}, Источник: ${widget.context.quote.source}');
+
+      // Получаем источник книги
+      BookSource? source = _textService.findBookSource(
+        widget.context.quote.author, 
+        widget.context.quote.source
+      );
       
-      if (widget.context.quote.category == 'nordic') {
-        // Для северных цитат ищем по названию книги (source), а не по автору
-        _logger.info('🔍 Северная цитата - ищем по названию: ${widget.context.quote.source}');
+      // Если не найден, пробуем поиск по названию
+      if (source == null) {
+        _logger.info('Стандартный поиск не дал результатов, пробуем поиск по названию...');
         final sources = await _textService.loadBookSources();
         
         for (final s in sources) {
-          if (s.category == 'nordic' && s.title == widget.context.quote.source) {
+          if (s.title == widget.context.quote.source) {
             source = s;
-            _logger.info('✅ Найден северный источник: ${s.title}');
+            _logger.info('Найден источник по названию: ${s.title} (${s.author})');
             break;
           }
         }
-      } else {
-        // Для остальных цитат используем стандартный поиск
-        source = _textService.findBookSource(
-          widget.context.quote.author, 
-          widget.context.quote.source
-        );
       }
-      
+
       if (source == null) {
-        throw Exception('Источник книги не найден для: ${widget.context.quote.author} - ${widget.context.quote.source}');
+        _logger.error('Источник книги не найден');
+        setState(() {
+          _error = 'Источник книги не найден';
+          _isLoading = false;
+        });
+        return;
       }
 
-      // Дополнительная проверка: убеждаемся, что найденный источник соответствует цитате
-      if (!_validateBookSource(source)) {
-        throw Exception('Найденный источник не соответствует цитате: ${source.title}');
-      }
+      _logger.info('Найден источник: ${source.title} (${source.author})');
 
-      _logger.info('Найден источник: ${source.title} - ${source.cleanedFilePath}');
+      // Убираем строгую валидацию - принимаем любой источник, который вернул сервис
+      // Это предотвращает ошибки из-за небольших различий в названиях
 
       // Загружаем полный текст
       final cleanedText = await _textService.loadTextFile(source.cleanedFilePath);
@@ -1068,32 +1070,6 @@ class _FullTextPage2State extends State<FullTextPage2>
         _isLoading = false;
       });
     }
-  }
-
-  /// Проверяет, что найденный источник книги соответствует цитате
-  bool _validateBookSource(BookSource source) {
-    final quote = widget.context.quote;
-    
-    // Проверяем, что автор совпадает
-    if (source.author != quote.author) {
-      _logger.error('Несоответствие автора: ${source.author} != ${quote.author}');
-      return false;
-    }
-    
-    // Проверяем, что название книги совпадает
-    if (source.title != quote.source) {
-      _logger.error('Несоответствие названия: ${source.title} != ${quote.source}');
-      return false;
-    }
-    
-    // Проверяем, что категория совпадает
-    if (source.category != quote.category) {
-      _logger.error('Несоответствие категории: ${source.category} != ${quote.category}');
-      return false;
-    }
-    
-    _logger.info('✅ Источник книги прошел валидацию');
-    return true;
   }
 
   void _parseText() {

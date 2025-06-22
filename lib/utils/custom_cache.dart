@@ -171,6 +171,12 @@ class CustomCachePrefs {
     return null;
   }
 
+  /// Очищает кэш контекста для конкретной цитаты
+  Future<void> clearQuoteContext(String quoteId) async {
+    final key = _quoteContextKey + quoteId;
+    await prefs.remove(key);
+  }
+
   // ============ ПРОСМОТРЕННЫЕ ЦИТАТЫ ============
 
   /// Отмечает цитату как просмотренную
@@ -288,12 +294,6 @@ class CustomCachePrefs {
     for (final key in keys) {
       await prefs.remove(key);
     }
-  }
-
-  /// Очищает кэш контекста для конкретной цитаты
-  Future<void> clearQuoteContext(String quoteId) async {
-    final key = _quoteContextKey + quoteId;
-    await prefs.remove(key);
   }
 
   /// Очищает все кэши контекстов при обновлении цитаты

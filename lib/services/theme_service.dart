@@ -177,10 +177,23 @@ class ThemeService {
       
       final authorsWithQuotes = <String, int>{};
       
+      // Создаем маппинг сокращенных имен на полные
+      final nameMapping = {
+        'Ницше': 'Фридрих Ницше',
+        'Хайдеггер': 'Мартин Хайдеггер',
+        'Шопенгауэр': 'Артур Шопенгауэр',
+        'Эвола': 'Юлиус Эвола',
+        'Элиаде': 'Мирча Элиаде',
+      };
+      
       for (final categoryQuotes in curated.values) {
         for (final quote in categoryQuotes) {
           // Для северной темы используем source (название книги), для остальных - author
-          final key = quote.category == 'nordic' ? quote.source : quote.author;
+          String key = quote.category == 'nordic' ? quote.source : quote.author;
+          
+          // Применяем маппинг имен
+          key = nameMapping[key] ?? key;
+          
           authorsWithQuotes[key] = (authorsWithQuotes[key] ?? 0) + 1;
         }
       }

@@ -33,14 +33,14 @@ final List<ThemeInfo> allThemes = [
     id: "philosophy",
     name: "Философия",
     image: "assets/images/philosophy.jpg",
-    authors: ["Ницше","Хайдеггер", "Шопенгауэр"],
+    authors: ["Фридрих Ницше", "Мартин Хайдеггер", "Артур Шопенгауэр"],
     description: "Размышления о бытии, человеке и истине.",
   ),
   ThemeInfo(
     id: "pagan",
     name: "Язычество и традиционализм",
     image: "assets/images/pagan.jpg",
-    authors: ["Эвола", "Элиаде", "Ален де Бенуа", "Askr Svarte"],
+    authors: ["Юлиус Эвола", "Мирча Элиаде", "Ален де Бенуа", "Askr Svarte"],
     description: "Архаические традиции, мифология и символизм.",
   ),
 ];

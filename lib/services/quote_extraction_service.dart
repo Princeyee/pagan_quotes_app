@@ -78,49 +78,23 @@ class QuoteExtractionService {
     try {
       // Загружаем из основного файла
       final jsonString = await rootBundle.loadString('assets/curated/my_quotes_approved.json');
-      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+      final jsonData = jsonDecode(jsonString) as List<dynamic>;
 
-      for (final entry in jsonData.entries) {
-        final category = entry.key;
-        final quotesData = entry.value as List<dynamic>;
-        
-        curated[category] = quotesData
-            .map((item) => CuratedQuote.fromJson(item as Map<String, dynamic>))
-            .where((quote) => quote.approved)
-            .toList();
-      }
-
-      // Загружаем дополнительные файлы
-      final additionalFiles = [
-        'assets/curated/my_quotes_approved_3.json',
-        'assets/curated/my_quotes_approved_4.json',
-        'assets/curated/my_quotes_approved_5.json',
-        'assets/curated/my_quotes_approved10.json',
-      ];
-
-      for (final file in additionalFiles) {
-        try {
-          final additionalJsonString = await rootBundle.loadString(file);
-          final additionalJsonData = jsonDecode(additionalJsonString) as Map<String, dynamic>;
-
-          for (final entry in additionalJsonData.entries) {
-            final category = entry.key;
-            final quotesData = entry.value as List<dynamic>;
-            
-            final additionalQuotes = quotesData
-                .map((item) => CuratedQuote.fromJson(item as Map<String, dynamic>))
-                .where((quote) => quote.approved)
-                .toList();
-
-            curated.putIfAbsent(category, () => []).addAll(additionalQuotes);
-          }
-        } catch (e) {
-          print('⚠️ Не удалось загрузить дополнительный файл $file: $e');
+      // Обрабатываем массив цитат
+      for (final item in jsonData) {
+        final curatedQuote = CuratedQuote.fromJson(item as Map<String, dynamic>);
+        if (curatedQuote.approved) {
+          curated.putIfAbsent(curatedQuote.category, () => []).add(curatedQuote);
         }
       }
 
       _curatedQuotesCache = curated;
       print('📚 Загружено ${curated.values.expand((list) => list).length} кураторских цитат');
+      
+      // Выводим статистику по категориям
+      for (final entry in curated.entries) {
+        print('   ${entry.key}: ${entry.value.length} цитат');
+      }
       
       return curated;
     } catch (e) {
@@ -137,6 +111,18 @@ class QuoteExtractionService {
     
     print('🎯 Фильтруем цитаты: темы=$enabledThemes, авторы=$selectedAuthors');
     
+    // Если авторы не выбраны, автоматически выбираем всех авторов из включенных тем
+    if (selectedAuthors.isEmpty) {
+      print('🔄 Авторы не выбраны, автоматически выбираем всех авторов из включенных тем');
+      for (final themeId in enabledThemes) {
+        final themeAuthors = ThemeService.getAuthorsForTheme(themeId);
+        for (final author in themeAuthors) {
+          selectedAuthors.add(author);
+        }
+      }
+      print('👥 Автоматически выбрано авторов: ${selectedAuthors.length}');
+    }
+    
     final filteredQuotes = <Quote>[];
     
     for (final themeId in enabledThemes) {
@@ -145,7 +131,7 @@ class QuoteExtractionService {
           // Для северной темы фильтруем по source (название книги), для остальных - по author
           final filterKey = curatedQuote.category == 'nordic' ? curatedQuote.source : curatedQuote.author;
           
-          // Фильтруем по авторам если они выбраны
+          // Если авторы не выбраны, показываем все цитаты из включенных тем
           if (selectedAuthors.isEmpty || selectedAuthors.contains(filterKey)) {
             filteredQuotes.add(curatedQuote.toQuote());
           }
@@ -183,6 +169,18 @@ class QuoteExtractionService {
       print('🎨 Включенные темы: $enabledThemes');
       print('👥 Выбранные авторы: $selectedAuthors');
 
+      // Если авторы не выбраны, автоматически выбираем всех авторов из включенных тем
+      if (selectedAuthors.isEmpty) {
+        print('🔄 Авторы не выбраны, автоматически выбираем всех авторов из включенных тем');
+        for (final themeId in enabledThemes) {
+          final themeAuthors = ThemeService.getAuthorsForTheme(themeId);
+          for (final author in themeAuthors) {
+            selectedAuthors.add(author);
+          }
+        }
+        print('👥 Автоматически выбрано авторов: ${selectedAuthors.length}');
+      }
+
       // Фильтруем цитаты по настройкам
       final filteredQuotes = <Quote>[];
       for (final entry in curated.entries) {
@@ -197,7 +195,8 @@ class QuoteExtractionService {
 
         // Фильтруем по авторам
         for (final curatedQuote in categoryQuotes) {
-          if (selectedAuthors.contains(curatedQuote.author)) {
+          // Если авторы не выбраны, показываем все цитаты из включенных тем
+          if (selectedAuthors.isEmpty || selectedAuthors.contains(curatedQuote.author)) {
             filteredQuotes.add(curatedQuote.toQuote());
           }
         }
@@ -272,24 +271,24 @@ class QuoteExtractionService {
       print('🔍 Ищем контекст для цитаты: ${quote.id}');
       print('🔍 Цитата: автор="${quote.author}", источник="${quote.source}", категория="${quote.category}"');
 
-      // ВСЕГДА ищем источник заново, не полагаясь на кэш
+      // Упрощенный поиск источника - пробуем разные варианты
       BookSource? matchingSource;
       
-      if (quote.category == 'nordic') {
-        // Для северных цитат ищем по названию книги (source), а не по автору
-        print('🔍 Северная цитата - ищем по названию: ${quote.source}');
+      // Сначала пробуем стандартный поиск
+      matchingSource = _textService.findBookSource(quote.author, quote.source);
+      
+      // Если не найден, пробуем поиск по названию для всех категорий
+      if (matchingSource == null) {
+        print('🔍 Стандартный поиск не дал результатов, пробуем поиск по названию...');
         final sources = await _textService.loadBookSources();
         
         for (final source in sources) {
-          if (source.category == 'nordic' && source.title == quote.source) {
+          if (source.title == quote.source) {
             matchingSource = source;
-            print('✅ Найден северный источник: ${source.title}');
+            print('✅ Найден источник по названию: ${source.title} (${source.author})');
             break;
           }
         }
-      } else {
-        // Для остальных цитат используем стандартный поиск
-        matchingSource = _textService.findBookSource(quote.author, quote.source);
       }
 
       if (matchingSource == null) {
