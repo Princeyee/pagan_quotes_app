@@ -1003,7 +1003,7 @@ class _FullTextPage2State extends State<FullTextPage2>
       _logger.info('Автор: ${widget.context.quote.author}, Источник: ${widget.context.quote.source}');
 
       // Получаем источник книги
-      BookSource? source = _textService.findBookSource(
+      BookSource? source = await _textService.findBookSource(
         widget.context.quote.author, 
         widget.context.quote.source
       );

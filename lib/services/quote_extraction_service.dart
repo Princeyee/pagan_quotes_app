@@ -275,7 +275,7 @@ class QuoteExtractionService {
       BookSource? matchingSource;
       
       // Сначала пробуем стандартный поиск
-      matchingSource = _textService.findBookSource(quote.author, quote.source);
+      matchingSource = await _textService.findBookSource(quote.author, quote.source);
       
       // Если не найден, пробуем поиск по названию для всех категорий
       if (matchingSource == null) {

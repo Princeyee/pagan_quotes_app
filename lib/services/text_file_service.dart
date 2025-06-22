@@ -663,7 +663,13 @@ for (int i = 1; i < paragraphs.length; i++) {
   }
 
   /// ИСПРАВЛЕННЫЙ метод поиска источника книги с более точным сопоставлением
-  BookSource? findBookSource(String author, String title) {
+  Future<BookSource?> findBookSource(String author, String title) async {
+    // Если кэш пустой, загружаем источники
+    if (_cachedSources.isEmpty) {
+      print('🔄 Кэш источников пустой, загружаем...');
+      await loadBookSources();
+    }
+    
     final sources = _cachedSources.values.expand((list) => list).toList();
     
     // Нормализуем строки для сравнения
@@ -671,6 +677,7 @@ for (int i = 1; i < paragraphs.length; i++) {
     final normalizedTitle = _normalizeString(title);
     
     print('🔍 Поиск книги: автор="$normalizedAuthor", название="$normalizedTitle"');
+    print('🔍 Доступно источников: ${sources.length}');
     
     // Сначала ищем точное совпадение
     for (final source in sources) {
@@ -764,12 +771,12 @@ for (int i = 1; i < paragraphs.length; i++) {
     
     // ОСОБАЯ ОБРАБОТКА ДЛЯ НИЦШЕ
     // Если автор "Ницше", проверяем точное совпадение названия
-    if (normalizedAuthor == 'ницше') {
+    if (normalizedAuthor == 'ницше' || normalizedAuthor == 'фридрих ницше') {
       for (final source in sources) {
         final sourceAuthor = _normalizeString(source.author);
         final sourceTitle = _normalizeString(source.title);
         
-        if (sourceAuthor == 'ницше' && _titlesMatch(sourceTitle, normalizedTitle)) {
+        if ((sourceAuthor == 'ницше' || sourceAuthor == 'фридрих ницше') && _titlesMatch(sourceTitle, normalizedTitle)) {
           print('✅ Книга Ницше: ${source.title}');
           return source;
         }
@@ -779,6 +786,10 @@ for (int i = 1; i < paragraphs.length; i++) {
     // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: если не найдено точное совпадение, не возвращаем ничего
     // Это предотвращает возврат неправильных источников
     print('❌ Книга не найдена - не возвращаем приблизительные совпадения');
+    print('🔍 Доступные источники:');
+    for (final source in sources) {
+      print('   - ${source.author} : ${source.title} (${source.category})');
+    }
     return null;
   }
   
@@ -856,7 +867,7 @@ for (int i = 1; i < paragraphs.length; i++) {
       'политика': 'политика',
       'риторика': 'риторика',
       
-      // Ницше
+      // Ницше - ИСПРАВЛЕНО: добавляем полные названия
       'заратустра': 'так говорил заратустра',
       'так говорил заратустра': 'так говорил заратустра',
       'антихрист': 'антихрист',
