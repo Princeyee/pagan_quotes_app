@@ -291,7 +291,7 @@ class QuoteExtractionService {
         }
       }
 
-      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что найденный источник соответствует категории цитаты
+      // ПРОСТАЯ ПРОВЕРКА: убеждаемся, что найденный источник соответствует категории цитаты
       if (matchingSource != null && matchingSource.category != quote.category) {
         print('⚠️ Найденный источник не соответствует категории цитаты!');
         print('   Цитата категория: ${quote.category}');
@@ -303,64 +303,10 @@ class QuoteExtractionService {
         final categorySources = sources.where((s) => s.category == quote.category).toList();
         
         for (final source in categorySources) {
-          if (source.title == quote.source || source.author == quote.author) {
+          if (source.title == quote.source) {
             matchingSource = source;
             print('✅ Найден правильный источник в категории ${quote.category}: ${source.title}');
             break;
-          }
-        }
-      }
-
-      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: убеждаемся, что найденный источник действительно правильный
-      if (matchingSource != null) {
-        final sourceTitle = matchingSource.title.toLowerCase();
-        final quoteSource = quote.source.toLowerCase();
-        
-        // Проверяем, что названия действительно совпадают
-        if (!sourceTitle.contains(quoteSource) && !quoteSource.contains(sourceTitle)) {
-          print('⚠️ Названия не совпадают! Ищем более точное совпадение...');
-          print('   Цитата источник: $quoteSource');
-          print('   Найденный источник: $sourceTitle');
-          
-          // Ищем более точное совпадение
-          final sources = await _textService.loadBookSources();
-          final categorySources = sources.where((s) => s.category == quote.category).toList();
-          
-          for (final source in categorySources) {
-            final sTitle = source.title.toLowerCase();
-            if (sTitle.contains(quoteSource) || quoteSource.contains(sTitle)) {
-              matchingSource = source;
-              print('✅ Найден более точный источник: ${source.title}');
-              break;
-            }
-          }
-        }
-        
-        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА ДЛЯ АВТОРОВ С НЕСКОЛЬКИМИ КНИГАМИ
-        final multiBookAuthors = [
-          'аристотель', 'ницше', 'платон', 'хайдеггер', 'шопенгауэр', 
-          'эвола', 'элиаде', 'askr svarte', 'де бенуа'
-        ];
-        
-        if (multiBookAuthors.contains(quote.author.toLowerCase())) {
-          print('🔍 Автор с несколькими книгами: ${quote.author}');
-          print('🔍 Ищем точное совпадение для: ${quote.source}');
-          
-          // Ищем точное совпадение названия
-          final sources = await _textService.loadBookSources();
-          final authorSources = sources.where((s) => 
-            s.author.toLowerCase() == quote.author.toLowerCase()
-          ).toList();
-          
-          for (final source in authorSources) {
-            final sTitle = source.title.toLowerCase();
-            final qSource = quote.source.toLowerCase();
-            
-            if (sTitle == qSource || sTitle.contains(qSource) || qSource.contains(sTitle)) {
-              matchingSource = source;
-              print('✅ Найдена правильная книга автора: ${source.title}');
-              break;
-            }
           }
         }
       }
