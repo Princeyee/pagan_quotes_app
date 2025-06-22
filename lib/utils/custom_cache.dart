@@ -290,6 +290,18 @@ class CustomCachePrefs {
     }
   }
 
+  /// Очищает кэш контекста для конкретной цитаты
+  Future<void> clearQuoteContext(String quoteId) async {
+    final key = _quoteContextKey + quoteId;
+    await prefs.remove(key);
+  }
+
+  /// Очищает все кэши контекстов при обновлении цитаты
+  /// Это предотвращает проблемы с несоответствием контекста и цитаты
+  Future<void> clearAllQuoteContexts() async {
+    await clearQuoteContexts();
+  }
+
   /// Очищает старые ежедневные цитаты (старше указанного количества дней)
   Future<void> clearOldDailyQuotes(int daysToKeep) async {
     final cutoffDate = DateTime.now().subtract(Duration(days: daysToKeep));

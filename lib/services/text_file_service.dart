@@ -662,7 +662,7 @@ for (int i = 1; i < paragraphs.length; i++) {
     return false;
   }
 
-  /// ИСПРАВЛЕННЫЙ метод поиска источника книги с гибким сопоставлением
+  /// ИСПРАВЛЕННЫЙ метод поиска источника книги с более точным сопоставлением
   BookSource? findBookSource(String author, String title) {
     final sources = _cachedSources.values.expand((list) => list).toList();
     
@@ -670,33 +670,49 @@ for (int i = 1; i < paragraphs.length; i++) {
     final normalizedAuthor = _normalizeString(author);
     final normalizedTitle = _normalizeString(title);
     
+    print('🔍 Поиск книги: автор="$normalizedAuthor", название="$normalizedTitle"');
+    
     // Сначала ищем точное совпадение
     for (final source in sources) {
       final sourceAuthor = _normalizeString(source.author);
       final sourceTitle = _normalizeString(source.title);
       
       if (sourceAuthor == normalizedAuthor && sourceTitle == normalizedTitle) {
+        print('✅ Точное совпадение: ${source.title}');
         return source;
       }
     }
     
-    // Затем ищем частичные совпадения по автору
+    // Затем ищем частичные совпадения по автору с точным названием
     for (final source in sources) {
       final sourceAuthor = _normalizeString(source.author);
       final sourceTitle = _normalizeString(source.title);
       
       // Проверяем различные варианты написания авторов
       if (_authorsMatch(sourceAuthor, normalizedAuthor) && sourceTitle == normalizedTitle) {
+        print('✅ Совпадение по автору: ${source.title}');
         return source;
       }
     }
     
-    // Ищем по частичному совпадению названий
+    // Ищем по частичному совпадению названий с точным автором
+    for (final source in sources) {
+      final sourceAuthor = _normalizeString(source.author);
+      final sourceTitle = _normalizeString(source.title);
+      
+      if (sourceAuthor == normalizedAuthor && _titlesMatch(sourceTitle, normalizedTitle)) {
+        print('✅ Совпадение по названию: ${source.title}');
+        return source;
+      }
+    }
+    
+    // Ищем по частичному совпадению автора и названия
     for (final source in sources) {
       final sourceAuthor = _normalizeString(source.author);
       final sourceTitle = _normalizeString(source.title);
       
       if (_authorsMatch(sourceAuthor, normalizedAuthor) && _titlesMatch(sourceTitle, normalizedTitle)) {
+        print('✅ Частичное совпадение: ${source.title}');
         return source;
       }
     }
@@ -707,11 +723,27 @@ for (int i = 1; i < paragraphs.length; i++) {
       for (final source in sources) {
         final sourceTitle = _normalizeString(source.title);
         if (sourceTitle == normalizedTitle) {
+          print('✅ Северная книга: ${source.title}');
           return source;
         }
       }
     }
     
+    // ОСОБАЯ ОБРАБОТКА ДЛЯ АРИСТОТЕЛЯ
+    // Если автор "Аристотель", проверяем точное совпадение названия
+    if (normalizedAuthor == 'аристотель') {
+      for (final source in sources) {
+        final sourceAuthor = _normalizeString(source.author);
+        final sourceTitle = _normalizeString(source.title);
+        
+        if (sourceAuthor == 'аристотель' && sourceTitle == normalizedTitle) {
+          print('✅ Книга Аристотеля: ${source.title}');
+          return source;
+        }
+      }
+    }
+    
+    print('❌ Книга не найдена');
     return null;
   }
   

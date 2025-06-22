@@ -9,6 +9,7 @@ import '../models/book_source.dart';
 import '../models/daily_quote.dart';
 import 'text_file_service.dart';
 import 'theme_service.dart'; // ДОБАВЛЯЕМ ИМПОРТ
+import '../utils/custom_cache.dart';
 
 class CuratedQuote {
   final String id;
@@ -66,88 +67,115 @@ class QuoteExtractionService {
   // Кэш для кураторских цитат - СДЕЛАЕМ ПУБЛИЧНЫМ
   Map<String, List<CuratedQuote>>? _curatedQuotesCache;
 
-  /// Загружает кураторские цитаты из assets/curated/ - ПУБЛИЧНЫЙ МЕТОД
+  /// Загружает кураторские цитаты из JSON файлов
   Future<Map<String, List<CuratedQuote>>> loadCuratedQuotes() async {
     if (_curatedQuotesCache != null) {
       return _curatedQuotesCache!;
     }
 
-    final curatedQuotes = <String, List<CuratedQuote>>{};
+    final curated = <String, List<CuratedQuote>>{};
 
-    // Список файлов с кураторскими цитатами
-    final curatedFiles = [
-      'assets/curated/my_quotes_approved.json',
-    ];
+    try {
+      // Загружаем из основного файла
+      final jsonString = await rootBundle.loadString('assets/curated/my_quotes_approved.json');
+      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
-    for (final filePath in curatedFiles) {
-      try {
-        print('📚 Загружаем: $filePath');
-        final jsonString = await rootBundle.loadString(filePath);
-        final List<dynamic> jsonData = json.decode(jsonString);
-
-        final quotes = jsonData
-            .map((json) => CuratedQuote.fromJson(json as Map<String, dynamic>))
-            .where((quote) => quote.approved) // Только одобренные
+      for (final entry in jsonData.entries) {
+        final category = entry.key;
+        final quotesData = entry.value as List<dynamic>;
+        
+        curated[category] = quotesData
+            .map((item) => CuratedQuote.fromJson(item as Map<String, dynamic>))
+            .where((quote) => quote.approved)
             .toList();
-
-        if (quotes.isNotEmpty) {
-          // ИСПРАВЛЕНО: Группируем цитаты по их реальным категориям
-          for (final quote in quotes) {
-            curatedQuotes.putIfAbsent(quote.category, () => []).add(quote);
-          }
-          
-          // Выводим статистику по категориям
-          for (final category in curatedQuotes.keys) {
-            print('✅ ${curatedQuotes[category]!.length} цитат для: $category');
-          }
-        }
-      } catch (e) {
-        print('⚠️ Файл $filePath не найден или поврежден: $e');
-        // Просто пропускаем - не критично
       }
-    }
 
-    _curatedQuotesCache = curatedQuotes;
-    return curatedQuotes;
+      // Загружаем дополнительные файлы
+      final additionalFiles = [
+        'assets/curated/my_quotes_approved_3.json',
+        'assets/curated/my_quotes_approved_4.json',
+        'assets/curated/my_quotes_approved_5.json',
+        'assets/curated/my_quotes_approved10.json',
+      ];
+
+      for (final file in additionalFiles) {
+        try {
+          final additionalJsonString = await rootBundle.loadString(file);
+          final additionalJsonData = jsonDecode(additionalJsonString) as Map<String, dynamic>;
+
+          for (final entry in additionalJsonData.entries) {
+            final category = entry.key;
+            final quotesData = entry.value as List<dynamic>;
+            
+            final additionalQuotes = quotesData
+                .map((item) => CuratedQuote.fromJson(item as Map<String, dynamic>))
+                .where((quote) => quote.approved)
+                .toList();
+
+            curated.putIfAbsent(category, () => []).addAll(additionalQuotes);
+          }
+        } catch (e) {
+          print('⚠️ Не удалось загрузить дополнительный файл $file: $e');
+        }
+      }
+
+      _curatedQuotesCache = curated;
+      print('📚 Загружено ${curated.values.expand((list) => list).length} кураторских цитат');
+      
+      return curated;
+    } catch (e) {
+      print('❌ Ошибка загрузки кураторских цитат: $e');
+      return {};
+    }
   }
 
-  /// НОВЫЙ МЕТОД: Получить отфильтрованные цитаты по темам и авторам
-  Future<List<Quote>> getFilteredQuotes() async {
-    final curated = await loadCuratedQuotes();
-    final enabledThemes = await ThemeService.getEnabledThemes();
-    final selectedAuthors = await ThemeService.getSelectedAuthors();
-    
-    print('🎯 Фильтруем цитаты: темы=$enabledThemes, авторы=$selectedAuthors');
-    
-    final filteredQuotes = <Quote>[];
-    
-    for (final themeId in enabledThemes) {
-      if (curated.containsKey(themeId)) {
-        for (final curatedQuote in curated[themeId]!) {
-          // Для северной темы фильтруем по source (название книги), для остальных - по author
-          final filterKey = curatedQuote.category == 'nordic' ? curatedQuote.source : curatedQuote.author;
-          
-          // Фильтруем по авторам если они выбраны
-          if (selectedAuthors.isEmpty || selectedAuthors.contains(filterKey)) {
+  /// Генерирует ежедневную цитату для указанной даты
+  Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
+    try {
+      final targetDate = date ?? DateTime.now();
+      print('🎯 Генерируем цитату для даты: $targetDate');
+
+      // Очищаем кэш контекстов при генерации новой цитаты
+      // Это предотвращает проблемы с несоответствием контекста и цитаты
+      final cache = CustomCache.prefs;
+      await cache.clearAllQuoteContexts();
+      print('🧹 Очищен кэш контекстов для предотвращения несоответствий');
+
+      // Загружаем кураторские цитаты
+      final curated = await loadCuratedQuotes();
+      if (curated.isEmpty) {
+        print('❌ Нет кураторских цитат');
+        return null;
+      }
+
+      // Получаем настройки тем
+      final enabledThemes = await ThemeService.getEnabledThemes();
+      final selectedAuthors = await ThemeService.getSelectedAuthors();
+
+      print('🎨 Включенные темы: $enabledThemes');
+      print('👥 Выбранные авторы: $selectedAuthors');
+
+      // Фильтруем цитаты по настройкам
+      final filteredQuotes = <Quote>[];
+      for (final entry in curated.entries) {
+        final category = entry.key;
+        final categoryQuotes = entry.value;
+
+        // Проверяем, включена ли тема
+        if (!enabledThemes.contains(category)) {
+          print('🚫 Тема $category отключена');
+          continue;
+        }
+
+        // Фильтруем по авторам
+        for (final curatedQuote in categoryQuotes) {
+          if (selectedAuthors.contains(curatedQuote.author)) {
             filteredQuotes.add(curatedQuote.toQuote());
           }
         }
       }
-    }
-    
-    print('✅ Найдено ${filteredQuotes.length} отфильтрованных цитат');
-    return filteredQuotes;
-  }
 
-  /// ОБНОВЛЕННАЯ генерация ежедневной цитаты - учитывает выбранные темы И авторов
-  Future<DailyQuote?> generateDailyQuote({DateTime? date}) async {
-    date ??= DateTime.now();
-
-    try {
-      print('🎭 Генерируем цитату на ${date.toString().split(' ')[0]}');
-
-      // ПОЛУЧАЕМ ОТФИЛЬТРОВАННЫЕ ЦИТАТЫ
-      final filteredQuotes = await getFilteredQuotes();
+      print('📊 Отфильтровано ${filteredQuotes.length} цитат из ${curated.values.expand((list) => list).length}');
 
       if (filteredQuotes.isEmpty) {
         print('❌ Нет цитат после фильтрации! Проверьте настройки тем и авторов');
@@ -161,12 +189,12 @@ class QuoteExtractionService {
           }
           
           if (allQuotes.isNotEmpty) {
-            final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
+            final daysSinceEpoch = targetDate.difference(DateTime(1970)).inDays;
             final dayRandom = Random(daysSinceEpoch);
             final selectedQuote = allQuotes[dayRandom.nextInt(allQuotes.length)];
             
             print('🔄 Fallback: выбрана случайная цитата');
-            return DailyQuote(quote: selectedQuote, date: date);
+            return DailyQuote(quote: selectedQuote, date: targetDate);
           }
         }
         
@@ -183,7 +211,7 @@ class QuoteExtractionService {
       print('📂 Доступные категории после фильтрации: $categories');
 
       // Выбираем категорию по дню (чередование)
-      final daysSinceEpoch = date.difference(DateTime(1970)).inDays;
+      final daysSinceEpoch = targetDate.difference(DateTime(1970)).inDays;
       final categoryIndex = daysSinceEpoch % categories.length;
       final selectedCategory = categories[categoryIndex];
 
@@ -200,7 +228,7 @@ class QuoteExtractionService {
 
       return DailyQuote(
         quote: selectedQuote,
-        date: date,
+        date: targetDate,
       );
 
     } catch (e, stackTrace) {
@@ -216,7 +244,7 @@ class QuoteExtractionService {
       print('🔍 Ищем контекст для цитаты: ${quote.id}');
       print('🔍 Цитата: автор="${quote.author}", источник="${quote.source}", категория="${quote.category}"');
 
-      // ОСОБАЯ ОБРАБОТКА ДЛЯ СЕВЕРНЫХ ЦИТАТ
+      // ВСЕГДА ищем источник заново, не полагаясь на кэш
       BookSource? matchingSource;
       
       if (quote.category == 'nordic') {

@@ -1,4 +1,5 @@
 // lib/ui/screens/context_page.dart
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/daily_quote.dart';
@@ -121,24 +122,25 @@ class _ContextPageState extends State<ContextPage>
     });
 
     try {
-      final cachedContext = _cache.getCachedQuoteContext(widget.dailyQuote.quote.id);
-      if (cachedContext != null) {
-        setState(() {
-          _context = cachedContext;
-          _isLoading = false;
-        });
-        _animationController.forward();
-        return;
-      }
-
+      // ВСЕГДА загружаем свежий контекст, не полагаясь на кэш
+      // Это гарантирует, что контекст соответствует текущей цитате
       final context = await _quoteService.getQuoteContext(widget.dailyQuote.quote);
       if (context != null) {
-        await _cache.cacheQuoteContext(context);
-        setState(() {
-          _context = context;
-          _isLoading = false;
-        });
-        _animationController.forward();
+        // Дополнительная проверка: убеждаемся, что контекст соответствует цитате
+        if (_validateContext(context)) {
+          // Кэшируем новый контекст
+          await _cache.cacheQuoteContext(context);
+          setState(() {
+            _context = context;
+            _isLoading = false;
+          });
+          _animationController.forward();
+        } else {
+          setState(() {
+            _error = 'Контекст не соответствует цитате. Попробуйте еще раз.';
+            _isLoading = false;
+          });
+        }
       } else {
         setState(() {
           _error = 'Контекст не найден. Возможно, текст был изменен или поврежден.';
@@ -156,6 +158,35 @@ class _ContextPageState extends State<ContextPage>
         _isLoading = false;
       });
     }
+  }
+
+  /// Проверяет, что контекст соответствует цитате
+  bool _validateContext(QuoteContext context) {
+    final quote = widget.dailyQuote.quote;
+    
+    // Проверяем, что ID цитаты совпадает
+    if (context.quote.id != quote.id) {
+      print('❌ Несоответствие ID цитаты: ${context.quote.id} != ${quote.id}');
+      return false;
+    }
+    
+    // Проверяем, что автор и источник совпадают
+    if (context.quote.author != quote.author || context.quote.source != quote.source) {
+      print('❌ Несоответствие автора/источника: ${context.quote.author} - ${context.quote.source} != ${quote.author} - ${quote.source}');
+      return false;
+    }
+    
+    // Проверяем, что текст цитаты содержится в контексте
+    final contextText = context.contextText.toLowerCase();
+    final quoteText = quote.text.toLowerCase();
+    
+    if (!contextText.contains(quoteText.substring(0, min(30, quoteText.length)))) {
+      print('❌ Текст цитаты не найден в контексте');
+      return false;
+    }
+    
+    print('✅ Контекст прошел валидацию');
+    return true;
   }
 
   void _goBack() {

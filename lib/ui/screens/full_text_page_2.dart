@@ -999,7 +999,8 @@ class _FullTextPage2State extends State<FullTextPage2>
     });
 
     try {
-      // ОСОБАЯ ОБРАБОТКА ДЛЯ СЕВЕРНЫХ ЦИТАТ
+      // ВСЕГДА ищем источник заново, не полагаясь на кэш
+      // Это гарантирует, что загружается правильная книга
       BookSource? source;
       
       if (widget.context.quote.category == 'nordic') {
@@ -1024,6 +1025,11 @@ class _FullTextPage2State extends State<FullTextPage2>
       
       if (source == null) {
         throw Exception('Источник книги не найден для: ${widget.context.quote.author} - ${widget.context.quote.source}');
+      }
+
+      // Дополнительная проверка: убеждаемся, что найденный источник соответствует цитате
+      if (!_validateBookSource(source)) {
+        throw Exception('Найденный источник не соответствует цитате: ${source.title}');
       }
 
       _logger.info('Найден источник: ${source.title} - ${source.cleanedFilePath}');
@@ -1062,6 +1068,32 @@ class _FullTextPage2State extends State<FullTextPage2>
         _isLoading = false;
       });
     }
+  }
+
+  /// Проверяет, что найденный источник книги соответствует цитате
+  bool _validateBookSource(BookSource source) {
+    final quote = widget.context.quote;
+    
+    // Проверяем, что автор совпадает
+    if (source.author != quote.author) {
+      _logger.error('Несоответствие автора: ${source.author} != ${quote.author}');
+      return false;
+    }
+    
+    // Проверяем, что название книги совпадает
+    if (source.title != quote.source) {
+      _logger.error('Несоответствие названия: ${source.title} != ${quote.source}');
+      return false;
+    }
+    
+    // Проверяем, что категория совпадает
+    if (source.category != quote.category) {
+      _logger.error('Несоответствие категории: ${source.category} != ${quote.category}');
+      return false;
+    }
+    
+    _logger.info('✅ Источник книги прошел валидацию');
+    return true;
   }
 
   void _parseText() {

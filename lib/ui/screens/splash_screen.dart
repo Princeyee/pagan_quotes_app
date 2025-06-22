@@ -114,6 +114,11 @@ if (!_soundManager.isMuted) {
         return;
       }
       
+      // Очищаем кэш контекстов перед генерацией новой цитаты
+      // Это предотвращает проблемы с несоответствием контекста и цитаты
+      await cache.clearAllQuoteContexts();
+      print('🧹 Очищен кэш контекстов для предотвращения несоответствий');
+      
       final dailyQuote = await quoteService.generateDailyQuote();
       if (dailyQuote != null) {
         await cache.cacheDailyQuote(dailyQuote);
