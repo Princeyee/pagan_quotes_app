@@ -1,6 +1,7 @@
- // lib/ui/screens/full_text_page_2.dart
+// lib/ui/screens/full_text_page_2.dart
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'dart:math';
 import '../../models/quote_context.dart';
 import '../../models/book_source.dart';
 import '../../models/reading_theme.dart';
@@ -1124,20 +1125,78 @@ class _FullTextPage2State extends State<FullTextPage2>
     final contextEndPos = widget.context.endPosition;
     _logger.info('Ищем цитату на позиции: $quotePosition');
     _logger.info('Контекст: $contextStartPos - $contextEndPos');
+    
+    // Сначала ищем точное совпадение позиции
     for (int i = 0; i < _paragraphs.length; i++) {
       final para = _paragraphs[i];
       if (para.position == quotePosition) {
         _targetParagraphIndex = i;
         para.isQuote = true;
-        _logger.info('Найдена цитата на индексе: $i');
+        _logger.info('Найдена цитата на индексе: $i (позиция: ${para.position})');
+        break;
       }
+    }
+    
+    // Если точное совпадение не найдено, ищем по тексту цитаты
+    if (_targetParagraphIndex == null) {
+      _logger.info('Точное совпадение позиции не найдено, ищем по тексту цитаты...');
+      final quoteText = widget.context.quote.text.toLowerCase().trim();
+      
+      for (int i = 0; i < _paragraphs.length; i++) {
+        final para = _paragraphs[i];
+        final paraText = para.content.toLowerCase().trim();
+        
+        // Проверяем точное совпадение
+        if (paraText == quoteText) {
+          _targetParagraphIndex = i;
+          para.isQuote = true;
+          _logger.info('Найдена цитата по тексту на индексе: $i (позиция: ${para.position})');
+          break;
+        }
+        
+        // Проверяем частичное совпадение
+        if (paraText.contains(quoteText) || quoteText.contains(paraText)) {
+          _targetParagraphIndex = i;
+          para.isQuote = true;
+          _logger.info('Найдена цитата по частичному совпадению на индексе: $i (позиция: ${para.position})');
+          break;
+        }
+      }
+    }
+    
+    // Если цитата все еще не найдена, используем позицию из контекста
+    if (_targetParagraphIndex == null) {
+      _logger.info('Цитата не найдена, используем позицию из контекста...');
+      for (int i = 0; i < _paragraphs.length; i++) {
+        final para = _paragraphs[i];
+        if (para.position >= contextStartPos && para.position <= contextEndPos) {
+          _targetParagraphIndex = i;
+          para.isQuote = true;
+          _logger.info('Найдена цитата по контексту на индексе: $i (позиция: ${para.position})');
+          break;
+        }
+      }
+    }
+    
+    // Отмечаем контекст
+    for (int i = 0; i < _paragraphs.length; i++) {
+      final para = _paragraphs[i];
       if (para.position >= contextStartPos && para.position <= contextEndPos) {
         para.isContext = true;
         _contextIndices.add(i);
       }
     }
+    
     _logger.info('Найден контекст: ${_contextIndices.length} параграфов');
     _logger.info('Индекс цитаты: $_targetParagraphIndex');
+    
+    // Дополнительная проверка
+    if (_targetParagraphIndex != null) {
+      final targetPara = _paragraphs[_targetParagraphIndex!];
+      _logger.info('Цитата найдена: "${targetPara.content.substring(0, min(50, targetPara.content.length))}..."');
+    } else {
+      _logger.warning('Цитата не найдена!');
+    }
   }
 
   void _scrollToQuote() async {

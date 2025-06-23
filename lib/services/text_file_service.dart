@@ -598,25 +598,30 @@ class TextFileService {
       }
     }
     
-    // Если точное совпадение не найдено, используем ближайший абзац
+    // Если точное совпадение не найдено, используем более умный поиск
     if (centerIndex == -1) {
       debugPrint('!!! SACRAL_APP: EXACT POSITION NOT FOUND, FINDING CLOSEST');
       
-     // Находим ближайшую позицию
-// Находим ближайшую позицию
-int closestIndex = 0;
-int minDiff = ((paragraphs[0]['position'] as int) - centerPosition).abs();
-
-for (int i = 1; i < paragraphs.length; i++) {
-  final diff = ((paragraphs[i]['position'] as int) - centerPosition).abs();
-  if (diff < minDiff) {
-    minDiff = diff;
-    closestIndex = i;
-  }
-}
+      // Находим ближайшую позицию, но с более строгими критериями
+      int closestIndex = 0;
+      int minDiff = ((paragraphs[0]['position'] as int) - centerPosition).abs();
+      
+      for (int i = 1; i < paragraphs.length; i++) {
+        final diff = ((paragraphs[i]['position'] as int) - centerPosition).abs();
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIndex = i;
+        }
+      }
+      
+      // Если разница слишком большая, не используем приблизительный поиск
+      if (minDiff > 100) {
+        debugPrint('!!! SACRAL_APP: DIFFERENCE TOO LARGE ($minDiff), RETURNING EMPTY');
+        return [];
+      }
       
       centerIndex = closestIndex;
-      debugPrint('!!! SACRAL_APP: USING CLOSEST POSITION: ${paragraphs[centerIndex]['position']}');
+      debugPrint('!!! SACRAL_APP: USING CLOSEST POSITION: ${paragraphs[centerIndex]['position']} (diff: $minDiff)');
     }
     
     // Определяем границы контекста
@@ -626,6 +631,7 @@ for (int i = 1; i < paragraphs.length; i++) {
     final context = paragraphs.sublist(startIndex, endIndex);
     debugPrint('!!! SACRAL_APP: CONTEXT FOUND: ${context.length} PARAGRAPHS');
     debugPrint('!!! SACRAL_APP: START INDEX: $startIndex, END INDEX: $endIndex, CENTER INDEX: $centerIndex');
+    debugPrint('!!! SACRAL_APP: CENTER POSITION: ${paragraphs[centerIndex]['position']}');
     
     return context;
   }

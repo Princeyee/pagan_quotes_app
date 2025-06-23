@@ -352,13 +352,53 @@ class QuoteExtractionService {
         print('🔍 Пытаемся найти цитату по тексту...');
         final paragraphs = _textService.extractParagraphsWithPositions(cleanedText);
 
+        // Сначала ищем точное совпадение
+        for (final para in paragraphs) {
+          final content = para['content'] as String;
+          final position = para['position'] as int;
+
+          // Проверяем точное совпадение текста цитаты
+          if (content.toLowerCase().trim() == quote.text.toLowerCase().trim()) {
+            print('✅ Найдена точная цитата по тексту на позиции: $position');
+
+            // Получаем контекст для найденной позиции
+            final foundContextParagraphs = _textService.getContextAroundPosition(
+              cleanedText, 
+              position,
+              contextSize: 1, // Уменьшаем с 5 до 1 параграфа до и после
+            );
+
+            if (foundContextParagraphs.isNotEmpty) {
+              final contextText = foundContextParagraphs
+                  .map((p) => p['content'] as String)
+                  .join('\n\n');
+
+              final startPosition = foundContextParagraphs.first['position'] as int;
+              final endPosition = foundContextParagraphs.last['position'] as int;
+
+              return QuoteContext(
+                quote: quote,
+                contextText: contextText,
+                startPosition: startPosition,
+                endPosition: endPosition,
+                contextParagraphs: foundContextParagraphs
+                    .map((p) => p['content'] as String)
+                    .toList(),
+              );
+            }
+          }
+        }
+
+        // Если точное совпадение не найдено, ищем частичное совпадение
         for (final para in paragraphs) {
           final content = para['content'] as String;
           final position = para['position'] as int;
 
           // Проверяем, содержится ли текст цитаты в этом параграфе
-          if (content.toLowerCase().contains(quote.text.toLowerCase().substring(0, min(30, quote.text.length)))) {
-            print('✅ Найдена цитата по тексту на позиции: $position');
+          // Используем более длинный фрагмент для поиска
+          final searchText = quote.text.toLowerCase().substring(0, min(50, quote.text.length));
+          if (content.toLowerCase().contains(searchText)) {
+            print('✅ Найдена цитата по частичному совпадению на позиции: $position');
 
             // Получаем контекст для найденной позиции
             final foundContextParagraphs = _textService.getContextAroundPosition(
